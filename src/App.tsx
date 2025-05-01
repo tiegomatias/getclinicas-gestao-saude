@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Index from "./pages/Index";
 import Patients from "./pages/Patients";
 import Beds from "./pages/Beds";
+import Medications from "./pages/Medications";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pacientes" element={<Patients />} />
             <Route path="/leitos" element={<Beds />} />
+            <Route path="/medicamentos" element={<Medications />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

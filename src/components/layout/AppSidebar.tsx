@@ -34,7 +34,7 @@ export default function AppSidebar() {
   const menuItems = [
     {
       title: "Dashboard",
-      path: "/",
+      path: "/dashboard",
       icon: Home,
     },
     {
@@ -101,7 +101,7 @@ export default function AppSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild active={location.pathname === item.path}>
+                  <SidebarMenuButton asChild isActive={location.pathname === item.path}>
                     <Link to={item.path} className={cn(
                       "flex items-center gap-3",
                       location.pathname === item.path ? "font-medium" : ""
