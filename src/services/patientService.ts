@@ -51,9 +51,21 @@ export const patientService = {
       patientData.status = 'active';
     }
     
+    // Criar um objeto que satisfaz os requisitos de tipo do Supabase
+    const patientToInsert = {
+      name: patientData.name,
+      admission_type: patientData.admission_type,
+      clinic_id: patientData.clinic_id,
+      admission_date: patientData.admission_date,
+      emergency_contact: patientData.emergency_contact,
+      medical_record: patientData.medical_record,
+      phone: patientData.phone,
+      status: patientData.status,
+    };
+    
     const { data, error } = await supabase
       .from('patients')
-      .insert(patientData)
+      .insert(patientToInsert)
       .select();
       
     if (error) {

@@ -51,9 +51,20 @@ export const professionalService = {
       professionalData.status = 'active';
     }
     
+    // Criar um objeto que satisfaz os requisitos de tipo do Supabase
+    const professionalToInsert = {
+      name: professionalData.name,
+      profession: professionalData.profession,
+      clinic_id: professionalData.clinic_id,
+      license: professionalData.license,
+      email: professionalData.email,
+      phone: professionalData.phone,
+      status: professionalData.status
+    };
+    
     const { data, error } = await supabase
       .from('professionals')
-      .insert(professionalData)
+      .insert(professionalToInsert)
       .select();
       
     if (error) {
