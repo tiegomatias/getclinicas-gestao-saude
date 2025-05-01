@@ -24,13 +24,13 @@ export const clinicService = {
       admin_name: '', // We'll need to fetch this separately if needed
       admin_email: item.admin_email,
       plan: item.plan || '',
-      beds_capacity: 30, // Default value
-      occupied_beds: 0,
-      available_beds: 30,
-      maintenance_beds: 0,
+      beds_capacity: item.beds_capacity || 30,
+      occupied_beds: item.occupied_beds || 0,
+      available_beds: item.available_beds || 30,
+      maintenance_beds: item.maintenance_beds || 0,
       created_at: item.created_at || '',
-      has_beds_data: false,
-      has_initial_data: false
+      has_beds_data: item.has_beds_data || false,
+      has_initial_data: item.has_initial_data || false
     })) || [];
     
     // Store in localStorage for offline access
@@ -61,13 +61,13 @@ export const clinicService = {
       admin_name: '', // We'll need to fetch this separately if needed
       admin_email: data.admin_email,
       plan: data.plan || '',
-      beds_capacity: 30, // Default value
-      occupied_beds: 0,
-      available_beds: 30,
-      maintenance_beds: 0,
+      beds_capacity: data.beds_capacity || 30,
+      occupied_beds: data.occupied_beds || 0,
+      available_beds: data.available_beds || 30,
+      maintenance_beds: data.maintenance_beds || 0,
       created_at: data.created_at || '',
-      has_beds_data: false,
-      has_initial_data: false
+      has_beds_data: data.has_beds_data || false,
+      has_initial_data: data.has_initial_data || false
     };
   },
   
@@ -100,7 +100,13 @@ export const clinicService = {
       name: clinicData.clinic_name || '',
       admin_email: clinicData.admin_email || '',
       admin_id: '', // This should be set to the current user ID
-      plan: clinicData.plan || 'basic'
+      plan: clinicData.plan || 'basic',
+      beds_capacity: clinicData.beds_capacity || 30,
+      occupied_beds: 0,
+      available_beds: clinicData.beds_capacity || 30,
+      maintenance_beds: 0,
+      has_beds_data: false,
+      has_initial_data: false
     };
     
     const { data, error } = await supabase
@@ -124,13 +130,13 @@ export const clinicService = {
       admin_name: '', // We'll need to fetch this separately if needed
       admin_email: data[0].admin_email,
       plan: data[0].plan || '',
-      beds_capacity: 30,
-      occupied_beds: 0,
-      available_beds: 30,
-      maintenance_beds: 0,
+      beds_capacity: data[0].beds_capacity || 30,
+      occupied_beds: data[0].occupied_beds || 0,
+      available_beds: data[0].available_beds || 30,
+      maintenance_beds: data[0].maintenance_beds || 0,
       created_at: data[0].created_at || '',
-      has_beds_data: false,
-      has_initial_data: false
+      has_beds_data: data[0].has_beds_data || false,
+      has_initial_data: data[0].has_initial_data || false
     };
   },
   
@@ -142,6 +148,9 @@ export const clinicService = {
     if (clinicData.clinic_name !== undefined) dbClinicData.name = clinicData.clinic_name;
     if (clinicData.admin_email !== undefined) dbClinicData.admin_email = clinicData.admin_email;
     if (clinicData.plan !== undefined) dbClinicData.plan = clinicData.plan;
+    if (clinicData.beds_capacity !== undefined) dbClinicData.beds_capacity = clinicData.beds_capacity;
+    if (clinicData.has_beds_data !== undefined) dbClinicData.has_beds_data = clinicData.has_beds_data;
+    if (clinicData.has_initial_data !== undefined) dbClinicData.has_initial_data = clinicData.has_initial_data;
     
     const { data, error } = await supabase
       .from('clinics')
@@ -165,13 +174,13 @@ export const clinicService = {
       admin_name: '', // We'll need to fetch this separately if needed
       admin_email: data[0].admin_email,
       plan: data[0].plan || '',
-      beds_capacity: 30,
-      occupied_beds: 0,
-      available_beds: 30,
-      maintenance_beds: 0,
+      beds_capacity: data[0].beds_capacity || 30,
+      occupied_beds: data[0].occupied_beds || 0,
+      available_beds: data[0].available_beds || 30,
+      maintenance_beds: data[0].maintenance_beds || 0,
       created_at: data[0].created_at || '',
-      has_beds_data: false,
-      has_initial_data: false
+      has_beds_data: data[0].has_beds_data || false,
+      has_initial_data: data[0].has_initial_data || false
     };
   },
   
@@ -190,40 +199,42 @@ export const clinicService = {
   
   // Atualizar dados de ocupação de leitos
   async updateBedOccupation(id: string, occupiedBeds: number, availableBeds: number, maintenanceBeds: number): Promise<Clinic> {
-    // Instead of trying to update the clinics table directly with occupied_beds and other fields,
-    // we'll create or update entries in the beds table to reflect the current state
-    // First fetch the current clinic
-    const clinicResult = await this.getClinicById(id);
-    
-    if (!clinicResult) {
-      throw new Error(`Clinic with ID ${id} not found`);
+    // Agora podemos atualizar diretamente na tabela de clínicas
+    const { data, error } = await supabase
+      .from('clinics')
+      .update({
+        occupied_beds: occupiedBeds,
+        available_beds: availableBeds,
+        maintenance_beds: maintenanceBeds,
+        has_beds_data: true
+      })
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error(`Erro ao atualizar ocupação de leitos para clínica ${id}:`, error);
+      throw error;
     }
     
-    // We'll update our local representation of the clinic with the bed data
-    const updatedClinic: Clinic = {
-      ...clinicResult,
-      occupied_beds: occupiedBeds,
-      available_beds: availableBeds,
-      maintenance_beds: maintenanceBeds,
-      has_beds_data: true
+    if (!data || data.length === 0) {
+      throw new Error("No data returned after updating bed occupation");
+    }
+    
+    // Transform back to our Clinic type
+    return {
+      id: data[0].id,
+      clinic_name: data[0].name,
+      admin_name: '', // We'll need to fetch this separately if needed
+      admin_email: data[0].admin_email,
+      plan: data[0].plan || '',
+      beds_capacity: data[0].beds_capacity || 30,
+      occupied_beds: data[0].occupied_beds,
+      available_beds: data[0].available_beds,
+      maintenance_beds: data[0].maintenance_beds,
+      created_at: data[0].created_at || '',
+      has_beds_data: data[0].has_beds_data,
+      has_initial_data: data[0].has_initial_data || false
     };
-    
-    // Store in localStorage as well for offline access
-    // Merge with existing clinics in localStorage if available
-    const allClinicsStr = localStorage.getItem("allClinics");
-    if (allClinicsStr) {
-      try {
-        const allClinics: Clinic[] = JSON.parse(allClinicsStr);
-        const updatedClinics = allClinics.map(clinic => 
-          clinic.id === id ? updatedClinic : clinic
-        );
-        localStorage.setItem("allClinics", JSON.stringify(updatedClinics));
-      } catch (error) {
-        console.error("Error updating localStorage:", error);
-      }
-    }
-    
-    return updatedClinic;
   },
   
   // Adicionar função para associar um usuário a uma clínica

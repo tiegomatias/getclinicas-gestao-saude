@@ -52,6 +52,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "activities_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+          {
             foreignKeyName: "activities_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
@@ -149,6 +156,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "admissions_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+          {
             foreignKeyName: "admissions_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -194,6 +208,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "beds_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+          {
             foreignKeyName: "beds_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -232,6 +253,13 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "clinic_users_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
         ]
       }
       clinics: {
@@ -239,10 +267,16 @@ export type Database = {
           address: string | null
           admin_email: string
           admin_id: string
+          available_beds: number | null
+          beds_capacity: number | null
           created_at: string | null
+          has_beds_data: boolean | null
+          has_initial_data: boolean | null
           id: string
+          maintenance_beds: number | null
           monthly_fee: number | null
           name: string
+          occupied_beds: number | null
           phone: string | null
           plan: string | null
           updated_at: string | null
@@ -251,10 +285,16 @@ export type Database = {
           address?: string | null
           admin_email: string
           admin_id: string
+          available_beds?: number | null
+          beds_capacity?: number | null
           created_at?: string | null
+          has_beds_data?: boolean | null
+          has_initial_data?: boolean | null
           id?: string
+          maintenance_beds?: number | null
           monthly_fee?: number | null
           name: string
+          occupied_beds?: number | null
           phone?: string | null
           plan?: string | null
           updated_at?: string | null
@@ -263,10 +303,16 @@ export type Database = {
           address?: string | null
           admin_email?: string
           admin_id?: string
+          available_beds?: number | null
+          beds_capacity?: number | null
           created_at?: string | null
+          has_beds_data?: boolean | null
+          has_initial_data?: boolean | null
           id?: string
+          maintenance_beds?: number | null
           monthly_fee?: number | null
           name?: string
+          occupied_beds?: number | null
           phone?: string | null
           plan?: string | null
           updated_at?: string | null
@@ -322,6 +368,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contracts_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+          {
             foreignKeyName: "contracts_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -368,6 +421,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clinics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
           },
           {
             foreignKeyName: "documents_patient_id_fkey"
@@ -423,6 +483,13 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "finances_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
         ]
       }
       medications: {
@@ -472,6 +539,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clinics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medications_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
           },
           {
             foreignKeyName: "medications_patient_id_fkey"
@@ -527,6 +601,13 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "patients_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
         ]
       }
       professionals: {
@@ -570,6 +651,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clinics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professionals_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
           },
         ]
       }
@@ -617,7 +705,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_bed_occupation: {
+        Row: {
+          available_beds: number | null
+          beds_capacity: number | null
+          clinic_id: string | null
+          clinic_name: string | null
+          has_beds_data: boolean | null
+          maintenance_beds: number | null
+          occupation_percentage: number | null
+          occupied_beds: number | null
+        }
+        Insert: {
+          available_beds?: number | null
+          beds_capacity?: number | null
+          clinic_id?: string | null
+          clinic_name?: string | null
+          has_beds_data?: boolean | null
+          maintenance_beds?: number | null
+          occupation_percentage?: never
+          occupied_beds?: number | null
+        }
+        Update: {
+          available_beds?: number | null
+          beds_capacity?: number | null
+          clinic_id?: string | null
+          clinic_name?: string | null
+          has_beds_data?: boolean | null
+          maintenance_beds?: number | null
+          occupation_percentage?: never
+          occupied_beds?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -626,6 +746,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      recalculate_bed_counters: {
+        Args: { clinic_uuid: string }
+        Returns: undefined
       }
     }
     Enums: {
