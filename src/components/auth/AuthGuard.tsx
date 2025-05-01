@@ -10,14 +10,21 @@ interface AuthGuardProps {
 const AuthGuard = ({ children }: AuthGuardProps) => {
   const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
   const currentClinicId = localStorage.getItem("currentClinicId");
+  const isMasterAdmin = localStorage.getItem("isMasterAdmin") === "true";
   const location = useLocation();
 
-  // Make sure both authentication and clinic ID are present
+  // Master admin paths don't require clinic ID
+  const isMasterAdminPath = location.pathname === "/master" || location.pathname.startsWith("/master/");
+
+  // For master admin paths, we only need isAuthenticated and isMasterAdmin
+  const canAccessMasterAdmin = isAuthenticated && isMasterAdmin && isMasterAdminPath;
+  
+  // For clinic paths, we need both authentication and clinic ID
   const isFullyAuthenticated = isAuthenticated && currentClinicId;
 
   useEffect(() => {
-    // Check if clinic data exists for the current ID
-    if (isFullyAuthenticated) {
+    // Only check clinic data if we're not on a master admin path
+    if (isFullyAuthenticated && !isMasterAdminPath) {
       const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
       const clinicExists = allClinics.some((clinic: any) => clinic.id === currentClinicId);
       
@@ -35,16 +42,21 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
         }
       }
     }
-  }, [isFullyAuthenticated, currentClinicId]);
+  }, [isFullyAuthenticated, currentClinicId, isMasterAdminPath]);
+
+  // If trying to access master admin path without proper credentials
+  if (isMasterAdminPath && !canAccessMasterAdmin) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
   // If not authenticated and not already on login page, redirect to login
-  if (!isFullyAuthenticated && location.pathname !== "/login") {
+  if (!isFullyAuthenticated && !canAccessMasterAdmin && location.pathname !== "/login") {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // If authenticated and trying to access login page, redirect to dashboard
-  if (isFullyAuthenticated && location.pathname === "/login") {
-    return <Navigate to="/dashboard" replace />;
+  if ((isFullyAuthenticated || canAccessMasterAdmin) && location.pathname === "/login") {
+    return <Navigate to={isMasterAdmin ? "/master" : "/dashboard"} replace />;
   }
 
   return <>{children}</>;
