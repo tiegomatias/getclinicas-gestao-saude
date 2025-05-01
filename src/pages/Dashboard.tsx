@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Bed, CalendarIcon, DollarSign, UserIcon, Users } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
 import OccupationChart from "@/components/dashboard/OccupationChart";
@@ -9,11 +8,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+interface ClinicData {
+  clinicName: string;
+  id: string;
+  plan: string;
+  createdAt: string;
+  // Add other properties as needed
+}
+
 export default function Dashboard() {
+  const [clinicData, setClinicData] = useState<ClinicData | null>(null);
+  
+  useEffect(() => {
+    // Fetch clinic data from localStorage
+    const clinicDataStr = localStorage.getItem("clinicData");
+    if (clinicDataStr) {
+      const clinic = JSON.parse(clinicDataStr);
+      setClinicData(clinic);
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Bem-vindo ao GetClinicas</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {clinicData ? `Bem-vindo à ${clinicData.clinicName}` : "Bem-vindo ao GetClinicas"}
+        </h1>
         <div className="flex flex-wrap gap-2">
           <Select defaultValue="current">
             <SelectTrigger className="w-[180px]">
@@ -32,6 +52,29 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
+
+      {clinicData && (
+        <div className="mb-6 bg-blue-50 p-4 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Building className="h-5 w-5 text-blue-500" />
+            <h2 className="font-medium text-blue-700">Informações da clínica</h2>
+          </div>
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-blue-600">Plano</p>
+              <p className="font-medium">{clinicData.plan}</p>
+            </div>
+            <div>
+              <p className="text-sm text-blue-600">Data de registro</p>
+              <p className="font-medium">{new Date(clinicData.createdAt).toLocaleDateString('pt-BR')}</p>
+            </div>
+            <div>
+              <p className="text-sm text-blue-600">ID da Clínica</p>
+              <p className="font-medium text-xs">{clinicData.id}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard

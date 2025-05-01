@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -14,7 +15,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Building, ShieldCheck, UserPlus, Check, Info } from "lucide-react";
@@ -108,10 +108,24 @@ const Registration = () => {
   const onSubmit = (data: FormData) => {
     setIsSubmitting(true);
     
+    // Create a clinic object with all the registration data
+    const clinicData = {
+      ...data,
+      id: crypto.randomUUID(),
+      plan: selectedPlan,
+      createdAt: new Date().toISOString(),
+      active: true
+    };
+    
     // Simulate API call to register clinic
     setTimeout(() => {
       console.log("Form data:", data);
       console.log("Selected plan:", selectedPlan);
+      
+      // Store clinic data in localStorage (in a real app this would be stored in a database)
+      localStorage.setItem("clinicData", JSON.stringify(clinicData));
+      localStorage.setItem("currentClinicId", clinicData.id);
+      localStorage.setItem("isAuthenticated", "true");
       
       toast.success("Cadastro realizado com sucesso! Bem-vindo ao GetClinics.");
       // Redirect to dashboard after successful registration
