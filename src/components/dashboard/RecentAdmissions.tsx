@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -7,56 +6,18 @@ import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-const admissions = [
-  {
-    id: 1,
-    name: "Ricardo Santos",
-    admission: "Voluntária",
-    date: "01/06/2025",
-    assignedTo: "Dr. Ana Silva",
-    status: "ativo",
-  },
-  {
-    id: 2,
-    name: "Márcia Oliveira",
-    admission: "Involuntária",
-    date: "30/05/2025",
-    assignedTo: "Dr. Paulo Costa",
-    status: "ativo",
-  },
-  {
-    id: 3,
-    name: "João Ferreira",
-    admission: "Compulsória",
-    date: "28/05/2025",
-    assignedTo: "Dr. Ana Silva",
-    status: "ativo",
-  },
-  {
-    id: 4,
-    name: "Carla Mendes",
-    admission: "Voluntária",
-    date: "25/05/2025",
-    assignedTo: "Dr. Carlos Mendes",
-    status: "alta",
-  }
-];
-
 export default function RecentAdmissions() {
   const navigate = useNavigate();
   
   // Check if clinic is newly registered
   const isNewClinic = () => {
     const clinicDataStr = localStorage.getItem("clinicData");
-    if (!clinicDataStr) return false;
+    if (!clinicDataStr) return true; // Default to true if no data
     
     const clinic = JSON.parse(clinicDataStr);
-    const createdAt = new Date(clinic.createdAt);
-    const now = new Date();
-    const timeDiff = now.getTime() - createdAt.getTime();
-    const minutesDiff = Math.floor(timeDiff / 60000);
     
-    return minutesDiff < 10; // Consider "new" if registered less than 10 minutes ago
+    // Consider as new if there's no hasInitialData flag set to true
+    return !clinic.hasInitialData;
   };
 
   const handleNavigateToPacientes = () => {
