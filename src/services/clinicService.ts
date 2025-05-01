@@ -1,6 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Clinic } from "@/lib/types";
+
+type ClinicDataType = 'beds' | 'patients' | 'professionals' | 'activities' | 'documents' | 'contracts' | 'finances' | 'medications';
 
 export const clinicService = {
   // Buscar todas as clínicas
@@ -186,6 +187,28 @@ export const clinicService = {
     if (error) {
       console.error(`Erro ao adicionar usuário ${userId} à clínica ${clinicId}:`, error);
       throw error;
+    }
+  },
+
+  // Verificar se uma clínica já possui dados
+  async hasClinicData(id: string, dataType: ClinicDataType): Promise<boolean> {
+    try {
+      // Agora que as tabelas existem, podemos verificar diretamente
+      const { data, error } = await supabase
+        .from(dataType)
+        .select('id')
+        .eq('clinic_id', id)
+        .limit(1);
+        
+      if (error) {
+        console.error(`Erro ao verificar dados de ${dataType} para clínica ${id}:`, error);
+        return false;
+      }
+      
+      return data && data.length > 0;
+    } catch (error) {
+      console.error(`Erro ao verificar dados de ${dataType}:`, error);
+      return false;
     }
   }
 };

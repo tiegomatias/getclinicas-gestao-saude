@@ -37,6 +37,20 @@ export const patientService = {
   
   // Criar um novo paciente
   async createPatient(patientData: Partial<Patient>): Promise<Patient> {
+    // Garantir que os campos obrigatórios estejam presentes
+    if (!patientData.name) {
+      throw new Error("O nome do paciente é obrigatório");
+    }
+    
+    if (!patientData.admission_type) {
+      throw new Error("O tipo de admissão é obrigatório");
+    }
+    
+    // Definir status padrão se não for fornecido
+    if (!patientData.status) {
+      patientData.status = 'active';
+    }
+    
     const { data, error } = await supabase
       .from('patients')
       .insert([patientData])

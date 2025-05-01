@@ -3,31 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Clinic } from "@/lib/types";
 import { clinicService } from "./clinicService";
 
-type ClinicDataType = 'beds' | 'patients' | 'professionals' | 'activities' | 'documents' | 'contracts' | 'finances' | 'medications';
-
 export const bedService = {
-  // Verificar se uma clínica já possui dados
-  async hasClinicData(id: string, dataType: ClinicDataType): Promise<boolean> {
-    try {
-      // Agora que as tabelas existem, podemos verificar diretamente
-      const { data, error } = await supabase
-        .from(dataType)
-        .select('id')
-        .eq('clinic_id', id)
-        .limit(1);
-        
-      if (error) {
-        console.error(`Erro ao verificar dados de ${dataType} para clínica ${id}:`, error);
-        return false;
-      }
-      
-      return data && data.length > 0;
-    } catch (error) {
-      console.error(`Erro ao verificar dados de ${dataType}:`, error);
-      return false;
-    }
-  },
-  
   // Atualizar dados de ocupação de leitos
   async updateBedOccupation(id: string, occupiedBeds: number, availableBeds: number, maintenanceBeds: number): Promise<Clinic> {
     // Agora podemos atualizar diretamente na tabela de clínicas

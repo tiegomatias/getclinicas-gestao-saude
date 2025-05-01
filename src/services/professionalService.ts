@@ -37,6 +37,20 @@ export const professionalService = {
   
   // Criar um novo profissional
   async createProfessional(professionalData: Partial<Professional>): Promise<Professional> {
+    // Garantir que os campos obrigatórios estejam presentes
+    if (!professionalData.name) {
+      throw new Error("O nome do profissional é obrigatório");
+    }
+    
+    if (!professionalData.profession) {
+      throw new Error("A profissão é obrigatória");
+    }
+    
+    // Definir status padrão se não for fornecido
+    if (!professionalData.status) {
+      professionalData.status = 'active';
+    }
+    
     const { data, error } = await supabase
       .from('professionals')
       .insert([professionalData])
