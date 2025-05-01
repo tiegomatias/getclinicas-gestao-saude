@@ -8,17 +8,22 @@ import WeeklyActivities from "@/components/dashboard/WeeklyActivities";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface ClinicData {
   clinicName: string;
   id: string;
   plan: string;
   createdAt: string;
+  bedsCapacity?: string;
   // Add other properties as needed
 }
 
 export default function Dashboard() {
   const [clinicData, setClinicData] = useState<ClinicData | null>(null);
+  const [isNewClinic, setIsNewClinic] = useState(false);
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Fetch clinic data from localStorage
@@ -26,8 +31,26 @@ export default function Dashboard() {
     if (clinicDataStr) {
       const clinic = JSON.parse(clinicDataStr);
       setClinicData(clinic);
+      
+      // Check if the clinic was recently created (within the last 10 minutes)
+      const createdAt = new Date(clinic.createdAt);
+      const now = new Date();
+      const timeDiff = now.getTime() - createdAt.getTime();
+      const minutesDiff = Math.floor(timeDiff / 60000);
+      
+      if (minutesDiff < 10) {
+        setIsNewClinic(true);
+        // Show a welcome toast
+        setTimeout(() => {
+          toast.success(`Bem-vindo à ${clinic.clinicName}! Seu espaço está pronto para uso.`);
+        }, 1000);
+      }
     }
   }, []);
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
 
   return (
     <div className="space-y-6">
@@ -77,36 +100,78 @@ export default function Dashboard() {
         </div>
       )}
 
+      {isNewClinic && (
+        <div className="mb-6 bg-green-50 p-4 rounded-lg border border-green-200">
+          <h2 className="font-medium text-green-700 mb-2">Parabéns pelo cadastro!</h2>
+          <p className="text-green-600 mb-3">
+            Sua clínica está pronta para começar a usar o sistema. Para começar:
+          </p>
+          <div className="grid md:grid-cols-3 gap-4 mt-2">
+            <Card className="bg-white cursor-pointer hover:bg-green-50/50 transition-colors" onClick={() => handleNavigate("/pacientes")}>
+              <CardContent className="p-4 flex items-center gap-3">
+                <UserIcon className="h-5 w-5 text-green-600" />
+                <div>
+                  <h3 className="font-medium">Adicionar pacientes</h3>
+                  <p className="text-xs text-muted-foreground">Cadastre os pacientes da clínica</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white cursor-pointer hover:bg-green-50/50 transition-colors" onClick={() => handleNavigate("/leitos")}>
+              <CardContent className="p-4 flex items-center gap-3">
+                <Bed className="h-5 w-5 text-green-600" />
+                <div>
+                  <h3 className="font-medium">Configurar leitos</h3>
+                  <p className="text-xs text-muted-foreground">Organize os leitos disponíveis</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white cursor-pointer hover:bg-green-50/50 transition-colors" onClick={() => handleNavigate("/profissionais")}>
+              <CardContent className="p-4 flex items-center gap-3">
+                <Users className="h-5 w-5 text-green-600" />
+                <div>
+                  <h3 className="font-medium">Cadastrar profissionais</h3>
+                  <p className="text-xs text-muted-foreground">Adicione a equipe da clínica</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total de Pacientes"
-          value="27"
+          value={clinicData && isNewClinic ? "0" : "27"}
           icon={UserIcon}
-          description="Pacientes atualmente internados"
-          trend="up"
-          trendValue="+3 este mês"
+          description={clinicData && isNewClinic ? "Nenhum paciente cadastrado" : "Pacientes atualmente internados"}
+          trend={clinicData && isNewClinic ? undefined : "up"}
+          trendValue={clinicData && isNewClinic ? undefined : "+3 este mês"}
         />
         <StatCard
           title="Taxa de Ocupação"
-          value="82%"
+          value={clinicData && isNewClinic ? "0%" : "82%"}
           icon={Bed}
-          description="Capacidade total: 33 leitos"
-          trend="up"
-          trendValue="+5% este mês"
+          description={
+            clinicData && isNewClinic && clinicData.bedsCapacity 
+              ? `Capacidade total: ${clinicData.bedsCapacity} leitos` 
+              : "Capacidade total: 33 leitos"
+          }
+          trend={clinicData && isNewClinic ? undefined : "up"}
+          trendValue={clinicData && isNewClinic ? undefined : "+5% este mês"}
         />
         <StatCard
           title="Atividades Semanais"
-          value="18"
+          value={clinicData && isNewClinic ? "0" : "18"}
           icon={CalendarIcon}
-          description="4 atividades hoje"
+          description={clinicData && isNewClinic ? "Nenhuma atividade agendada" : "4 atividades hoje"}
         />
         <StatCard
           title="Faturamento Mensal"
-          value="R$ 156.400"
+          value={clinicData && isNewClinic ? "R$ 0" : "R$ 156.400"}
           icon={DollarSign}
-          description="Maio/2025"
-          trend="up"
-          trendValue="+12% vs. Abril"
+          description={clinicData && isNewClinic ? "Sem dados financeiros" : "Maio/2025"}
+          trend={clinicData && isNewClinic ? undefined : "up"}
+          trendValue={clinicData && isNewClinic ? undefined : "+12% vs. Abril"}
         />
       </div>
 
@@ -118,28 +183,44 @@ export default function Dashboard() {
             <CardDescription>Métricas gerais de desempenho da clínica</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Tempo médio de internação</span>
-                <span className="font-medium">42 dias</span>
+            {clinicData && isNewClinic ? (
+              <div className="py-6 text-center">
+                <p className="text-muted-foreground">
+                  Os indicadores clínicos serão exibidos quando houver dados disponíveis.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => handleNavigate("/pacientes")}
+                >
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  Adicionar pacientes
+                </Button>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Taxa de alta planejada</span>
-                <span className="font-medium">74%</span>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Tempo médio de internação</span>
+                  <span className="font-medium">42 dias</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Taxa de alta planejada</span>
+                  <span className="font-medium">74%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Taxa de reinternação (30 dias)</span>
+                  <span className="font-medium">12%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Atividades por paciente (semanal)</span>
+                  <span className="font-medium">5.3</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Atendimentos médicos semanais</span>
+                  <span className="font-medium">33</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Taxa de reinternação (30 dias)</span>
-                <span className="font-medium">12%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Atividades por paciente (semanal)</span>
-                <span className="font-medium">5.3</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Atendimentos médicos semanais</span>
-                <span className="font-medium">33</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
