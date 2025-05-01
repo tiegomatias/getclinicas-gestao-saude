@@ -1,18 +1,20 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building, Bed, BarChart2, Calendar } from "lucide-react";
+import { Building, Bed, BarChart2, Calendar, Wallet } from "lucide-react";
 
 interface MasterStatsCardsProps {
   totalClinics: number;
   totalBeds: number;
   averageOccupation: number;
+  totalRevenue?: number;
 }
 
 export const MasterStatsCards = ({
   totalClinics,
   totalBeds,
   averageOccupation,
+  totalRevenue = 0,
 }: MasterStatsCardsProps) => {
   const currentDate = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -21,7 +23,7 @@ export const MasterStatsCards = ({
   });
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       <Card>
         <CardContent className="p-4 flex items-center justify-between">
           <div>
@@ -57,6 +59,19 @@ export const MasterStatsCards = ({
           </div>
           <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center">
             <BarChart2 className="h-6 w-6 text-green-500" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4 flex items-center justify-between">
+          <div>
+            <p className="text-muted-foreground text-sm">Faturamento Mensal</p>
+            <p className="text-3xl font-bold">R$ {totalRevenue.toLocaleString('pt-BR')}</p>
+            <p className="text-xs text-muted-foreground mt-1">Assinaturas ativas</p>
+          </div>
+          <div className="h-12 w-12 bg-purple-500/10 rounded-full flex items-center justify-center">
+            <Wallet className="h-6 w-6 text-purple-500" />
           </div>
         </CardContent>
       </Card>

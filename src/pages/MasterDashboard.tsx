@@ -19,7 +19,25 @@ import {
 import { MasterStatsCards } from "@/components/master/MasterStatsCards";
 import { MasterClinicsTable } from "@/components/master/MasterClinicsTable";
 import { MasterOccupationChart } from "@/components/master/MasterOccupationChart";
+import { MasterFinanceCard } from "@/components/master/MasterFinanceCard";
 import { toast } from "sonner";
+
+// Define the plan pricing
+const PLAN_PRICING = {
+  'Básico': 299,
+  'Padrão': 499,
+  'Premium': 999,
+  'Enterprise': 1999
+};
+
+// Define plan colors for the financial charts
+const PLAN_COLORS = {
+  'Básico': '#3b82f6',
+  'Padrão': '#10b981',
+  'Premium': '#8b5cf6',
+  'Enterprise': '#f59e0b',
+  'default': '#6b7280'
+};
 
 export default function MasterDashboard() {
   const [clinics, setClinics] = useState<any[]>([]);
@@ -27,6 +45,8 @@ export default function MasterDashboard() {
   const [totalClinics, setTotalClinics] = useState(0);
   const [totalBeds, setTotalBeds] = useState(0);
   const [averageOccupation, setAverageOccupation] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [planRevenueData, setPlanRevenueData] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPlan, setFilterPlan] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -60,8 +80,48 @@ export default function MasterDashboard() {
       if (bedsCount > 0) {
         setAverageOccupation(Math.round((occupiedTotal / bedsCount) * 100));
       }
+      
+      // Calculate financial data
+      calculateFinancialData(allClinics);
     }
   }, []);
+  
+  // Calculate financial metrics
+  const calculateFinancialData = (clinicsList: any[]) => {
+    let revenue = 0;
+    const planCounts: Record<string, number> = {};
+    
+    clinicsList.forEach((clinic) => {
+      const plan = clinic.plan || 'Básico';
+      planCounts[plan] = (planCounts[plan] || 0) + 1;
+      
+      // Get the price for this plan
+      const planPrice = PLAN_PRICING[plan as keyof typeof PLAN_PRICING] || PLAN_PRICING.Básico;
+      revenue += planPrice;
+    });
+    
+    setTotalRevenue(revenue);
+    
+    // Generate plan revenue data for the chart
+    const revenueData = Object.keys(planCounts).map(plan => {
+      const count = planCounts[plan];
+      const planPrice = PLAN_PRICING[plan as keyof typeof PLAN_PRICING] || PLAN_PRICING.Básico;
+      const monthlyRevenue = count * planPrice;
+      const color = PLAN_COLORS[plan as keyof typeof PLAN_COLORS] || PLAN_COLORS.default;
+      
+      return {
+        plan,
+        count,
+        monthlyRevenue,
+        color
+      };
+    });
+    
+    // Sort by revenue (highest first)
+    revenueData.sort((a, b) => b.monthlyRevenue - a.monthlyRevenue);
+    
+    setPlanRevenueData(revenueData);
+  };
   
   useEffect(() => {
     // Apply filters whenever search query or plan filter changes
@@ -162,7 +222,8 @@ export default function MasterDashboard() {
       <MasterStatsCards 
         totalClinics={totalClinics} 
         totalBeds={totalBeds} 
-        averageOccupation={averageOccupation} 
+        averageOccupation={averageOccupation}
+        totalRevenue={totalRevenue}
       />
       
       {/* Search and filters */}
@@ -209,8 +270,12 @@ export default function MasterDashboard() {
           />
         </div>
         
-        {/* Occupation summary */}
-        <div>
+        {/* Financial overview */}
+        <div className="space-y-6">
+          <MasterFinanceCard 
+            planData={planRevenueData}
+            totalMonthlyRevenue={totalRevenue}
+          />
           <MasterOccupationChart clinics={filteredClinics} />
         </div>
       </div>
