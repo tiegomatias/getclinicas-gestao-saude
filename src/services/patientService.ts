@@ -53,7 +53,7 @@ export const patientService = {
     
     const { data, error } = await supabase
       .from('patients')
-      .insert([patientData])
+      .insert(patientData)
       .select();
       
     if (error) {

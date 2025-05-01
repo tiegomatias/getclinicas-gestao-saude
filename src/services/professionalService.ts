@@ -53,7 +53,7 @@ export const professionalService = {
     
     const { data, error } = await supabase
       .from('professionals')
-      .insert([professionalData])
+      .insert(professionalData)
       .select();
       
     if (error) {
