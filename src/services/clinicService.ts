@@ -70,7 +70,7 @@ export const clinicService = {
   },
   
   // Verificar se uma clínica já possui dados
-  async hasClinicData(id: string, dataType: string): Promise<boolean> {
+  async hasClinicData(id: string, dataType: 'beds' | 'patients' | 'professionals'): Promise<boolean> {
     try {
       const { data, error } = await supabase
         .from(dataType)

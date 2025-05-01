@@ -50,79 +50,109 @@ const App = () => {
           {/* Protected routes for master admins */}
           <Route path="/master" element={
             <AuthGuard>
-              <MasterLayout children={<MasterDashboard />} />
+              <MasterLayout>
+                <MasterDashboard />
+              </MasterLayout>
             </AuthGuard>
           } />
           <Route path="/master/clinics" element={
             <AuthGuard>
-              <MasterLayout children={<MasterClinics />} />
+              <MasterLayout>
+                <MasterClinics />
+              </MasterLayout>
             </AuthGuard>
           } />
           <Route path="/master/reports" element={
             <AuthGuard>
-              <MasterLayout children={<MasterReports />} />
+              <MasterLayout>
+                <MasterReports />
+              </MasterLayout>
             </AuthGuard>
           } />
           <Route path="/master/settings" element={
             <AuthGuard>
-              <MasterLayout children={<MasterSettings />} />
+              <MasterLayout>
+                <MasterSettings />
+              </MasterLayout>
             </AuthGuard>
           } />
 
           {/* Protected routes for clinic admins and users */}
           <Route path="/dashboard" element={
             <AuthGuard>
-              <AppLayout children={<Dashboard />} />
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/pacientes" element={
             <AuthGuard>
-              <AppLayout children={<Patients />} />
+              <AppLayout>
+                <Patients />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/profissionais" element={
             <AuthGuard>
-              <AppLayout children={<Professionals />} />
+              <AppLayout>
+                <Professionals />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/leitos" element={
             <AuthGuard>
-              <AppLayout children={<Beds />} />
+              <AppLayout>
+                <Beds />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/agenda" element={
             <AuthGuard>
-              <AppLayout children={<Calendar />} />
+              <AppLayout>
+                <Calendar />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/documentos" element={
             <AuthGuard>
-              <AppLayout children={<Documents />} />
+              <AppLayout>
+                <Documents />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/contratos" element={
             <AuthGuard>
-              <AppLayout children={<Contracts />} />
+              <AppLayout>
+                <Contracts />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/financeiro" element={
             <AuthGuard>
-              <AppLayout children={<Financeiro />} />
+              <AppLayout>
+                <Financeiro />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/relatorios" element={
             <AuthGuard>
-              <AppLayout children={<Relatorios />} />
+              <AppLayout>
+                <Relatorios />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/medicacoes" element={
             <AuthGuard>
-              <AppLayout children={<Medications />} />
+              <AppLayout>
+                <Medications />
+              </AppLayout>
             </AuthGuard>
           } />
           <Route path="/configuracoes" element={
             <AuthGuard>
-              <AppLayout children={<Configuracoes />} />
+              <AppLayout>
+                <Configuracoes />
+              </AppLayout>
             </AuthGuard>
           } />
 
