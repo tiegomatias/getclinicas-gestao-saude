@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, Search, CreditCard, Receipt } from "lucide-react";
+import { DollarSign, Search, CreditCard, Receipt, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -20,6 +20,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import StatCard from "@/components/dashboard/StatCard";
+import EmptyState from "@/components/shared/EmptyState";
+import { clinicService } from "@/services/clinicService";
 
 // Mock data for transactions
 const transactionData = [
@@ -92,12 +94,66 @@ const billsData = [
 
 export default function Financeiro() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [hasData, setHasData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkForData = async () => {
+      try {
+        // Obter o ID da clínica do localStorage
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (!clinicDataStr) {
+          setHasData(false);
+          setIsLoading(false);
+          return;
+        }
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        // Check if the clinic has financial data
+        const hasFinancialData = await clinicService.hasClinicData(clinicData.id, "finances");
+        setHasData(hasFinancialData);
+      } catch (error) {
+        console.error("Erro ao verificar dados financeiros:", error);
+        setHasData(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkForData();
+  }, []);
 
   // Stats data
   const totalMonthlyIncome = "R$ 15.800,00";
   const totalMonthlyExpense = "R$ 9.250,00";
   const monthlyBalance = "R$ 6.550,00";
   const pendingReceivables = "R$ 3.450,00";
+
+  const handleNewTransaction = () => {
+    // Logic to create a new transaction
+    // After successful creation, you would set hasData to true
+    setHasData(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Carregando...</p>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <EmptyState
+        title="Sem dados financeiros"
+        description="Você ainda não possui dados financeiros cadastrados. Adicione uma transação para começar a gerenciar suas finanças."
+        icon={<DollarSign className="h-10 w-10 text-muted-foreground" />}
+        actionText="Adicionar Transação"
+        onAction={handleNewTransaction}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -125,7 +181,7 @@ export default function Financeiro() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button>
+          <Button onClick={handleNewTransaction}>
             <Receipt className="mr-2 h-4 w-4" /> Nova Transação
           </Button>
         </div>
