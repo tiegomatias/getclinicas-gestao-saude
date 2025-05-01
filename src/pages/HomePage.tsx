@@ -28,7 +28,7 @@ const HomePage = () => {
             <Button variant="ghost" onClick={handleLogin} className="mr-2">
               Login
             </Button>
-            <Button onClick={() => navigate("/registro")}>Criar Conta</Button>
+            <Button onClick={() => navigate("/checkout")}>Escolher Plano</Button>
           </div>
         </div>
       </header>
@@ -45,10 +45,10 @@ const HomePage = () => {
             </p>
             <Button 
               size="lg" 
-              onClick={() => navigate("/registro")}
+              onClick={() => navigate("/checkout")}
               className="text-lg py-6 px-8 bg-getclinicas-primary hover:bg-getclinicas-dark"
             >
-              Experimente Grátis por 14 Dias
+              Escolher um Plano
             </Button>
           </div>
         </section>
