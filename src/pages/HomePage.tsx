@@ -2,8 +2,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, CheckIcon, DollarSign, UserIcon } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarIcon, CheckIcon, DollarSign, UserIcon, FileText, FileIcon } from "lucide-react";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -81,6 +81,212 @@ const HomePage = () => {
           </Card>
         </div>
 
+        {/* Nova seção de geração de contratos */}
+        <div className="bg-white rounded-lg shadow-lg p-8 mb-16">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 mb-6 md:mb-0 md:pr-8">
+              <h3 className="text-2xl font-bold mb-4">Geração de Contratos Simplificada</h3>
+              <p className="text-gray-600 mb-4">
+                Crie contratos profissionais em segundos com nosso sistema intuitivo. 
+                Personalize modelos pré-aprovados para cada paciente e imprima ou 
+                envie por e-mail diretamente da plataforma.
+              </p>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center">
+                  <CheckIcon className="h-5 w-5 text-green-500 mr-2" />
+                  <span>Modelos de contratos personalizáveis</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckIcon className="h-5 w-5 text-green-500 mr-2" />
+                  <span>Preenchimento automático de dados</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckIcon className="h-5 w-5 text-green-500 mr-2" />
+                  <span>Exportação para PDF e impressão</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckIcon className="h-5 w-5 text-green-500 mr-2" />
+                  <span>Seguro e em conformidade com a LGPD</span>
+                </li>
+              </ul>
+              <Button 
+                variant="outline"
+                className="border-getclinicas-primary text-getclinicas-primary hover:bg-getclinicas-primary hover:text-white"
+                onClick={() => navigate("/login")}
+              >
+                Experimente Agora
+              </Button>
+            </div>
+            <div className="md:w-1/2">
+              <div className="relative bg-gray-100 rounded-lg p-4 shadow-md">
+                <div className="absolute top-2 right-2 flex space-x-1">
+                  <div className="h-3 w-3 bg-red-500 rounded-full"></div>
+                  <div className="h-3 w-3 bg-yellow-500 rounded-full"></div>
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                </div>
+                <div className="pt-4">
+                  <div className="flex items-center mb-4">
+                    <FileText className="h-6 w-6 text-getclinicas-primary mr-2" />
+                    <h4 className="font-semibold">Contrato de Prestação de Serviços</h4>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-300 rounded w-full"></div>
+                    <div className="h-3 bg-gray-300 rounded w-11/12"></div>
+                    <div className="h-3 bg-gray-300 rounded w-10/12"></div>
+                    <div className="h-3 bg-gray-300 rounded w-full"></div>
+                    <div className="h-3 bg-gray-300 rounded w-9/12"></div>
+                    <div className="h-3 bg-gray-300 rounded w-full"></div>
+                    <div className="h-3 bg-gray-300 rounded w-11/12"></div>
+                  </div>
+                  <div className="mt-6 flex justify-end">
+                    <div className="h-8 w-20 bg-getclinicas-primary rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Nova seção de planos */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-12">Escolha o Plano Ideal para sua Clínica</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Plano Mensal */}
+            <Card className="border shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="bg-getclinicas-light/20">
+                <CardTitle className="text-center">Plano Mensal</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="text-center mb-6">
+                  <span className="text-3xl font-bold">R$ 990</span>
+                  <span className="text-gray-500">/mês</span>
+                </div>
+                <ul className="space-y-3">
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Acesso completo ao sistema</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Geração ilimitada de contratos</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Suporte por e-mail</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Atualizações do sistema</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark"
+                  onClick={() => navigate("/login")}
+                >
+                  Contratar
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            {/* Plano Semestral */}
+            <Card className="border shadow-lg hover:shadow-xl transition-shadow relative">
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-getclinicas-primary text-white px-4 py-1 rounded-full text-sm font-bold">
+                Mais Popular
+              </div>
+              <CardHeader className="bg-getclinicas-primary/20">
+                <CardTitle className="text-center">Plano Semestral</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="text-center mb-6">
+                  <span className="text-3xl font-bold">R$ 5.346</span>
+                  <span className="text-gray-500">/semestre</span>
+                  <p className="text-sm text-getclinicas-primary mt-1">Economia de 10%</p>
+                </div>
+                <ul className="space-y-3">
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Acesso completo ao sistema</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Geração ilimitada de contratos</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Suporte prioritário</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Atualizações do sistema</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Treinamento da equipe</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark"
+                  onClick={() => navigate("/login")}
+                >
+                  Contratar
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            {/* Plano Anual */}
+            <Card className="border shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="bg-getclinicas-light/20">
+                <CardTitle className="text-center">Plano Anual</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="text-center mb-6">
+                  <span className="text-3xl font-bold">R$ 10.454,40</span>
+                  <span className="text-gray-500">/ano</span>
+                  <p className="text-sm text-getclinicas-primary mt-1">Economia de 12%</p>
+                </div>
+                <ul className="space-y-3">
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Acesso completo ao sistema</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Geração ilimitada de contratos</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Suporte VIP 24/7</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Atualizações prioritárias</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Treinamento completo da equipe</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>Personalização de modelos</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark"
+                  onClick={() => navigate("/login")}
+                >
+                  Contratar
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow-lg p-8 mb-16">
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-6 md:mb-0 md:pr-8">
@@ -145,4 +351,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-
