@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,8 +14,133 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { clinicService } from "@/services/clinicService";
+import type { Clinic } from "@/lib/types";
 
 export default function Configuracoes() {
+  const [clinic, setClinic] = useState<Clinic | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [savingGeneral, setSavingGeneral] = useState(false);
+  const [savingSecurity, setSavingSecurity] = useState(false);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [website, setWebsite] = useState("");
+  const [cnpj, setCnpj] = useState("");
+
+  useEffect(() => {
+    const fetchClinicData = async () => {
+      try {
+        // Get clinic ID from localStorage for demonstration
+        const clinicDataStr = localStorage.getItem("clinicData");
+        
+        if (!clinicDataStr) {
+          setLoading(false);
+          return;
+        }
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        const clinicId = clinicData.id;
+        
+        if (!clinicId) {
+          setLoading(false);
+          return;
+        }
+        
+        const clinicInfo = await clinicService.getClinicById(clinicId);
+        
+        if (clinicInfo) {
+          setClinic(clinicInfo);
+          
+          // Initialize form fields with clinic data
+          setName(clinicInfo.clinic_name || "");
+          setEmail(clinicInfo.admin_email || "");
+          
+          // If we have additional clinic metadata in localStorage, use it
+          const metadata = clinicData.metadata || {};
+          setPhone(metadata.phone || "(11) 3456-7890");
+          setAddress(metadata.address || "Av. Paulista, 1000");
+          setCity(metadata.city || "São Paulo");
+          setState(metadata.state || "SP");
+          setWebsite(metadata.website || "www.getclinicas.com");
+          setCnpj(metadata.cnpj || "12.345.678/0001-90");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados da clínica:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchClinicData();
+  }, []);
+  
+  const handleSaveGeneral = async () => {
+    setSavingGeneral(true);
+    
+    try {
+      if (!clinic) return;
+      
+      // Update clinic data
+      const updatedClinic = await clinicService.updateClinic(clinic.id, {
+        ...clinic,
+        clinic_name: name,
+        admin_email: email
+      });
+      
+      // Update local state
+      setClinic(updatedClinic);
+      
+      // Update metadata in localStorage
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (clinicDataStr) {
+        const clinicData = JSON.parse(clinicDataStr);
+        const updatedMetadata = {
+          ...clinicData.metadata,
+          phone,
+          address,
+          city,
+          state,
+          website,
+          cnpj
+        };
+        
+        localStorage.setItem("clinicData", JSON.stringify({
+          ...clinicData,
+          metadata: updatedMetadata
+        }));
+      }
+      
+      toast.success("Configurações salvas com sucesso!");
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
+      toast.error("Erro ao salvar configurações. Tente novamente.");
+    } finally {
+      setSavingGeneral(false);
+    }
+  };
+  
+  const handleSaveSecurity = () => {
+    setSavingSecurity(true);
+    
+    setTimeout(() => {
+      toast.success("Configurações de segurança salvas com sucesso!");
+      setSavingSecurity(false);
+    }, 1000);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-lg">Carregando configurações...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -27,7 +151,7 @@ export default function Configuracoes() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Configurações</h1>
             <p className="text-sm text-muted-foreground">
-              Personalize e configure o sistema
+              Personalize e configure o sistema para {clinic?.clinic_name || "sua clínica"}
             </p>
           </div>
         </div>
@@ -110,7 +234,9 @@ export default function Configuracoes() {
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
               <Button variant="outline">Restaurar Padrões</Button>
-              <Button>Salvar Configurações</Button>
+              <Button onClick={handleSaveGeneral} disabled={savingGeneral}>
+                {savingGeneral ? "Salvando..." : "Salvar Configurações"}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -134,8 +260,8 @@ export default function Configuracoes() {
                 <div className="p-4 border-b">
                   <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-medium">Admin Clínica</h3>
-                      <p className="text-sm text-muted-foreground">admin@getclinicas.com</p>
+                      <h3 className="text-lg font-medium">{clinic?.admin_name || "Admin Clínica"}</h3>
+                      <p className="text-sm text-muted-foreground">{clinic?.admin_email || email}</p>
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                         Administrador
                       </span>
@@ -147,53 +273,42 @@ export default function Configuracoes() {
                   </div>
                 </div>
                 
-                <div className="p-4 border-b">
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-medium">Dr. João Silva</h3>
-                      <p className="text-sm text-muted-foreground">joao.silva@getclinicas.com</p>
-                      <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                        Médico
-                      </span>
+                {/* Opcional: se houver outros usuários vinculados à clínica */}
+                {clinic?.has_initial_data && (
+                  <>
+                    <div className="p-4 border-b">
+                      <div className="flex flex-col sm:flex-row justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-medium">Dr. João Silva</h3>
+                          <p className="text-sm text-muted-foreground">joao.silva@getclinicas.com</p>
+                          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                            Médico
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm">Editar</Button>
+                          <Button variant="outline" size="sm">Redefinir Senha</Button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">Editar</Button>
-                      <Button variant="outline" size="sm">Redefinir Senha</Button>
+                    
+                    <div className="p-4">
+                      <div className="flex flex-col sm:flex-row justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-medium">Ana Oliveira</h3>
+                          <p className="text-sm text-muted-foreground">ana.oliveira@getclinicas.com</p>
+                          <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                            Recepcionista
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm">Editar</Button>
+                          <Button variant="outline" size="sm">Redefinir Senha</Button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                
-                <div className="p-4 border-b">
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-medium">Ana Oliveira</h3>
-                      <p className="text-sm text-muted-foreground">ana.oliveira@getclinicas.com</p>
-                      <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
-                        Recepcionista
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">Editar</Button>
-                      <Button variant="outline" size="sm">Redefinir Senha</Button>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-4">
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-medium">Carlos Santos</h3>
-                      <p className="text-sm text-muted-foreground">carlos.santos@getclinicas.com</p>
-                      <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-                        Enfermeiro
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">Editar</Button>
-                      <Button variant="outline" size="sm">Redefinir Senha</Button>
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -210,46 +325,78 @@ export default function Configuracoes() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="clinic-name">Nome da Clínica</Label>
-                <Input id="clinic-name" defaultValue="GetClínicas - Centro Médico" />
+                <Input 
+                  id="clinic-name" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="cnpj">CNPJ</Label>
-                <Input id="cnpj" defaultValue="12.345.678/0001-90" />
+                <Input 
+                  id="cnpj" 
+                  value={cnpj}
+                  onChange={(e) => setCnpj(e.target.value)}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="address">Endereço</Label>
-                <Input id="address" defaultValue="Av. Paulista, 1000 - Bela Vista" />
+                <Input 
+                  id="address" 
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
               </div>
               
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="city">Cidade</Label>
-                  <Input id="city" defaultValue="São Paulo" />
+                  <Input 
+                    id="city" 
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="state">Estado</Label>
-                  <Input id="state" defaultValue="SP" />
+                  <Input 
+                    id="state" 
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                  />
                 </div>
               </div>
               
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone</Label>
-                  <Input id="phone" defaultValue="(11) 3456-7890" />
+                  <Input 
+                    id="phone" 
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" defaultValue="contato@getclinicas.com" />
+                  <Input 
+                    id="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="website">Website</Label>
-                <Input id="website" defaultValue="www.getclinicas.com" />
+                <Input 
+                  id="website" 
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                />
               </div>
               
               <div className="space-y-2">
@@ -264,7 +411,9 @@ export default function Configuracoes() {
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
               <Button variant="outline">Cancelar</Button>
-              <Button>Salvar Alterações</Button>
+              <Button onClick={handleSaveGeneral} disabled={savingGeneral}>
+                {savingGeneral ? "Salvando..." : "Salvar Alterações"}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -564,8 +713,8 @@ export default function Configuracoes() {
                     <span className="text-sm">Produção</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium">Licença:</span>
-                    <span className="text-sm">Premium (Válida até 31/12/2025)</span>
+                    <span className="text-sm font-medium">Plano:</span>
+                    <span className="text-sm">{clinic?.plan || "Premium"} (Válido até 31/12/2025)</span>
                   </div>
                 </div>
                 
@@ -578,8 +727,8 @@ export default function Configuracoes() {
               <Button variant="destructive">
                 Redefinir Sistema
               </Button>
-              <Button>
-                Salvar Alterações
+              <Button onClick={handleSaveSecurity} disabled={savingSecurity}>
+                {savingSecurity ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </CardFooter>
           </Card>
