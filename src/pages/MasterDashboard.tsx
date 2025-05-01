@@ -5,6 +5,7 @@ import { Building, BarChart2, Globe, AlertCircle } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import {
   NavigationMenu,
@@ -21,9 +22,12 @@ import { MasterOccupationChart } from "@/components/master/MasterOccupationChart
 
 export default function MasterDashboard() {
   const [clinics, setClinics] = useState<any[]>([]);
+  const [filteredClinics, setFilteredClinics] = useState<any[]>([]);
   const [totalClinics, setTotalClinics] = useState(0);
   const [totalBeds, setTotalBeds] = useState(0);
   const [averageOccupation, setAverageOccupation] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterPlan, setFilterPlan] = useState<string | null>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -32,6 +36,7 @@ export default function MasterDashboard() {
     if (allClinicsStr) {
       const allClinics = JSON.parse(allClinicsStr);
       setClinics(allClinics);
+      setFilteredClinics(allClinics);
       setTotalClinics(allClinics.length);
       
       // Calculate total beds
@@ -57,6 +62,26 @@ export default function MasterDashboard() {
     }
   }, []);
   
+  useEffect(() => {
+    // Apply filters whenever search query or plan filter changes
+    let result = [...clinics];
+    
+    // Apply search filter
+    if (searchQuery) {
+      result = result.filter(clinic => 
+        clinic.clinicName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        clinic.adminEmail?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply plan filter
+    if (filterPlan) {
+      result = result.filter(clinic => clinic.plan === filterPlan);
+    }
+    
+    setFilteredClinics(result);
+  }, [searchQuery, filterPlan, clinics]);
+  
   const handleNavigateToClinic = (clinicId: string) => {
     // Set the current clinic ID in localStorage
     localStorage.setItem("currentClinicId", clinicId);
@@ -64,6 +89,32 @@ export default function MasterDashboard() {
     // Navigate to the dashboard
     navigate("/dashboard");
   };
+  
+  const handleCreateClinic = () => {
+    navigate("/registro");
+  };
+  
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+  
+  const handlePlanFilterChange = (value: string) => {
+    setFilterPlan(value === "all" ? null : value);
+  };
+  
+  const clearFilters = () => {
+    setSearchQuery("");
+    setFilterPlan(null);
+  };
+  
+  // Get unique plans for filter options
+  const availablePlans = React.useMemo(() => {
+    const plans = new Set<string>();
+    clinics.forEach(clinic => {
+      if (clinic.plan) plans.add(clinic.plan);
+    });
+    return Array.from(plans);
+  }, [clinics]);
 
   return (
     <div className="p-6 space-y-6">
@@ -82,14 +133,14 @@ export default function MasterDashboard() {
                 <div className="p-2 w-48">
                   <NavigationMenuLink
                     className={navigationMenuTriggerStyle() + " w-full justify-start cursor-pointer"}
-                    onClick={() => navigate("/registro")}
+                    onClick={handleCreateClinic}
                   >
                     <Building className="mr-2 h-4 w-4" />
                     <span>Nova Clínica</span>
                   </NavigationMenuLink>
                   <NavigationMenuLink
                     className={navigationMenuTriggerStyle() + " w-full justify-start cursor-pointer mt-2"}
-                    onClick={() => navigate("/relatorios")}
+                    onClick={() => navigate("/master/reports")}
                   >
                     <BarChart2 className="mr-2 h-4 w-4" />
                     <span>Relatórios</span>
@@ -108,18 +159,53 @@ export default function MasterDashboard() {
         averageOccupation={averageOccupation} 
       />
       
+      {/* Search and filters */}
+      <div className="flex flex-col sm:flex-row gap-4 items-end">
+        <div className="relative w-full sm:w-64">
+          <Input
+            type="search"
+            placeholder="Buscar clínica..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="pl-8"
+          />
+          <Globe className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        </div>
+        
+        <Select
+          value={filterPlan || "all"}
+          onValueChange={handlePlanFilterChange}
+        >
+          <SelectTrigger className="w-full sm:w-40">
+            <SelectValue placeholder="Filtrar por plano" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os planos</SelectItem>
+            {availablePlans.map(plan => (
+              <SelectItem key={plan} value={plan}>{plan}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        {(searchQuery || filterPlan) && (
+          <Button variant="ghost" onClick={clearFilters} size="sm">
+            Limpar filtros
+          </Button>
+        )}
+      </div>
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Clinics list */}
         <div className="lg:col-span-2">
           <MasterClinicsTable 
-            clinics={clinics}
+            clinics={filteredClinics}
             onViewClinic={handleNavigateToClinic}
           />
         </div>
         
         {/* Occupation summary */}
         <div>
-          <MasterOccupationChart clinics={clinics} />
+          <MasterOccupationChart clinics={filteredClinics} />
         </div>
       </div>
     </div>
