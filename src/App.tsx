@@ -14,6 +14,9 @@ import Medications from "./pages/Medications";
 import Professionals from "./pages/Professionals";
 import Calendar from "./pages/Calendar";
 import Documents from "./pages/Documents";
+import Financeiro from "./pages/Financeiro";
+import Relatorios from "./pages/Relatorios";
+import Configuracoes from "./pages/Configuracoes";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +36,9 @@ const App = () => (
             <Route path="/profissionais" element={<Professionals />} />
             <Route path="/agenda" element={<Calendar />} />
             <Route path="/documentos" element={<Documents />} />
+            <Route path="/financeiro" element={<Financeiro />} />
+            <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/configuracoes" element={<Configuracoes />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
