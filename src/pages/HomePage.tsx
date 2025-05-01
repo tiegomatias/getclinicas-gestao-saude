@@ -19,8 +19,8 @@ const HomePage = () => {
   };
 
   const handlePricingButton = (plan: string) => {
-    toast.success(`Plano ${plan} selecionado. Prosseguindo para login...`);
-    navigate("/login");
+    toast.success(`Plano ${plan} selecionado. Prosseguindo para checkout...`);
+    navigate(`/checkout?plan=${plan}`);
   };
 
   return (

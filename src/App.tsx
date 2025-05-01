@@ -20,6 +20,7 @@ import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 import Contracts from "./pages/Contracts";
 import Login from "./pages/Login";
+import Checkout from "./pages/Checkout";
 import AuthGuard from "./components/auth/AuthGuard";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/checkout" element={<Checkout />} />
           
           <Route path="/sistema" element={
             <AuthGuard>
@@ -66,4 +68,3 @@ const App = () => (
 );
 
 export default App;
-
