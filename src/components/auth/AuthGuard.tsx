@@ -1,6 +1,7 @@
 
 import React, { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -13,6 +14,28 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
 
   // Make sure both authentication and clinic ID are present
   const isFullyAuthenticated = isAuthenticated && currentClinicId;
+
+  useEffect(() => {
+    // Check if clinic data exists for the current ID
+    if (isFullyAuthenticated) {
+      const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
+      const clinicExists = allClinics.some((clinic: any) => clinic.id === currentClinicId);
+      
+      if (!clinicExists) {
+        // If clinic doesn't exist in our records, log the user out
+        localStorage.removeItem("isAuthenticated");
+        localStorage.removeItem("currentClinicId");
+        localStorage.removeItem("clinicData");
+        toast.error("Sessão inválida. Por favor, faça login novamente.");
+      } else {
+        // Load the correct clinic data for the current session
+        const currentClinic = allClinics.find((clinic: any) => clinic.id === currentClinicId);
+        if (currentClinic) {
+          localStorage.setItem("clinicData", JSON.stringify(currentClinic));
+        }
+      }
+    }
+  }, [isFullyAuthenticated, currentClinicId]);
 
   // If not authenticated and not already on login page, redirect to login
   if (!isFullyAuthenticated && location.pathname !== "/login") {

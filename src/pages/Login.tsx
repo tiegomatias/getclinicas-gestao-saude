@@ -19,14 +19,28 @@ const Login = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for specific credentials - now accepting both email and username
+    // Get all registered clinics
+    const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
+    
+    // Check demo login (for backward compatibility)
     const validEmail = "tiegomatias@gmail.com";
     const validUsername = "tiegomatias";
     const validPassword = "@Orecic1717";
     
     if ((usernameOrEmail === validEmail || usernameOrEmail === validUsername) && password === validPassword) {
-      // Store authentication status in local storage
+      // Use demo clinic data or first clinic if available
+      const demoClinic = allClinics.length > 0 ? allClinics[0] : {
+        id: "demo-clinic-1",
+        clinicName: "Clínica Demonstração",
+        plan: "Premium",
+        createdAt: new Date().toISOString()
+      };
+      
+      // Store authentication and clinic data
       localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("currentClinicId", demoClinic.id);
+      localStorage.setItem("clinicData", JSON.stringify(demoClinic));
+      
       if (rememberMe) {
         localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);
       } else {
@@ -34,6 +48,29 @@ const Login = () => {
       }
       
       toast.success("Login realizado com sucesso!");
+      navigate("/dashboard");
+      return;
+    }
+    
+    // Try to find the clinic by username or email
+    const clinic = allClinics.find((clinic: any) => 
+      clinic.username === usernameOrEmail || 
+      clinic.email === usernameOrEmail
+    );
+    
+    if (clinic && clinic.password === password) {
+      // Set this clinic as the current one
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("currentClinicId", clinic.id);
+      localStorage.setItem("clinicData", JSON.stringify(clinic));
+      
+      if (rememberMe) {
+        localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);
+      } else {
+        localStorage.removeItem("rememberedUsernameOrEmail");
+      }
+      
+      toast.success(`Login realizado com sucesso! Bem-vindo à ${clinic.clinicName}`);
       navigate("/dashboard");
     } else {
       toast.error("Credenciais inválidas. Por favor, verifique seu email/usuário e senha.");
