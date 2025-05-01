@@ -19,10 +19,11 @@ export default function AppLayout() {
     if (path.includes("leitos")) return "Gestão de Leitos";
     if (path.includes("medicamentos")) return "Controle de Medicamentos";
     if (path.includes("documentos")) return "Documentos";
+    if (path.includes("contratos")) return "Contratos";
     if (path.includes("financeiro")) return "Financeiro";
     if (path.includes("relatorios")) return "Relatórios e Indicadores";
     if (path.includes("configuracoes")) return "Configurações";
-    return "GetClinicas";
+    return "GetClinics";
   };
 
   return (

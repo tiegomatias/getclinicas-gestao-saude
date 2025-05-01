@@ -25,6 +25,7 @@ import {
   DollarSign,
   ChartBarIcon,
   Settings,
+  FileContract,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -68,6 +69,11 @@ export default function AppSidebar() {
       icon: FileText,
     },
     {
+      title: "Contratos",
+      path: "/contratos",
+      icon: FileContract,
+    },
+    {
       title: "Financeiro",
       path: "/financeiro",
       icon: DollarSign,
@@ -89,7 +95,7 @@ export default function AppSidebar() {
       <SidebarHeader className="flex items-center gap-2 px-4 py-2">
         <div className="flex items-center gap-2">
           <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
-          <span className="text-xl font-bold text-white">GetClinicas</span>
+          <span className="text-xl font-bold text-white">GetClinics</span>
         </div>
         <div className="ml-auto md:hidden">
           <SidebarTrigger />
@@ -126,7 +132,7 @@ export default function AppSidebar() {
           </Avatar>
           <div className="flex-1 truncate">
             <div className="text-sm font-medium text-sidebar-foreground">Admin Clínica</div>
-            <div className="text-xs text-sidebar-foreground/70">admin@getclinicas.com</div>
+            <div className="text-xs text-sidebar-foreground/70">admin@getclinics.com</div>
           </div>
         </div>
       </div>
