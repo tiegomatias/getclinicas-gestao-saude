@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from "react";
-import { Bed, CalendarIcon, DollarSign, UserIcon, Users } from "lucide-react";
+import { Bed, Building, CalendarIcon, DollarSign, UserIcon, Users } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
 import OccupationChart from "@/components/dashboard/OccupationChart";
 import RecentAdmissions from "@/components/dashboard/RecentAdmissions";
