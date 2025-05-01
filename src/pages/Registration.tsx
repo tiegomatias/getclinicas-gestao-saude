@@ -52,7 +52,7 @@ const Registration = () => {
       // Generate a unique ID for the clinic
       const clinicId = uuidv4();
       
-      // Create clinic object
+      // Create clinic object with initial empty state
       const clinic = {
         id: clinicId,
         clinicName,
@@ -64,7 +64,13 @@ const Registration = () => {
         hasBedsData: false,  // Initially no bed data
         occupiedBeds: "0",
         availableBeds: "30",
-        maintenanceBeds: "0"
+        maintenanceBeds: "0",
+        // Initialize with empty data for a clean dashboard
+        patients: [],
+        professionals: [],
+        activities: [],
+        admissions: [],
+        hasInitialData: false
       };
       
       // Add the clinic to local storage (In real app, this would be a server API call)

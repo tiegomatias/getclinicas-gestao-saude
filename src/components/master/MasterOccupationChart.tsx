@@ -15,13 +15,13 @@ export const MasterOccupationChart = ({ clinics }: MasterOccupationChartProps) =
     let totalMaintenance = 0;
 
     clinics.forEach((clinic) => {
-      // Use some default values if the clinic doesn't have bed data yet
+      // Only count data from clinics that have bed information
       if (clinic.hasBedsData) {
         totalOccupied += clinic.occupiedBeds ? parseInt(clinic.occupiedBeds) : 0;
         totalAvailable += clinic.availableBeds ? parseInt(clinic.availableBeds) : 0;
         totalMaintenance += clinic.maintenanceBeds ? parseInt(clinic.maintenanceBeds) : 0;
       } else {
-        // Default to all beds available for new clinics (assume 30 beds per clinic without data)
+        // Default to all beds available for new clinics
         totalAvailable += clinic.bedsCapacity ? parseInt(clinic.bedsCapacity) : 30;
       }
     });

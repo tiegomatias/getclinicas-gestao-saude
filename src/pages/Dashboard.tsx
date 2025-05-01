@@ -17,6 +17,7 @@ interface ClinicData {
   plan: string;
   createdAt: string;
   bedsCapacity?: string;
+  hasInitialData?: boolean;
   // Add other properties as needed
 }
 
@@ -32,13 +33,8 @@ export default function Dashboard() {
       const clinic = JSON.parse(clinicDataStr);
       setClinicData(clinic);
       
-      // Check if the clinic was recently created (within the last 10 minutes)
-      const createdAt = new Date(clinic.createdAt);
-      const now = new Date();
-      const timeDiff = now.getTime() - createdAt.getTime();
-      const minutesDiff = Math.floor(timeDiff / 60000);
-      
-      if (minutesDiff < 10) {
+      // Check if the clinic was recently created or has no initial data
+      if (!clinic.hasInitialData) {
         setIsNewClinic(true);
         // Show a welcome toast
         setTimeout(() => {
@@ -141,37 +137,37 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total de Pacientes"
-          value={clinicData && isNewClinic ? "0" : "27"}
+          value={isNewClinic ? "0" : "27"}
           icon={UserIcon}
-          description={clinicData && isNewClinic ? "Nenhum paciente cadastrado" : "Pacientes atualmente internados"}
-          trend={clinicData && isNewClinic ? undefined : "up"}
-          trendValue={clinicData && isNewClinic ? undefined : "+3 este mês"}
+          description={isNewClinic ? "Nenhum paciente cadastrado" : "Pacientes atualmente internados"}
+          trend={isNewClinic ? undefined : "up"}
+          trendValue={isNewClinic ? undefined : "+3 este mês"}
         />
         <StatCard
           title="Taxa de Ocupação"
-          value={clinicData && isNewClinic ? "0%" : "82%"}
+          value={isNewClinic ? "0%" : "82%"}
           icon={Bed}
           description={
             clinicData && isNewClinic && clinicData.bedsCapacity 
               ? `Capacidade total: ${clinicData.bedsCapacity} leitos` 
               : "Capacidade total: 33 leitos"
           }
-          trend={clinicData && isNewClinic ? undefined : "up"}
-          trendValue={clinicData && isNewClinic ? undefined : "+5% este mês"}
+          trend={isNewClinic ? undefined : "up"}
+          trendValue={isNewClinic ? undefined : "+5% este mês"}
         />
         <StatCard
           title="Atividades Semanais"
-          value={clinicData && isNewClinic ? "0" : "18"}
+          value={isNewClinic ? "0" : "18"}
           icon={CalendarIcon}
-          description={clinicData && isNewClinic ? "Nenhuma atividade agendada" : "4 atividades hoje"}
+          description={isNewClinic ? "Nenhuma atividade agendada" : "4 atividades hoje"}
         />
         <StatCard
           title="Faturamento Mensal"
-          value={clinicData && isNewClinic ? "R$ 0" : "R$ 156.400"}
+          value={isNewClinic ? "R$ 0" : "R$ 156.400"}
           icon={DollarSign}
-          description={clinicData && isNewClinic ? "Sem dados financeiros" : "Maio/2025"}
-          trend={clinicData && isNewClinic ? undefined : "up"}
-          trendValue={clinicData && isNewClinic ? undefined : "+12% vs. Abril"}
+          description={isNewClinic ? "Sem dados financeiros" : "Maio/2025"}
+          trend={isNewClinic ? undefined : "up"}
+          trendValue={isNewClinic ? undefined : "+12% vs. Abril"}
         />
       </div>
 
@@ -183,7 +179,7 @@ export default function Dashboard() {
             <CardDescription>Métricas gerais de desempenho da clínica</CardDescription>
           </CardHeader>
           <CardContent>
-            {clinicData && isNewClinic ? (
+            {isNewClinic ? (
               <div className="py-6 text-center">
                 <p className="text-muted-foreground">
                   Os indicadores clínicos serão exibidos quando houver dados disponíveis.
