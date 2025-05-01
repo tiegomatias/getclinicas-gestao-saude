@@ -19,6 +19,7 @@ import {
 import { MasterStatsCards } from "@/components/master/MasterStatsCards";
 import { MasterClinicsTable } from "@/components/master/MasterClinicsTable";
 import { MasterOccupationChart } from "@/components/master/MasterOccupationChart";
+import { toast } from "sonner";
 
 export default function MasterDashboard() {
   const [clinics, setClinics] = useState<any[]>([]);
@@ -107,6 +108,11 @@ export default function MasterDashboard() {
     setFilterPlan(null);
   };
   
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    toast.success(`Navegando para ${path}`);
+  };
+  
   // Get unique plans for filter options
   const availablePlans = React.useMemo(() => {
     const plans = new Set<string>();
@@ -140,7 +146,7 @@ export default function MasterDashboard() {
                   </NavigationMenuLink>
                   <NavigationMenuLink
                     className={navigationMenuTriggerStyle() + " w-full justify-start cursor-pointer mt-2"}
-                    onClick={() => navigate("/master/reports")}
+                    onClick={() => handleNavigate("/master/reports")}
                   >
                     <BarChart2 className="mr-2 h-4 w-4" />
                     <span>Relatórios</span>

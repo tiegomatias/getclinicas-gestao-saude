@@ -67,12 +67,13 @@ export default function WeeklyActivities() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Atividades da Semana</CardTitle>
-        <a
-          href="/agenda"
-          className="text-xs text-primary hover:underline"
+        <Button
+          variant="link"
+          className="text-xs text-primary hover:underline p-0 h-auto"
+          onClick={() => navigate("/agenda")}
         >
           Ver agenda completa
-        </a>
+        </Button>
       </CardHeader>
       <CardContent className="p-0">
         {isNewClinic() ? (
