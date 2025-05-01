@@ -18,6 +18,13 @@ export default function AppHeader({ title }: { title: string }) {
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background px-4 lg:px-6">
       <div className="flex items-center gap-2 lg:gap-4">
         <SidebarTrigger className="lg:hidden" />
+        <div className="hidden lg:flex items-center gap-2">
+          <img 
+            src="/lovable-uploads/71c67761-69d0-4325-9bdd-f39cf3a0076f.png" 
+            alt="GetClinicas" 
+            className="h-6"
+          />
+        </div>
         <h1 className="text-xl font-semibold md:text-2xl">{title}</h1>
       </div>
       <div className="hidden flex-1 md:flex md:max-w-xs lg:max-w-md">

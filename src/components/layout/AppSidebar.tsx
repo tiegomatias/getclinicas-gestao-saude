@@ -88,8 +88,8 @@ export default function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="flex items-center gap-2 px-4 py-2">
         <div className="flex items-center gap-2">
-          <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
-          <span className="text-xl font-bold text-white">GetClinicas</span>
+          <img src="/lovable-uploads/71c67761-69d0-4325-9bdd-f39cf3a0076f.png" alt="GetClinicas Logo" className="h-8" />
+          <span className="text-xl font-bold text-white">Clinicas</span>
         </div>
         <div className="ml-auto md:hidden">
           <SidebarTrigger />
