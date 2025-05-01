@@ -11,6 +11,8 @@ import Index from "./pages/Index";
 import Patients from "./pages/Patients";
 import Beds from "./pages/Beds";
 import Medications from "./pages/Medications";
+import Professionals from "./pages/Professionals";
+import Calendar from "./pages/Calendar";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
             <Route path="/pacientes" element={<Patients />} />
             <Route path="/leitos" element={<Beds />} />
             <Route path="/medicamentos" element={<Medications />} />
+            <Route path="/profissionais" element={<Professionals />} />
+            <Route path="/agenda" element={<Calendar />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
