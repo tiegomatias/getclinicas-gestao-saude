@@ -36,6 +36,15 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast.info("Funcionalidade em desenvolvimento");
+  };
+
+  const handleBackToHome = () => {
+    navigate("/");
+  };
+
   // Check for remembered email on component mount
   React.useEffect(() => {
     const rememberedEmail = localStorage.getItem("rememberedEmail");
@@ -80,10 +89,7 @@ const Login = () => {
                   <Label htmlFor="password">Senha</Label>
                   <a 
                     href="#" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toast.info("Funcionalidade em desenvolvimento");
-                    }}
+                    onClick={handleForgotPassword}
                     className="text-sm text-getclinicas-primary hover:underline"
                   >
                     Esqueceu a senha?
@@ -132,6 +138,14 @@ const Login = () => {
               </div>
               <Button type="submit" className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark">
                 Entrar
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full"
+                onClick={handleBackToHome}
+              >
+                Voltar para Página Inicial
               </Button>
             </form>
           </CardContent>

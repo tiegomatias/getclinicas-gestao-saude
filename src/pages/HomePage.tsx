@@ -1,12 +1,27 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon, CheckIcon, DollarSign, UserIcon, FileText, FileIcon } from "lucide-react";
+import { toast } from "sonner";
 
 const HomePage = () => {
   const navigate = useNavigate();
+
+  const handleDemoAccess = () => {
+    toast.info("Acessando demonstração...");
+    navigate("/login");
+  };
+
+  const handleContractButton = () => {
+    toast.info("Funcionalidade em desenvolvimento");
+    navigate("/login");
+  };
+
+  const handlePricingButton = (plan: string) => {
+    toast.success(`Plano ${plan} selecionado. Prosseguindo para login...`);
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white">
@@ -112,7 +127,7 @@ const HomePage = () => {
               <Button 
                 variant="outline"
                 className="border-getclinicas-primary text-getclinicas-primary hover:bg-getclinicas-primary hover:text-white"
-                onClick={() => navigate("/login")}
+                onClick={handleContractButton}
               >
                 Experimente Agora
               </Button>
@@ -183,7 +198,7 @@ const HomePage = () => {
               <CardFooter>
                 <Button 
                   className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark"
-                  onClick={() => navigate("/login")}
+                  onClick={() => handlePricingButton("Mensal")}
                 >
                   Contratar
                 </Button>
@@ -230,7 +245,7 @@ const HomePage = () => {
               <CardFooter>
                 <Button 
                   className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark"
-                  onClick={() => navigate("/login")}
+                  onClick={() => handlePricingButton("Semestral")}
                 >
                   Contratar
                 </Button>
@@ -278,7 +293,7 @@ const HomePage = () => {
               <CardFooter>
                 <Button 
                   className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark"
-                  onClick={() => navigate("/login")}
+                  onClick={() => handlePricingButton("Anual")}
                 >
                   Contratar
                 </Button>
@@ -317,7 +332,7 @@ const HomePage = () => {
               <Button 
                 variant="outline"
                 className="border-getclinicas-primary text-getclinicas-primary hover:bg-getclinicas-primary hover:text-white"
-                onClick={() => navigate("/login")}
+                onClick={handleDemoAccess}
               >
                 Acessar Demonstração
               </Button>
