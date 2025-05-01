@@ -2,23 +2,20 @@
 import React, { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AuthGuardProps {
   children: React.ReactNode;
 }
 
 const AuthGuard = ({ children }: AuthGuardProps) => {
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+  const { isAuthenticated, isMasterAdmin, loading } = useAuth();
   const currentClinicId = localStorage.getItem("currentClinicId");
-  const isMasterAdmin = localStorage.getItem("isMasterAdmin") === "true";
   const location = useLocation();
 
   // Master admin paths don't require clinic ID
   const isMasterAdminPath = location.pathname === "/master" || location.pathname.startsWith("/master/");
-
-  // Master admin email for direct login
-  const masterAdminEmails = ["tiegomatias@gmail.comm", "tiegomatias@gmail.com", "tiegomatias"];
-
+  
   // For master admin paths, we only need isAuthenticated and isMasterAdmin
   const canAccessMasterAdmin = isAuthenticated && isMasterAdmin && isMasterAdminPath;
   
@@ -26,12 +23,6 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   const isFullyAuthenticated = isAuthenticated && currentClinicId;
 
   useEffect(() => {
-    // Auto-login for master admin emails (simplified version)
-    const userEmail = localStorage.getItem("userEmail");
-    if (userEmail && masterAdminEmails.includes(userEmail.toLowerCase())) {
-      localStorage.setItem("isMasterAdmin", "true");
-    }
-
     // Only check clinic data if we're not on a master admin path
     if (isFullyAuthenticated && !isMasterAdminPath) {
       const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
@@ -39,7 +30,6 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
       
       if (!clinicExists) {
         // If clinic doesn't exist in our records, log the user out
-        localStorage.removeItem("isAuthenticated");
         localStorage.removeItem("currentClinicId");
         localStorage.removeItem("clinicData");
         toast.error("Sessão inválida. Por favor, faça login novamente.");
@@ -51,7 +41,12 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
         }
       }
     }
-  }, [isFullyAuthenticated, currentClinicId, isMasterAdminPath, masterAdminEmails]);
+  }, [isFullyAuthenticated, currentClinicId, isMasterAdminPath]);
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+  }
 
   // If trying to access master admin path without proper credentials
   if (isMasterAdminPath && !canAccessMasterAdmin) {

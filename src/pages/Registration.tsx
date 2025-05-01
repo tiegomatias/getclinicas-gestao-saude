@@ -6,13 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Registration = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const { signUp } = useAuth();
   
   // Form values
   const [clinicName, setClinicName] = useState("");
@@ -35,7 +37,7 @@ const Registration = () => {
     }
   }, [location.search, navigate]);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -51,47 +53,68 @@ const Registration = () => {
     
     setLoading(true);
     
-    // Simulate API call to create clinic and admin account
-    setTimeout(() => {
-      // Generate a unique ID for the clinic
-      const clinicId = uuidv4();
+    try {
+      // Register user
+      await signUp(adminEmail, password, adminName);
       
-      // Create clinic object with initial empty state
-      const clinic = {
-        id: clinicId,
-        clinicName,
-        adminName,
-        adminEmail,
-        plan: selectedPlan,
-        createdAt: new Date().toISOString(),
-        bedsCapacity: "30", // Default value
-        hasBedsData: false,  // Initially no bed data
-        occupiedBeds: "0",
-        availableBeds: "30",
-        maintenanceBeds: "0",
-        // Initialize with empty data for a clean dashboard
-        patients: [],
-        professionals: [],
-        activities: [],
-        admissions: [],
-        hasInitialData: false
-      };
+      // Create clinic
+      const { data: userData } = await supabase.auth.getUser();
       
-      // Add the clinic to local storage (In real app, this would be a server API call)
-      const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
-      allClinics.push(clinic);
-      localStorage.setItem("allClinics", JSON.stringify(allClinics));
-      
-      // Create a simple admin user (In real app, this would be a proper auth system)
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("currentClinicId", clinicId);
-      localStorage.setItem("clinicData", JSON.stringify(clinic));
-      
-      toast.success("Clínica registrada com sucesso!");
-      navigate("/dashboard");
-      
+      if (userData?.user) {
+        const { data: clinic, error: clinicError } = await supabase
+          .from('clinics')
+          .insert([
+            {
+              name: clinicName,
+              admin_id: userData.user.id,
+              admin_email: adminEmail,
+              plan: selectedPlan
+            }
+          ])
+          .select();
+          
+        if (clinicError) {
+          throw new Error(clinicError.message);
+        }
+        
+        // Set user as clinic_admin
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert([
+            {
+              user_id: userData.user.id,
+              role: 'clinic_admin'
+            }
+          ]);
+          
+        if (roleError) {
+          throw new Error(roleError.message);
+        }
+        
+        // Save clinic to local storage
+        if (clinic && clinic.length > 0) {
+          localStorage.setItem("currentClinicId", clinic[0].id);
+          localStorage.setItem("clinicData", JSON.stringify(clinic[0]));
+          
+          // Get all clinics for the admin
+          const { data: allClinics } = await supabase
+            .from('clinics')
+            .select('*')
+            .eq('admin_id', userData.user.id);
+            
+          if (allClinics) {
+            localStorage.setItem("allClinics", JSON.stringify(allClinics));
+          }
+        }
+        
+        toast.success("Clínica registrada com sucesso!");
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      toast.error(`Erro ao registrar: ${error.message}`);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
   
   return (

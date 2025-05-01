@@ -1,10 +1,10 @@
 
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,54 +12,20 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
   
-  // Define master admin credentials
-  const masterAdminEmails = ["tiegomatias@gmail.comm", "tiegomatias@gmail.com", "tiegomatias"];
-  const masterAdminPassword = "@Orecic1717";
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Check if this is a master admin login
-    const isMasterAdmin = masterAdminEmails.includes(email.toLowerCase()) && password === masterAdminPassword;
-    
-    if (isMasterAdmin) {
-      // Handle master admin login
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("isMasterAdmin", "true");
-      localStorage.setItem("userEmail", email);
-      
-      toast.success("Login realizado com sucesso como administrador master!");
-      
-      // Redirect to master dashboard
-      navigate("/master");
-    } else {
-      // Handle regular clinic login
-      // In a real app, you would validate against a database
-      const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
-      const clinic = allClinics.find((c: any) => c.adminEmail === email);
-      
-      if (clinic) {
-        // Simple password check (in a real app this would be more secure)
-        // Here we're assuming the password is valid for demo purposes
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("currentClinicId", clinic.id);
-        localStorage.setItem("clinicData", JSON.stringify(clinic));
-        localStorage.setItem("userEmail", email);
-        localStorage.removeItem("isMasterAdmin");
-        
-        toast.success("Login realizado com sucesso!");
-        
-        // Redirect to clinic dashboard or last visited page
-        const from = location.state?.from?.pathname || "/dashboard";
-        navigate(from);
-      } else {
-        toast.error("Email ou senha incorretos");
-      }
+    try {
+      await signIn(email, password);
+      // Navigation is handled in the signIn function
+    } catch (error) {
+      // Error handling is done in the signIn function
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (

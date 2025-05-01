@@ -1,16 +1,10 @@
 
-import { supabase, isMockSupabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import type { Clinic } from "@/lib/types";
 
 export const clinicService = {
   // Buscar todas as clínicas
   async getAllClinics(): Promise<Clinic[]> {
-    if (isMockSupabase) {
-      // Return mock data from localStorage for local development
-      const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
-      return allClinics as Clinic[];
-    }
-    
     const { data, error } = await supabase
       .from('clinics')
       .select('*')
@@ -21,17 +15,16 @@ export const clinicService = {
       throw error;
     }
     
-    return data as Clinic[];
+    // Store in localStorage for offline access
+    if (data) {
+      localStorage.setItem("allClinics", JSON.stringify(data));
+    }
+    
+    return data as Clinic[] || [];
   },
   
   // Buscar uma clínica específica
   async getClinicById(id: string): Promise<Clinic | null> {
-    if (isMockSupabase) {
-      // Return mock data from localStorage for local development
-      const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
-      return allClinics.find((clinic: Clinic) => clinic.id === id) || null;
-    }
-    
     const { data, error } = await supabase
       .from('clinics')
       .select('*')
@@ -49,21 +42,6 @@ export const clinicService = {
   // Verificar se uma clínica já possui dados
   async hasClinicData(id: string, dataType: string): Promise<boolean> {
     try {
-      if (isMockSupabase) {
-        // For local development, check localStorage
-        const clinicData = JSON.parse(localStorage.getItem("clinicData") || "{}");
-        
-        // Check if the clinic has data for the specified type
-        if (dataType === "beds" && clinicData.hasBedsData) return true;
-        if (dataType === "professionals" && clinicData.professionals?.length) return true;
-        if (dataType === "patients" && clinicData.patients?.length) return true;
-        if (dataType === "activities" && clinicData.activities?.length) return true;
-        if (dataType === "documents" && clinicData.documents?.length) return true;
-        if (dataType === "contracts" && clinicData.contracts?.length) return true;
-        
-        return false;
-      }
-      
       const { data, error } = await supabase
         .from(dataType)
         .select('id')

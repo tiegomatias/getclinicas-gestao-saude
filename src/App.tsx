@@ -1,55 +1,53 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppLayout from "./components/layout/AppLayout";
-import NotFound from "./pages/NotFound";
-import Dashboard from "./pages/Dashboard";
-import Index from "./pages/Index";
-import HomePage from "./pages/HomePage";
-import Patients from "./pages/Patients";
-import Beds from "./pages/Beds";
-import Medications from "./pages/Medications";
-import Professionals from "./pages/Professionals";
-import Calendar from "./pages/Calendar";
-import Documents from "./pages/Documents";
-import Financeiro from "./pages/Financeiro";
-import Relatorios from "./pages/Relatorios";
-import Configuracoes from "./pages/Configuracoes";
-import Contracts from "./pages/Contracts";
-import Login from "./pages/Login";
-import Checkout from "./pages/Checkout";
-import Registration from "./pages/Registration";
-import AuthGuard from "./components/auth/AuthGuard";
-import MasterDashboard from "./pages/MasterDashboard";
-import MasterLayout from "./components/layout/MasterLayout";
-import MasterClinics from "./pages/MasterClinics";
-import MasterReports from "./pages/MasterReports";
-import MasterSettings from "./pages/MasterSettings";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
 
-const queryClient = new QueryClient();
+// Pages
+import HomePage from '@/pages/HomePage';
+import Login from '@/pages/Login';
+import Registration from '@/pages/Registration';
+import Checkout from '@/pages/Checkout';
+import Dashboard from '@/pages/Dashboard';
+import MasterDashboard from '@/pages/MasterDashboard';
+import MasterClinics from '@/pages/MasterClinics';
+import MasterReports from '@/pages/MasterReports';
+import MasterSettings from '@/pages/MasterSettings';
+import Patients from '@/pages/Patients';
+import Professionals from '@/pages/Professionals';
+import Beds from '@/pages/Beds';
+import Calendar from '@/pages/Calendar';
+import Documents from '@/pages/Documents';
+import Contracts from '@/pages/Contracts';
+import Financeiro from '@/pages/Financeiro';
+import Relatorios from '@/pages/Relatorios';
+import Medications from '@/pages/Medications';
+import Configuracoes from '@/pages/Configuracoes';
+import NotFound from '@/pages/NotFound';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+// Layouts
+import AppLayout from '@/components/layout/AppLayout';
+import MasterLayout from '@/components/layout/MasterLayout';
+
+// Auth
+import AuthGuard from '@/components/auth/AuthGuard';
+import { AuthProvider } from '@/contexts/AuthContext';
+
+// CSS
+import './App.css';
+
+const App = () => {
+  return (
+    <Router>
+      <AuthProvider>
         <Routes>
+          {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/checkout" element={<Checkout />} />
           <Route path="/registro" element={<Registration />} />
-          
-          <Route path="/sistema" element={
-            <AuthGuard>
-              <Index />
-            </AuthGuard>
-          } />
-          
-          {/* Master Admin Routes */}
+          <Route path="/checkout" element={<Checkout />} />
+
+          {/* Protected routes for master admins */}
           <Route path="/master" element={
             <AuthGuard>
               <MasterLayout>
@@ -78,31 +76,93 @@ const App = () => (
               </MasterLayout>
             </AuthGuard>
           } />
-          
-          {/* Clinic Routes */}
-          <Route element={
+
+          {/* Protected routes for clinic admins and users */}
+          <Route path="/dashboard" element={
             <AuthGuard>
-              <AppLayout />
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
             </AuthGuard>
-          }>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/pacientes" element={<Patients />} />
-            <Route path="/leitos" element={<Beds />} />
-            <Route path="/medicamentos" element={<Medications />} />
-            <Route path="/profissionais" element={<Professionals />} />
-            <Route path="/agenda" element={<Calendar />} />
-            <Route path="/documentos" element={<Documents />} />
-            <Route path="/contratos" element={<Contracts />} />
-            <Route path="/financeiro" element={<Financeiro />} />
-            <Route path="/relatorios" element={<Relatorios />} />
-            <Route path="/configuracoes" element={<Configuracoes />} />
-          </Route>
-          
+          } />
+          <Route path="/pacientes" element={
+            <AuthGuard>
+              <AppLayout>
+                <Patients />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/profissionais" element={
+            <AuthGuard>
+              <AppLayout>
+                <Professionals />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/leitos" element={
+            <AuthGuard>
+              <AppLayout>
+                <Beds />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/agenda" element={
+            <AuthGuard>
+              <AppLayout>
+                <Calendar />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/documentos" element={
+            <AuthGuard>
+              <AppLayout>
+                <Documents />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/contratos" element={
+            <AuthGuard>
+              <AppLayout>
+                <Contracts />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/financeiro" element={
+            <AuthGuard>
+              <AppLayout>
+                <Financeiro />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/relatorios" element={
+            <AuthGuard>
+              <AppLayout>
+                <Relatorios />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/medicacoes" element={
+            <AuthGuard>
+              <AppLayout>
+                <Medications />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/configuracoes" element={
+            <AuthGuard>
+              <AppLayout>
+                <Configuracoes />
+              </AppLayout>
+            </AuthGuard>
+          } />
+
+          {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        <Toaster position="top-right" />
+      </AuthProvider>
+    </Router>
+  );
+};
 
 export default App;
