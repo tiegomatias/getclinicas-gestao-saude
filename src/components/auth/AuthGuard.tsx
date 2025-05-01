@@ -16,6 +16,9 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   // Master admin paths don't require clinic ID
   const isMasterAdminPath = location.pathname === "/master" || location.pathname.startsWith("/master/");
 
+  // Master admin email for direct login
+  const masterAdminEmails = ["tiegomatias@gmail.comm", "tiegomatias@gmail.com", "tiegomatias"];
+
   // For master admin paths, we only need isAuthenticated and isMasterAdmin
   const canAccessMasterAdmin = isAuthenticated && isMasterAdmin && isMasterAdminPath;
   
@@ -23,6 +26,12 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   const isFullyAuthenticated = isAuthenticated && currentClinicId;
 
   useEffect(() => {
+    // Auto-login for master admin emails (simplified version)
+    const userEmail = localStorage.getItem("userEmail");
+    if (userEmail && masterAdminEmails.includes(userEmail.toLowerCase())) {
+      localStorage.setItem("isMasterAdmin", "true");
+    }
+
     // Only check clinic data if we're not on a master admin path
     if (isFullyAuthenticated && !isMasterAdminPath) {
       const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
@@ -42,7 +51,7 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
         }
       }
     }
-  }, [isFullyAuthenticated, currentClinicId, isMasterAdminPath]);
+  }, [isFullyAuthenticated, currentClinicId, isMasterAdminPath, masterAdminEmails]);
 
   // If trying to access master admin path without proper credentials
   if (isMasterAdminPath && !canAccessMasterAdmin) {
@@ -50,7 +59,9 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   }
 
   // If not authenticated and not already on login page, redirect to login
-  if (!isFullyAuthenticated && !canAccessMasterAdmin && location.pathname !== "/login") {
+  if (!isFullyAuthenticated && !canAccessMasterAdmin && location.pathname !== "/login" && 
+      location.pathname !== "/" && location.pathname !== "/registro" && 
+      location.pathname !== "/checkout") {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

@@ -1,226 +1,130 @@
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { toast } from "sonner";
 
 const Login = () => {
-  const [usernameOrEmail, setUsernameOrEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  // Define master admin credentials
+  const masterAdminEmails = ["tiegomatias@gmail.comm", "tiegomatias@gmail.com", "tiegomatias"];
+  const masterAdminPassword = "@Orecic1717";
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    // Master admin login check
-    const masterAdminEmail = "tiegomatias@gmail.comm";
-    const validMasterEmail = "tiegomatias@gmail.com"; // Corrected email without the extra 'm'
-    const validUsername = "tiegomatias";
-    const validPassword = "@Orecic1717";
+    // Check if this is a master admin login
+    const isMasterAdmin = masterAdminEmails.includes(email.toLowerCase()) && password === masterAdminPassword;
     
-    // Check if the login is for master admin
-    if ((usernameOrEmail === masterAdminEmail || usernameOrEmail === validMasterEmail || usernameOrEmail === validUsername) && 
-        password === validPassword) {
-      
-      // Set master admin flag
+    if (isMasterAdmin) {
+      // Handle master admin login
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("isMasterAdmin", "true");
+      localStorage.setItem("userEmail", email);
       
-      if (rememberMe) {
-        localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);
-      } else {
-        localStorage.removeItem("rememberedUsernameOrEmail");
-      }
+      toast.success("Login realizado com sucesso como administrador master!");
       
-      toast.success("Login como Administrador Mestre realizado com sucesso!");
+      // Redirect to master dashboard
       navigate("/master");
-      return;
-    }
-    
-    // Get all registered clinics for regular clinic login
-    const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
-    
-    // Check demo login (for backward compatibility)
-    const validEmail = "tiegomatias@gmail.com";
-    
-    if ((usernameOrEmail === validEmail || usernameOrEmail === validUsername) && password === validPassword) {
-      // Use demo clinic data or first clinic if available
-      const demoClinic = allClinics.length > 0 ? allClinics[0] : {
-        id: "demo-clinic-1",
-        clinicName: "Clínica Demonstração",
-        plan: "Premium",
-        createdAt: new Date().toISOString()
-      };
-      
-      // Store authentication and clinic data
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("currentClinicId", demoClinic.id);
-      localStorage.setItem("clinicData", JSON.stringify(demoClinic));
-      localStorage.removeItem("isMasterAdmin"); // Ensure user is not a master admin
-      
-      if (rememberMe) {
-        localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);
-      } else {
-        localStorage.removeItem("rememberedUsernameOrEmail");
-      }
-      
-      toast.success("Login realizado com sucesso!");
-      navigate("/dashboard");
-      return;
-    }
-    
-    // Try to find the clinic by username or email
-    const clinic = allClinics.find((clinic: any) => 
-      clinic.username === usernameOrEmail || 
-      clinic.email === usernameOrEmail
-    );
-    
-    if (clinic && clinic.password === password) {
-      // Set this clinic as the current one
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("currentClinicId", clinic.id);
-      localStorage.setItem("clinicData", JSON.stringify(clinic));
-      localStorage.removeItem("isMasterAdmin"); // Ensure user is not a master admin
-      
-      if (rememberMe) {
-        localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);
-      } else {
-        localStorage.removeItem("rememberedUsernameOrEmail");
-      }
-      
-      toast.success(`Login realizado com sucesso! Bem-vindo à ${clinic.clinicName}`);
-      navigate("/dashboard");
     } else {
-      toast.error("Credenciais inválidas. Por favor, verifique seu email/usuário e senha.");
+      // Handle regular clinic login
+      // In a real app, you would validate against a database
+      const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
+      const clinic = allClinics.find((c: any) => c.adminEmail === email);
+      
+      if (clinic) {
+        // Simple password check (in a real app this would be more secure)
+        // Here we're assuming the password is valid for demo purposes
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("currentClinicId", clinic.id);
+        localStorage.setItem("clinicData", JSON.stringify(clinic));
+        localStorage.setItem("userEmail", email);
+        localStorage.removeItem("isMasterAdmin");
+        
+        toast.success("Login realizado com sucesso!");
+        
+        // Redirect to clinic dashboard or last visited page
+        const from = location.state?.from?.pathname || "/dashboard";
+        navigate(from);
+      } else {
+        toast.error("Email ou senha incorretos");
+      }
     }
+    
+    setLoading(false);
   };
-
-  const handleForgotPassword = (e: React.MouseEvent) => {
-    e.preventDefault();
-    toast.info("Funcionalidade em desenvolvimento");
-  };
-
-  const handleBackToHome = () => {
-    navigate("/");
-  };
-
-  // Check for remembered email/username on component mount
-  React.useEffect(() => {
-    const remembered = localStorage.getItem("rememberedUsernameOrEmail");
-    if (remembered) {
-      setUsernameOrEmail(remembered);
-      setRememberMe(true);
-    }
-  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center">
-            <img src="/placeholder.svg" alt="Logo" className="h-10 w-10 mr-2" />
-            <h1 className="text-2xl font-bold text-getclinicas-dark">GetClinics</h1>
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-2">
+            <img src="/placeholder.svg" alt="Logo" className="h-12 w-12" />
+          </div>
+          <h1 className="text-2xl font-bold">GetClinics</h1>
+          <p className="text-gray-600">Acesse sua conta</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label htmlFor="password">Senha</Label>
+                <a href="#" className="text-sm text-blue-600 hover:underline">
+                  Esqueceu a senha?
+                </a>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? "Entrando..." : "Entrar"}
+            </Button>
+          </form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Não tem uma conta?{" "}
+              <a 
+                href="/registro" 
+                className="text-blue-600 hover:underline"
+              >
+                Registrar
+              </a>
+            </p>
           </div>
         </div>
-        
-        <Card className="w-full">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Bem-vindo ao GetClinics</CardTitle>
-            <CardDescription className="text-center">
-              Faça login para acessar sua conta
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="usernameOrEmail">Email ou Nome de Usuário</Label>
-                <Input
-                  id="usernameOrEmail"
-                  type="text"
-                  placeholder="email@clinica.com ou nome de usuário"
-                  value={usernameOrEmail}
-                  onChange={(e) => setUsernameOrEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Senha</Label>
-                  <a 
-                    href="#" 
-                    onClick={handleForgotPassword}
-                    className="text-sm text-getclinicas-primary hover:underline"
-                  >
-                    Esqueceu a senha?
-                  </a>
-                </div>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOffIcon className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <EyeIcon className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="remember" 
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => {
-                    if (typeof checked === "boolean") {
-                      setRememberMe(checked);
-                    }
-                  }}
-                />
-                <label
-                  htmlFor="remember"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Lembrar meus dados
-                </label>
-              </div>
-              <Button type="submit" className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark">
-                Entrar
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full"
-                onClick={handleBackToHome}
-              >
-                Voltar para Página Inicial
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-sm text-center text-muted-foreground">
-              Sistema de gerenciamento para clínicas de recuperação
-            </div>
-          </CardFooter>
-        </Card>
       </div>
     </div>
   );

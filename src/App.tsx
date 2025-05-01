@@ -25,6 +25,9 @@ import Registration from "./pages/Registration";
 import AuthGuard from "./components/auth/AuthGuard";
 import MasterDashboard from "./pages/MasterDashboard";
 import MasterLayout from "./components/layout/MasterLayout";
+import MasterClinics from "./pages/MasterClinics";
+import MasterReports from "./pages/MasterReports";
+import MasterSettings from "./pages/MasterSettings";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +54,27 @@ const App = () => (
             <AuthGuard>
               <MasterLayout>
                 <MasterDashboard />
+              </MasterLayout>
+            </AuthGuard>
+          } />
+          <Route path="/master/clinics" element={
+            <AuthGuard>
+              <MasterLayout>
+                <MasterClinics />
+              </MasterLayout>
+            </AuthGuard>
+          } />
+          <Route path="/master/reports" element={
+            <AuthGuard>
+              <MasterLayout>
+                <MasterReports />
+              </MasterLayout>
+            </AuthGuard>
+          } />
+          <Route path="/master/settings" element={
+            <AuthGuard>
+              <MasterLayout>
+                <MasterSettings />
               </MasterLayout>
             </AuthGuard>
           } />
