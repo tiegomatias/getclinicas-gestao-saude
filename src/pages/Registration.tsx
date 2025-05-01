@@ -17,8 +17,9 @@ import {
 } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Building, ShieldCheck, UserPlus, Check, Info } from "lucide-react";
+import { ArrowLeft, Building, ShieldCheck, UserPlus, Check, Info, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Schema validation for the form
 const formSchema = z.object({
@@ -59,11 +60,21 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
+// Interface for clinic data
+interface ClinicData extends FormData {
+  id: string;
+  plan: string | null;
+  createdAt: string;
+  active: boolean;
+}
+
 const Registration = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingClinics, setExistingClinics] = useState<ClinicData[]>([]);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -103,13 +114,56 @@ const Registration = () => {
       toast.error("Plano não encontrado");
       navigate("/checkout");
     }
+
+    // Load existing clinics from localStorage
+    const clinicsData = localStorage.getItem("allClinics");
+    if (clinicsData) {
+      try {
+        setExistingClinics(JSON.parse(clinicsData));
+      } catch (error) {
+        console.error("Error parsing clinics data:", error);
+        setExistingClinics([]);
+      }
+    }
   }, [location, navigate]);
 
+  // Check for duplicate clinic details
+  const checkDuplicateClinic = (data: FormData): string | null => {
+    if (existingClinics.length === 0) return null;
+
+    // Check for duplicate CNPJ
+    if (existingClinics.some(clinic => clinic.cnpj === data.cnpj)) {
+      return "CNPJ já cadastrado no sistema";
+    }
+
+    // Check for duplicate email
+    if (existingClinics.some(clinic => clinic.email === data.email)) {
+      return "Email da clínica já cadastrado no sistema";
+    }
+
+    // Check for duplicate username
+    if (existingClinics.some(clinic => clinic.username === data.username)) {
+      return "Nome de usuário já cadastrado no sistema";
+    }
+
+    return null;
+  };
+
   const onSubmit = (data: FormData) => {
+    setDuplicateError(null);
+    
+    // Check for duplicate clinic
+    const duplicateError = checkDuplicateClinic(data);
+    if (duplicateError) {
+      setDuplicateError(duplicateError);
+      toast.error(duplicateError);
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Create a clinic object with all the registration data
-    const clinicData = {
+    const clinicData: ClinicData = {
       ...data,
       id: crypto.randomUUID(),
       plan: selectedPlan,
@@ -122,10 +176,14 @@ const Registration = () => {
       console.log("Form data:", data);
       console.log("Selected plan:", selectedPlan);
       
-      // Store clinic data in localStorage (in a real app this would be stored in a database)
+      // Store clinic data in localStorage
       localStorage.setItem("clinicData", JSON.stringify(clinicData));
       localStorage.setItem("currentClinicId", clinicData.id);
       localStorage.setItem("isAuthenticated", "true");
+      
+      // Update the list of all clinics
+      const updatedClinics = [...existingClinics, clinicData];
+      localStorage.setItem("allClinics", JSON.stringify(updatedClinics));
       
       toast.success("Cadastro realizado com sucesso! Bem-vindo ao GetClinics.");
       // Redirect to dashboard after successful registration
@@ -171,6 +229,13 @@ const Registration = () => {
             </div>
           )}
         </div>
+
+        {duplicateError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{duplicateError}</AlertDescription>
+          </Alert>
+        )}
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
