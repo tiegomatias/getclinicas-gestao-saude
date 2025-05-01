@@ -19,13 +19,36 @@ const Login = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Get all registered clinics
+    // Master admin login check
+    const masterAdminEmail = "tiegomatias@gmail.comm";
+    const validMasterEmail = "tiegomatias@gmail.com"; // Corrected email without the extra 'm'
+    const validUsername = "tiegomatias";
+    const validPassword = "@Orecic1717";
+    
+    // Check if the login is for master admin
+    if ((usernameOrEmail === masterAdminEmail || usernameOrEmail === validMasterEmail || usernameOrEmail === validUsername) && 
+        password === validPassword) {
+      
+      // Set master admin flag
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("isMasterAdmin", "true");
+      
+      if (rememberMe) {
+        localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);
+      } else {
+        localStorage.removeItem("rememberedUsernameOrEmail");
+      }
+      
+      toast.success("Login como Administrador Mestre realizado com sucesso!");
+      navigate("/master");
+      return;
+    }
+    
+    // Get all registered clinics for regular clinic login
     const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
     
     // Check demo login (for backward compatibility)
     const validEmail = "tiegomatias@gmail.com";
-    const validUsername = "tiegomatias";
-    const validPassword = "@Orecic1717";
     
     if ((usernameOrEmail === validEmail || usernameOrEmail === validUsername) && password === validPassword) {
       // Use demo clinic data or first clinic if available
@@ -40,6 +63,7 @@ const Login = () => {
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("currentClinicId", demoClinic.id);
       localStorage.setItem("clinicData", JSON.stringify(demoClinic));
+      localStorage.removeItem("isMasterAdmin"); // Ensure user is not a master admin
       
       if (rememberMe) {
         localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);
@@ -63,6 +87,7 @@ const Login = () => {
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("currentClinicId", clinic.id);
       localStorage.setItem("clinicData", JSON.stringify(clinic));
+      localStorage.removeItem("isMasterAdmin"); // Ensure user is not a master admin
       
       if (rememberMe) {
         localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);

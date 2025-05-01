@@ -15,7 +15,9 @@ export default function MasterLayout({ children }: MasterLayoutProps) {
   // Get the title based on the current route
   const getTitle = () => {
     if (location.pathname === "/master") return "Painel Mestre";
-    // Add more master routes here if needed
+    if (location.pathname === "/master/clinics") return "Gerenciamento de Clínicas";
+    if (location.pathname === "/master/reports") return "Relatórios Gerais";
+    if (location.pathname === "/master/settings") return "Configurações do Sistema";
     return "GetClinics Master";
   };
 
