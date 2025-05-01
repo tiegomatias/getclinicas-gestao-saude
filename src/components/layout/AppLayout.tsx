@@ -15,12 +15,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // Get the title based on the current route
   const getTitle = () => {
     const path = location.pathname;
-    if (path === "/") return "Dashboard";
+    if (path === "/dashboard") return "Dashboard";
     if (path.includes("pacientes")) return "Gestão de Pacientes";
     if (path.includes("profissionais")) return "Profissionais";
     if (path.includes("agenda")) return "Agenda";
     if (path.includes("leitos")) return "Gestão de Leitos";
-    if (path.includes("medicamentos")) return "Controle de Medicamentos";
+    if (path.includes("medicamento")) return "Controle de Medicamentos";
     if (path.includes("documentos")) return "Documentos";
     if (path.includes("contratos")) return "Contratos";
     if (path.includes("financeiro")) return "Financeiro";

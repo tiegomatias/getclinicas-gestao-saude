@@ -37,8 +37,9 @@ const Index = () => {
     }
   }, [isAuthenticated, isMasterAdmin, navigate]);
 
-  // Redirecionando para login enquanto o useEffect não termina
-  return <Navigate to="/login" replace />;
+  // Este componente não renderiza nada visualmente,
+  // apenas redireciona com base na autenticação
+  return null;
 };
 
 export default Index;

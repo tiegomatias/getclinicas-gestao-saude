@@ -24,6 +24,7 @@ import Relatorios from '@/pages/Relatorios';
 import Medications from '@/pages/Medications';
 import Configuracoes from '@/pages/Configuracoes';
 import NotFound from '@/pages/NotFound';
+import Index from '@/pages/Index';
 
 // Layouts
 import AppLayout from '@/components/layout/AppLayout';
@@ -41,8 +42,10 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Routes>
+          {/* Root path - Index router */}
+          <Route path="/" element={<Index />} />
+          
           {/* Public routes */}
-          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registration />} />
           <Route path="/checkout" element={<Checkout />} />
@@ -138,6 +141,13 @@ const App = () => {
             <AuthGuard>
               <AppLayout>
                 <Relatorios />
+              </AppLayout>
+            </AuthGuard>
+          } />
+          <Route path="/medicamentos" element={
+            <AuthGuard>
+              <AppLayout>
+                <Medications />
               </AppLayout>
             </AuthGuard>
           } />
