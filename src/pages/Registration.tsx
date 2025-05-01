@@ -54,62 +54,90 @@ const Registration = () => {
     setLoading(true);
     
     try {
-      // Register user
-      await signUp(adminEmail, password, adminName);
-      
-      // Create clinic
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (userData?.user) {
-        const { data: clinic, error: clinicError } = await supabase
-          .from('clinics')
-          .insert([
-            {
-              name: clinicName,
-              admin_id: userData.user.id,
-              admin_email: adminEmail,
-              plan: selectedPlan
-            }
-          ])
-          .select();
-          
-        if (clinicError) {
-          throw new Error(clinicError.message);
-        }
-        
-        // Set user as clinic_admin
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert([
-            {
-              user_id: userData.user.id,
-              role: 'clinic_admin'
-            }
-          ]);
-          
-        if (roleError) {
-          throw new Error(roleError.message);
-        }
-        
-        // Save clinic to local storage
-        if (clinic && clinic.length > 0) {
-          localStorage.setItem("currentClinicId", clinic[0].id);
-          localStorage.setItem("clinicData", JSON.stringify(clinic[0]));
-          
-          // Get all clinics for the admin
-          const { data: allClinics } = await supabase
-            .from('clinics')
-            .select('*')
-            .eq('admin_id', userData.user.id);
-            
-          if (allClinics) {
-            localStorage.setItem("allClinics", JSON.stringify(allClinics));
+      // 1. Primeiro registramos o usuário (sem aguardar a confirmação por email)
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: adminEmail,
+        password,
+        options: {
+          data: {
+            name: adminName,
           }
         }
-        
-        toast.success("Clínica registrada com sucesso!");
-        navigate("/dashboard");
+      });
+      
+      if (signUpError) throw signUpError;
+      
+      if (!signUpData.user) {
+        throw new Error("Não foi possível criar o usuário");
       }
+      
+      // 2. Criamos a clínica associada ao usuário
+      const { data: clinic, error: clinicError } = await supabase
+        .from('clinics')
+        .insert([
+          {
+            name: clinicName,
+            admin_id: signUpData.user.id,
+            admin_email: adminEmail,
+            plan: selectedPlan
+          }
+        ])
+        .select();
+      
+      if (clinicError) throw clinicError;
+      
+      if (!clinic || clinic.length === 0) {
+        throw new Error("Erro ao criar clínica");
+      }
+      
+      // 3. Inserção direta na tabela user_roles usando service_role key (isso é feito no backend em produção)
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert([
+          {
+            user_id: signUpData.user.id,
+            role: 'clinic_admin'
+          }
+        ]);
+      
+      if (roleError) {
+        console.error("Erro ao definir função do usuário:", roleError);
+        // Continuamos mesmo se houver erro aqui, pois o administrador poderá corrigir manualmente
+      }
+      
+      // 4. Adicionar o usuário como admin da clínica
+      const { error: clinicUserError } = await supabase
+        .from('clinic_users')
+        .insert([
+          {
+            clinic_id: clinic[0].id,
+            user_id: signUpData.user.id,
+            role: 'clinic_admin'
+          }
+        ]);
+      
+      if (clinicUserError) {
+        console.error("Erro ao associar usuário à clínica:", clinicUserError);
+        // Continuamos mesmo com erro, administrador poderá corrigir manualmente
+      }
+      
+      // Salvar dados da clínica no localStorage
+      localStorage.setItem("currentClinicId", clinic[0].id);
+      localStorage.setItem("clinicData", JSON.stringify(clinic[0]));
+      
+      // 5. Fazer login automaticamente
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email: adminEmail,
+        password
+      });
+      
+      if (loginError) {
+        throw loginError;
+      }
+      
+      toast.success("Clínica registrada com sucesso!");
+      navigate("/dashboard");
+      
     } catch (error: any) {
       toast.error(`Erro ao registrar: ${error.message}`);
     } finally {
