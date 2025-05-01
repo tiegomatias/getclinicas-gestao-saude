@@ -8,6 +8,7 @@ import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Index from "./pages/Index";
+import HomePage from "./pages/HomePage";
 import Patients from "./pages/Patients";
 import Beds from "./pages/Beds";
 import Medications from "./pages/Medications";
@@ -30,9 +31,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           
-          <Route path="/" element={
+          <Route path="/sistema" element={
             <AuthGuard>
               <Index />
             </AuthGuard>
@@ -64,3 +66,4 @@ const App = () => (
 );
 
 export default App;
+
