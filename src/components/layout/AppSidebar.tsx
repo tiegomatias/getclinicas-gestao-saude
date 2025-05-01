@@ -1,5 +1,6 @@
+
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -25,11 +26,20 @@ import {
   ChartBarIcon,
   Settings,
   File,
+  LogOut,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 export default function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
+    toast.success("Logout realizado com sucesso");
+    navigate("/login");
+  };
   
   const menuItems = [
     {
@@ -133,6 +143,13 @@ export default function AppSidebar() {
             <div className="text-sm font-medium text-sidebar-foreground">Admin Clínica</div>
             <div className="text-xs text-sidebar-foreground/70">admin@getclinics.com</div>
           </div>
+          <button 
+            onClick={handleLogout}
+            className="rounded-full p-1.5 text-sidebar-foreground hover:bg-sidebar-accent/20"
+            title="Sair"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </Sidebar>

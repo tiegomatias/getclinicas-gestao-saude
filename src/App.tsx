@@ -18,6 +18,8 @@ import Financeiro from "./pages/Financeiro";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 import Contracts from "./pages/Contracts";
+import Login from "./pages/Login";
+import AuthGuard from "./components/auth/AuthGuard";
 
 const queryClient = new QueryClient();
 
@@ -28,8 +30,19 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route element={<AppLayout />}>
+          <Route path="/login" element={<Login />} />
+          
+          <Route path="/" element={
+            <AuthGuard>
+              <Index />
+            </AuthGuard>
+          } />
+          
+          <Route element={
+            <AuthGuard>
+              <AppLayout />
+            </AuthGuard>
+          }>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pacientes" element={<Patients />} />
             <Route path="/leitos" element={<Beds />} />
@@ -42,6 +55,7 @@ const App = () => (
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
           </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
