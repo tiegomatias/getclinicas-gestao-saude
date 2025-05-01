@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -22,17 +22,14 @@ import {
   LogOut,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function MasterSidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
+  const { signOut, user } = useAuth();
   
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("isMasterAdmin");
-    toast.success("Logout realizado com sucesso");
-    navigate("/login");
+    signOut();
   };
   
   const menuItems = [
@@ -57,6 +54,21 @@ export default function MasterSidebar() {
       icon: Settings,
     },
   ];
+
+  // Extrair o nome ou email do usuário para exibição
+  const userDisplayName = user?.user_metadata?.name || 
+    (user?.email ? user.email.split('@')[0] : 'Master Admin');
+  
+  // Obter o email do usuário
+  const userEmail = user?.email || 'admin@getclinics.com';
+  
+  // Gerar iniciais para o avatar
+  const userInitials = userDisplayName
+    .split(' ')
+    .map(name => name[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
 
   return (
     <Sidebar>
@@ -95,12 +107,12 @@ export default function MasterSidebar() {
           <Avatar className="h-8 w-8">
             <AvatarImage src="" />
             <AvatarFallback className="bg-sidebar-accent/30 text-sidebar-foreground">
-              MA
+              {userInitials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 truncate">
-            <div className="text-sm font-medium text-sidebar-foreground">Master Admin</div>
-            <div className="text-xs text-sidebar-foreground/70">admin@getclinics.com</div>
+            <div className="text-sm font-medium text-sidebar-foreground">{userDisplayName}</div>
+            <div className="text-xs text-sidebar-foreground/70">{userEmail}</div>
           </div>
           <button 
             onClick={handleLogout}

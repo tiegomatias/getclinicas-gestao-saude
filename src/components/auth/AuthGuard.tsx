@@ -9,7 +9,7 @@ interface AuthGuardProps {
 }
 
 const AuthGuard = ({ children }: AuthGuardProps) => {
-  const { isAuthenticated, isMasterAdmin, loading } = useAuth();
+  const { isAuthenticated, isMasterAdmin, loading, session } = useAuth();
   const currentClinicId = localStorage.getItem("currentClinicId");
   const location = useLocation();
 
@@ -23,12 +23,26 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   const isFullyAuthenticated = isAuthenticated && currentClinicId;
 
   useEffect(() => {
+    // Verificar se temos um token de sessão válido
+    if (session?.access_token && !isAuthenticated) {
+      console.log("Sessão existe mas isAuthenticated é false, recarregando auth state");
+    }
+    
     // Only check clinic data if we're not on a master admin path
     if (isFullyAuthenticated && !isMasterAdminPath) {
       const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
+      const clinicData = JSON.parse(localStorage.getItem("clinicData") || "{}");
+      
+      console.log("Auth check: ", { 
+        isAuthenticated, 
+        currentClinicId, 
+        clinicDataExists: !!clinicData.id,
+        allClinics: allClinics.length 
+      });
+      
       const clinicExists = allClinics.some((clinic: any) => clinic.id === currentClinicId);
       
-      if (!clinicExists) {
+      if (!clinicExists && allClinics.length > 0) {
         // If clinic doesn't exist in our records, log the user out
         localStorage.removeItem("currentClinicId");
         localStorage.removeItem("clinicData");
@@ -41,11 +55,19 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
         }
       }
     }
-  }, [isFullyAuthenticated, currentClinicId, isMasterAdminPath]);
+  }, [isFullyAuthenticated, currentClinicId, isMasterAdminPath, isAuthenticated, session]);
 
   // Show loading state while checking authentication
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+  }
+
+  // Se estamos nas páginas públicas, não precisamos redirecionar
+  if (location.pathname === "/" || 
+      location.pathname === "/login" || 
+      location.pathname === "/registro" || 
+      location.pathname === "/checkout") {
+    return <>{children}</>;
   }
 
   // If trying to access master admin path without proper credentials
@@ -53,10 +75,8 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If not authenticated and not already on login page, redirect to login
-  if (!isFullyAuthenticated && !canAccessMasterAdmin && location.pathname !== "/login" && 
-      location.pathname !== "/" && location.pathname !== "/registro" && 
-      location.pathname !== "/checkout") {
+  // If not authenticated, redirect to login
+  if (!isFullyAuthenticated && !canAccessMasterAdmin) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
