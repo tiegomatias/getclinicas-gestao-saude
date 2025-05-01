@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,8 +17,49 @@ import {
 } from "@/components/ui/select";
 import { Bed, Plus } from "lucide-react";
 import BedManagementGrid from "@/components/beds/BedManagementGrid";
+import EmptyState from "@/components/shared/EmptyState";
+import { clinicService } from "@/services/clinicService";
 
 export default function Beds() {
+  const [hasData, setHasData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkForData = async () => {
+      try {
+        // Obter o ID da clínica do localStorage
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (!clinicDataStr) {
+          setHasData(false);
+          setIsLoading(false);
+          return;
+        }
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        
+        // Verificar se a clínica tem dados de leitos
+        if (clinicData.has_beds_data) {
+          setHasData(true);
+        } else {
+          const hasBedsData = await clinicService.hasClinicData(clinicData.id, "beds");
+          setHasData(hasBedsData);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar dados de leitos:", error);
+        setHasData(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkForData();
+  }, []);
+
+  const handleAddBeds = () => {
+    // Aqui você pode abrir um formulário ou modal para adicionar leitos
+    console.log("Adicionar leitos");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -49,7 +90,7 @@ export default function Beds() {
             </SelectContent>
           </Select>
 
-          <Button>
+          <Button onClick={handleAddBeds}>
             <Plus className="mr-2 h-4 w-4" /> Adicionar Leito
           </Button>
         </div>
@@ -64,7 +105,21 @@ export default function Beds() {
         </CardHeader>
         <CardContent>
           <div className="rounded-md bg-background p-4">
-            <BedManagementGrid />
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <p>Carregando...</p>
+              </div>
+            ) : hasData ? (
+              <BedManagementGrid />
+            ) : (
+              <EmptyState
+                icon={<Bed className="h-10 w-10 text-muted-foreground" />}
+                title="Nenhum leito cadastrado"
+                description="Configure os leitos da sua clínica para visualizar o mapa de ocupação e gerenciar internações."
+                actionText="Configurar leitos"
+                onAction={handleAddBeds}
+              />
+            )}
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,8 +14,43 @@ import { Input } from "@/components/ui/input";
 import ProfessionalForm from "@/components/professionals/ProfessionalForm";
 import ProfessionalList from "@/components/professionals/ProfessionalList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import EmptyState from "@/components/shared/EmptyState";
+import { clinicService } from "@/services/clinicService";
 
 export default function Professionals() {
+  const [activeTab, setActiveTab] = useState("list");
+  const [hasData, setHasData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkForData = async () => {
+      try {
+        // Obter o ID da clínica do localStorage
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (!clinicDataStr) {
+          setHasData(false);
+          setIsLoading(false);
+          return;
+        }
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        const hasProfessionalsData = await clinicService.hasClinicData(clinicData.id, "professionals");
+        setHasData(hasProfessionalsData);
+      } catch (error) {
+        console.error("Erro ao verificar dados de profissionais:", error);
+        setHasData(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkForData();
+  }, []);
+
+  const handleNewProfessional = () => {
+    setActiveTab("register");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -40,13 +75,13 @@ export default function Professionals() {
               className="w-full pl-8 md:w-[200px] lg:w-[300px]"
             />
           </div>
-          <Button>
+          <Button onClick={handleNewProfessional}>
             <Plus className="mr-2 h-4 w-4" /> Novo Profissional
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="list">
+      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
           <TabsTrigger value="list">Listagem</TabsTrigger>
           <TabsTrigger value="register">Cadastro</TabsTrigger>
@@ -79,7 +114,21 @@ export default function Professionals() {
               </div>
             </CardHeader>
             <CardContent>
-              <ProfessionalList />
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <p>Carregando...</p>
+                </div>
+              ) : hasData ? (
+                <ProfessionalList />
+              ) : (
+                <EmptyState
+                  icon={<Users className="h-10 w-10 text-muted-foreground" />}
+                  title="Nenhum profissional cadastrado"
+                  description="Adicione o primeiro profissional à sua equipe para começar a gerenciar a equipe da clínica."
+                  actionText="Adicionar profissional"
+                  onAction={handleNewProfessional}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -92,7 +141,10 @@ export default function Professionals() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ProfessionalForm />
+              <ProfessionalForm onComplete={() => {
+                setActiveTab("list");
+                setHasData(true); // Atualiza o estado para mostrar a lista após o cadastro
+              }} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -113,7 +165,7 @@ export default function Professionals() {
                   </p>
                 </div>
                 <p className="text-muted-foreground">
-                  O controle de permissões estará disponível em breve.
+                  O controle de permissões estará disponível quando houver profissionais cadastrados.
                 </p>
               </div>
             </CardContent>

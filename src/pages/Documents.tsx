@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,9 +12,43 @@ import { FileText, Plus, Search, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import DocumentsList from "@/components/documents/DocumentsList";
 import DocumentUpload from "@/components/documents/DocumentUpload";
+import EmptyState from "@/components/shared/EmptyState";
+import { clinicService } from "@/services/clinicService";
 
 export default function Documents() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [hasData, setHasData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("list");
+
+  useEffect(() => {
+    const checkForData = async () => {
+      try {
+        // Obter o ID da clínica do localStorage
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (!clinicDataStr) {
+          setHasData(false);
+          setIsLoading(false);
+          return;
+        }
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        const hasDocumentsData = await clinicService.hasClinicData(clinicData.id, "documents");
+        setHasData(hasDocumentsData);
+      } catch (error) {
+        console.error("Erro ao verificar dados de documentos:", error);
+        setHasData(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkForData();
+  }, []);
+
+  const handleNewDocument = () => {
+    setActiveTab("upload");
+  };
 
   return (
     <div className="space-y-6">
@@ -42,13 +76,13 @@ export default function Documents() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button>
+          <Button onClick={handleNewDocument}>
             <Upload className="mr-2 h-4 w-4" /> Novo Documento
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="list">
+      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
           <TabsTrigger value="list">Listagem</TabsTrigger>
           <TabsTrigger value="upload">Enviar Documento</TabsTrigger>
@@ -59,7 +93,21 @@ export default function Documents() {
               <CardTitle>Documentos Disponíveis</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentsList searchQuery={searchQuery} />
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <p>Carregando...</p>
+                </div>
+              ) : hasData ? (
+                <DocumentsList searchQuery={searchQuery} />
+              ) : (
+                <EmptyState
+                  icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                  title="Nenhum documento disponível"
+                  description="Envie documentos para começar a organizar e gerenciar arquivos da clínica."
+                  actionText="Enviar documento"
+                  onAction={handleNewDocument}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -69,7 +117,10 @@ export default function Documents() {
               <CardTitle>Enviar Novo Documento</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentUpload />
+              <DocumentUpload onComplete={() => {
+                setActiveTab("list");
+                setHasData(true);
+              }} />
             </CardContent>
           </Card>
         </TabsContent>

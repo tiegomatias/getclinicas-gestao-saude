@@ -34,6 +34,27 @@ export const clinicService = {
     return data as Clinic;
   },
   
+  // Verificar se uma clínica já possui dados
+  async hasClinicData(id: string, dataType: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from(dataType)
+        .select('id')
+        .eq('clinic_id', id)
+        .limit(1);
+        
+      if (error) {
+        console.error(`Erro ao verificar dados de ${dataType} para clínica ${id}:`, error);
+        return false;
+      }
+      
+      return data && data.length > 0;
+    } catch (error) {
+      console.error(`Erro ao verificar dados de ${dataType}:`, error);
+      return false;
+    }
+  },
+  
   // Criar uma nova clínica
   async createClinic(clinicData: Partial<Clinic>): Promise<Clinic> {
     const { data, error } = await supabase

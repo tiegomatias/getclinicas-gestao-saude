@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +12,8 @@ import { FileText, Plus, Search, FileIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ContractForm from "@/components/contracts/ContractForm";
 import ContractPreview from "@/components/contracts/ContractPreview";
+import EmptyState from "@/components/shared/EmptyState";
+import { clinicService } from "@/services/clinicService";
 
 interface ContractData {
   responsavelNome: string;
@@ -33,9 +36,36 @@ interface ContractData {
 
 export default function Contracts() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<string>("new");
+  const [activeTab, setActiveTab] = useState<string>("list");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [contractData, setContractData] = useState<ContractData | null>(null);
+  const [hasData, setHasData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkForData = async () => {
+      try {
+        // Obter o ID da clínica do localStorage
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (!clinicDataStr) {
+          setHasData(false);
+          setIsLoading(false);
+          return;
+        }
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        const hasContractsData = await clinicService.hasClinicData(clinicData.id, "contracts");
+        setHasData(hasContractsData);
+      } catch (error) {
+        console.error("Erro ao verificar dados de contratos:", error);
+        setHasData(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkForData();
+  }, []);
 
   const handleNewContract = () => {
     setActiveTab("new");
@@ -48,23 +78,8 @@ export default function Contracts() {
   const handleContractSubmit = (data: ContractData) => {
     setContractData(data);
     setPreviewOpen(true);
+    setHasData(true); // Atualiza o estado para mostrar a lista após o cadastro
   };
-
-  // Lista de contratos de exemplo
-  const mockContracts = [
-    { id: 1, paciente: "João Silva", responsavel: "Maria Silva", data: "2023-05-10", status: "Ativo" },
-    { id: 2, paciente: "Pedro Souza", responsavel: "Carlos Souza", data: "2023-04-22", status: "Ativo" },
-    { id: 3, paciente: "Ana Oliveira", responsavel: "Roberto Oliveira", data: "2023-03-15", status: "Finalizado" },
-    { id: 4, paciente: "Lucas Santos", responsavel: "Júlia Santos", data: "2023-02-28", status: "Ativo" },
-    { id: 5, paciente: "Mariana Costa", responsavel: "José Costa", data: "2023-01-12", status: "Finalizado" },
-  ];
-
-  // Filtrar contratos pela busca
-  const filteredContracts = mockContracts.filter(
-    (contract) =>
-      contract.paciente.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contract.responsavel.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div className="space-y-6">
@@ -110,21 +125,32 @@ export default function Contracts() {
               <CardTitle>Lista de Contratos</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-3 px-2 text-left">ID</th>
-                      <th className="py-3 px-2 text-left">Paciente</th>
-                      <th className="py-3 px-2 text-left">Responsável</th>
-                      <th className="py-3 px-2 text-left">Data</th>
-                      <th className="py-3 px-2 text-left">Status</th>
-                      <th className="py-3 px-2 text-left">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredContracts.length > 0 ? (
-                      filteredContracts.map((contract) => (
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <p>Carregando...</p>
+                </div>
+              ) : hasData ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="py-3 px-2 text-left">ID</th>
+                        <th className="py-3 px-2 text-left">Paciente</th>
+                        <th className="py-3 px-2 text-left">Responsável</th>
+                        <th className="py-3 px-2 text-left">Data</th>
+                        <th className="py-3 px-2 text-left">Status</th>
+                        <th className="py-3 px-2 text-left">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { id: 1, paciente: "João Silva", responsavel: "Maria Silva", data: "2023-05-10", status: "Ativo" },
+                        { id: 2, paciente: "Pedro Souza", responsavel: "Carlos Souza", data: "2023-04-22", status: "Ativo" },
+                        { id: 3, paciente: "Ana Oliveira", responsavel: "Roberto Oliveira", data: "2023-03-15", status: "Finalizado" },
+                      ].filter(contract =>
+                        contract.paciente.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        contract.responsavel.toLowerCase().includes(searchQuery.toLowerCase())
+                      ).map((contract) => (
                         <tr key={contract.id} className="border-b hover:bg-muted/50">
                           <td className="py-3 px-2">{contract.id}</td>
                           <td className="py-3 px-2">{contract.paciente}</td>
@@ -152,17 +178,19 @@ export default function Contracts() {
                             </div>
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                          Nenhum contrato encontrado
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <EmptyState
+                  icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                  title="Nenhum contrato cadastrado"
+                  description="Crie seu primeiro contrato para começar a gerenciar os acordos com pacientes e responsáveis."
+                  actionText="Criar contrato"
+                  onAction={handleNewContract}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

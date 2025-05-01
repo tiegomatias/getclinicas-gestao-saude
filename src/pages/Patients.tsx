@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,10 +13,39 @@ import { Input } from "@/components/ui/input";
 import PatientForm from "@/components/patients/PatientForm";
 import { toast } from "sonner";
 import PatientList from "@/components/patients/PatientList";
+import EmptyState from "@/components/shared/EmptyState";
+import { clinicService } from "@/services/clinicService";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string>("list");
+  const [hasData, setHasData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkForData = async () => {
+      try {
+        // Obter o ID da clínica do localStorage
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (!clinicDataStr) {
+          setHasData(false);
+          setIsLoading(false);
+          return;
+        }
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        const hasPatientsData = await clinicService.hasClinicData(clinicData.id, "patients");
+        setHasData(hasPatientsData);
+      } catch (error) {
+        console.error("Erro ao verificar dados de pacientes:", error);
+        setHasData(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkForData();
+  }, []);
 
   const handleNewPatient = () => {
     setActiveTab("register");
@@ -70,7 +99,21 @@ export default function Patients() {
               <CardTitle>Lista de Pacientes</CardTitle>
             </CardHeader>
             <CardContent>
-              <PatientList searchQuery={searchQuery} />
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <p>Carregando...</p>
+                </div>
+              ) : hasData ? (
+                <PatientList searchQuery={searchQuery} />
+              ) : (
+                <EmptyState
+                  icon={<UserIcon className="h-10 w-10 text-muted-foreground" />}
+                  title="Nenhum paciente cadastrado"
+                  description="Adicione o primeiro paciente à sua clínica para começar a gerenciar dados e prontuários."
+                  actionText="Adicionar paciente"
+                  onAction={handleNewPatient}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -82,6 +125,7 @@ export default function Patients() {
             <CardContent>
               <PatientForm onComplete={() => {
                 setActiveTab("list");
+                setHasData(true); // Atualiza o estado para mostrar a lista após o cadastro
                 toast.success("Paciente cadastrado com sucesso!");
               }} />
             </CardContent>
