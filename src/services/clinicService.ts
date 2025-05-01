@@ -2,6 +2,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Clinic } from "@/lib/types";
 
+type ClinicDataType = 'beds' | 'patients' | 'professionals' | 'activities' | 'documents' | 'contracts' | 'finances' | 'medications';
+
 export const clinicService = {
   // Buscar todas as clínicas
   async getAllClinics(): Promise<Clinic[]> {
@@ -70,20 +72,31 @@ export const clinicService = {
   },
   
   // Verificar se uma clínica já possui dados
-  async hasClinicData(id: string, dataType: 'beds' | 'patients' | 'professionals'): Promise<boolean> {
+  async hasClinicData(id: string, dataType: ClinicDataType): Promise<boolean> {
     try {
-      const { data, error } = await supabase
-        .from(dataType)
-        .select('id')
-        .eq('clinic_id', id)
-        .limit(1);
+      // For actual Supabase tables that exist
+      if (dataType === 'beds' || dataType === 'patients' || dataType === 'professionals') {
+        const { data, error } = await supabase
+          .from(dataType)
+          .select('id')
+          .eq('clinic_id', id)
+          .limit(1);
+          
+        if (error) {
+          console.error(`Erro ao verificar dados de ${dataType} para clínica ${id}:`, error);
+          return false;
+        }
         
-      if (error) {
-        console.error(`Erro ao verificar dados de ${dataType} para clínica ${id}:`, error);
+        return data && data.length > 0;
+      } 
+      // For other data types not yet implemented in database
+      else {
+        // Simulate API call for other data types
+        console.log(`Checking for ${dataType} data (mock implementation)`);
+        // Return false for now since these tables don't exist yet
+        // In a real implementation, this would check the actual tables
         return false;
       }
-      
-      return data && data.length > 0;
     } catch (error) {
       console.error(`Erro ao verificar dados de ${dataType}:`, error);
       return false;
