@@ -16,6 +16,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { InfoIcon, UserIcon } from "lucide-react";
+import { toast } from "sonner";
+
+interface BedManagementGridProps {
+  filterStatus?: string;
+  onViewDetails?: () => void;
+}
 
 const roomTypes = [
   {
@@ -113,7 +119,7 @@ const roomTypes = [
   },
 ];
 
-export default function BedManagementGrid() {
+export default function BedManagementGrid({ filterStatus = "all", onViewDetails }: BedManagementGridProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "occupied":
@@ -140,9 +146,25 @@ export default function BedManagementGrid() {
     }
   };
 
+  const handleViewPatientRecord = () => {
+    toast.info("Abrindo prontuário do paciente");
+  };
+
+  const handleManageBed = () => {
+    toast.info("Gerenciando leito");
+  };
+
+  // Filtrar leitos com base no status selecionado
+  const filteredRooms = roomTypes.map(room => ({
+    ...room,
+    beds: filterStatus === "all" 
+      ? room.beds 
+      : room.beds.filter(bed => bed.status === filterStatus)
+  }));
+
   return (
     <div className="space-y-6">
-      {roomTypes.map((room) => (
+      {filteredRooms.map((room) => (
         <Card key={room.id}>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -153,7 +175,7 @@ export default function BedManagementGrid() {
                   {room.beds.length} leitos ocupados
                 </CardDescription>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={onViewDetails}>
                 Ver detalhes
               </Button>
             </div>
@@ -170,6 +192,13 @@ export default function BedManagementGrid() {
                             ? "border-getclinicas-primary/30 bg-getclinicas-primary/5"
                             : ""
                         }`}
+                        onClick={() => {
+                          if (bed.status === "occupied") {
+                            toast.info(`Detalhes do leito ${bed.number} - Paciente: ${bed.patient}`);
+                          } else {
+                            toast.info(`Detalhes do leito ${bed.number} - Status: ${getStatusText(bed.status)}`);
+                          }
+                        }}
                       >
                         <div className="flex items-center justify-between">
                           <Badge
@@ -215,10 +244,19 @@ export default function BedManagementGrid() {
                             </p>
                           </div>
                           <div className="mt-2 flex justify-end gap-2">
-                            <Button size="sm" variant="outline" className="h-7">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7"
+                              onClick={handleViewPatientRecord}
+                            >
                               Prontuário
                             </Button>
-                            <Button size="sm" className="h-7">
+                            <Button 
+                              size="sm" 
+                              className="h-7"
+                              onClick={handleManageBed}
+                            >
                               Gerenciar
                             </Button>
                           </div>

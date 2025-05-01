@@ -27,8 +27,11 @@ export default function Medications() {
   const [hasData, setHasData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState("all");
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [medicationsList, setMedicationsList] = useState<any[]>([
     {
+      id: 1,
       name: "Fluoxetina",
       active: "Cloridrato de fluoxetina",
       category: "Antidepressivo",
@@ -37,6 +40,7 @@ export default function Medications() {
       status: "Adequado",
     },
     {
+      id: 2,
       name: "Clonazepam",
       active: "Clonazepam",
       category: "Ansiolítico",
@@ -45,6 +49,7 @@ export default function Medications() {
       status: "Adequado",
     },
     {
+      id: 3,
       name: "Risperidona",
       active: "Risperidona",
       category: "Antipsicótico",
@@ -53,6 +58,7 @@ export default function Medications() {
       status: "Baixo",
     },
     {
+      id: 4,
       name: "Topiramato",
       active: "Topiramato",
       category: "Anticonvulsivante",
@@ -61,6 +67,7 @@ export default function Medications() {
       status: "Adequado",
     },
     {
+      id: 5,
       name: "Naltrexona",
       active: "Naltrexona",
       category: "Antagonista opioide",
@@ -83,22 +90,29 @@ export default function Medications() {
         
         const clinicData = JSON.parse(clinicDataStr);
         const hasMedicationsData = await clinicService.hasClinicData(clinicData.id, "medications");
+        
+        // Verificar se temos dados de medicamentos na lista ou se a clínica já tem dados
         setHasData(hasMedicationsData || medicationsList.length > 0);
       } catch (error) {
         console.error("Erro ao verificar dados de medicamentos:", error);
-        setHasData(false);
+        // Se houver erro, mas temos medicamentos na lista, ainda definimos hasData como true
+        setHasData(medicationsList.length > 0);
       } finally {
         setIsLoading(false);
       }
     };
     
     checkForData();
-  }, []);
+  }, [medicationsList.length]);
 
   const handleAddMedication = () => {
+    // Gerar um ID único
+    const newId = Math.max(0, ...medicationsList.map(med => med.id)) + 1;
+    
     // Simular adição de medicamento com dados de exemplo
     const newMedication = {
-      name: "Novo Medicamento",
+      id: newId,
+      name: `Novo Medicamento ${newId}`,
       active: "Princípio ativo",
       category: "Categoria",
       dosage: "10mg",
@@ -111,20 +125,38 @@ export default function Medications() {
     toast.success("Medicamento adicionado ao estoque!");
   };
 
-  const handleAdjustStock = (medicationName: string) => {
+  const handleAdjustStock = (medicationId: number) => {
     // Simular ajuste de estoque
     const updatedMeds = medicationsList.map(med => {
-      if (med.name === medicationName) {
+      if (med.id === medicationId) {
         // Aumentar o estoque em 10 unidades
         const newStock = med.stock + 10;
         const newStatus = newStock <= 10 ? "Crítico" : newStock <= 20 ? "Baixo" : "Adequado";
+        toast.success(`Estoque de ${med.name} ajustado de ${med.stock} para ${newStock} unidades.`);
         return { ...med, stock: newStock, status: newStatus };
       }
       return med;
     });
     
     setMedicationsList(updatedMeds);
-    toast.success(`Estoque de ${medicationName} ajustado com sucesso!`);
+  };
+
+  const handleNewPrescription = () => {
+    toast.success("Nova prescrição criada com sucesso!");
+  };
+
+  const handlePatientChange = (patient: string) => {
+    setSelectedPatient(patient);
+    toast.info(`Paciente selecionado: ${patient}`);
+  };
+
+  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(event.target.value);
+    toast.info(`Data selecionada: ${event.target.value}`);
+  };
+
+  const handleRegisterAdministration = () => {
+    toast.success("Registro de administração adicionado com sucesso!");
   };
 
   // Filtrar medicamentos com base na pesquisa
@@ -205,33 +237,41 @@ export default function Medications() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredMedications.map((med, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-medium">{med.name}</TableCell>
-                          <TableCell>{med.active}</TableCell>
-                          <TableCell>{med.category}</TableCell>
-                          <TableCell>{med.dosage}</TableCell>
-                          <TableCell>{med.stock} unidades</TableCell>
-                          <TableCell>
-                            <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${
-                              med.status === "Adequado" ? "bg-green-100 text-green-800" :
-                              med.status === "Baixo" ? "bg-yellow-100 text-yellow-800" :
-                              "bg-red-100 text-red-800"
-                            }`}>
-                              {med.status}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleAdjustStock(med.name)}
-                            >
-                              Ajustar
-                            </Button>
+                      {filteredMedications.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-4">
+                            Nenhum medicamento encontrado para esta pesquisa.
                           </TableCell>
                         </TableRow>
-                      ))}
+                      ) : (
+                        filteredMedications.map((med) => (
+                          <TableRow key={med.id}>
+                            <TableCell className="font-medium">{med.name}</TableCell>
+                            <TableCell>{med.active}</TableCell>
+                            <TableCell>{med.category}</TableCell>
+                            <TableCell>{med.dosage}</TableCell>
+                            <TableCell>{med.stock} unidades</TableCell>
+                            <TableCell>
+                              <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${
+                                med.status === "Adequado" ? "bg-green-100 text-green-800" :
+                                med.status === "Baixo" ? "bg-yellow-100 text-yellow-800" :
+                                "bg-red-100 text-red-800"
+                              }`}>
+                                {med.status}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleAdjustStock(med.id)}
+                              >
+                                Ajustar
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>
@@ -248,7 +288,11 @@ export default function Medications() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex justify-between mb-4">
-                    <Select defaultValue="all">
+                    <Select 
+                      defaultValue="all"
+                      value={selectedPatient}
+                      onValueChange={handlePatientChange}
+                    >
                       <SelectTrigger className="w-[200px]">
                         <SelectValue placeholder="Selecione um paciente" />
                       </SelectTrigger>
@@ -259,7 +303,7 @@ export default function Medications() {
                         <SelectItem value="patient3">Ana Oliveira</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button onClick={() => toast.success("Nova prescrição criada!")}>
+                    <Button onClick={handleNewPrescription}>
                       <Plus className="mr-2 h-4 w-4" /> Nova Prescrição
                     </Button>
                   </div>
@@ -283,9 +327,10 @@ export default function Medications() {
                     <Input
                       type="date"
                       className="w-[200px]"
-                      defaultValue={new Date().toISOString().split('T')[0]}
+                      value={selectedDate}
+                      onChange={handleDateChange}
                     />
-                    <Button onClick={() => toast.success("Registro de administração adicionado!")}>
+                    <Button onClick={handleRegisterAdministration}>
                       <Plus className="mr-2 h-4 w-4" /> Registrar Administração
                     </Button>
                   </div>

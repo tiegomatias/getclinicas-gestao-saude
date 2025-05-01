@@ -16,23 +16,29 @@ const Index = () => {
         navigate("/master");
       } else {
         // Verificar se temos uma clínica selecionada
-        const currentClinicId = localStorage.getItem("currentClinicId");
-        if (currentClinicId) {
-          toast.success("Bem-vindo de volta à sua clínica!");
-          navigate("/dashboard");
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (clinicDataStr) {
+          const clinicData = JSON.parse(clinicDataStr);
+          if (clinicData && clinicData.id) {
+            toast.success(`Bem-vindo de volta à clínica ${clinicData.clinic_name || ''}!`);
+            navigate("/dashboard");
+          } else {
+            // Se não tiver uma clínica válida, ir para o login
+            navigate("/login");
+          }
         } else {
-          // Se não tiver uma clínica selecionada, ir para a home
+          // Se não tiver dados de clínica, ir para o login
           navigate("/login");
         }
       }
     } else {
-      // Se não estiver autenticado, mostrar a página inicial
+      // Se não estiver autenticado, ir para o login
       navigate("/login");
     }
   }, [isAuthenticated, isMasterAdmin, navigate]);
 
-  // Redirecionando temporariamente para Dashboard enquanto o useEffect não termina
-  return <Navigate to="/dashboard" replace />;
+  // Redirecionando para login enquanto o useEffect não termina
+  return <Navigate to="/login" replace />;
 };
 
 export default Index;

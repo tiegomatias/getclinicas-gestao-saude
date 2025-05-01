@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 // Mock appointments data
 const mockAppointments = [
@@ -84,6 +85,22 @@ const mockAppointments = [
 ];
 
 export default function AppointmentsList() {
+  const handleEditAppointment = (id: number) => {
+    toast.info(`Editando atividade #${id}`);
+  };
+  
+  const handleCancelAppointment = (id: number) => {
+    toast.warning(`Atividade #${id} cancelada`);
+  };
+  
+  const handleMarkComplete = (id: number) => {
+    toast.success(`Atividade #${id} marcada como concluída`);
+  };
+  
+  const handleMarkAbsent = (id: number) => {
+    toast.error(`Registrada falta na atividade #${id}`);
+  };
+
   return (
     <div>
       <Table>
@@ -147,17 +164,17 @@ export default function AppointmentsList() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleEditAppointment(appointment.id)}>
                       <Edit className="mr-2 h-4 w-4" /> Editar
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCancelAppointment(appointment.id)}>
                       <Trash2 className="mr-2 h-4 w-4" /> Cancelar
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleMarkComplete(appointment.id)}>
                       <CheckCircle className="mr-2 h-4 w-4" /> Marcar como concluída
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleMarkAbsent(appointment.id)}>
                       <XCircle className="mr-2 h-4 w-4" /> Marcar falta
                     </DropdownMenuItem>
                   </DropdownMenuContent>

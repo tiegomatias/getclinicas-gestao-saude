@@ -21,10 +21,13 @@ import AppointmentsList from "@/components/calendar/AppointmentsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmptyState from "@/components/shared/EmptyState";
 import { clinicService } from "@/services/clinicService";
+import { toast } from "sonner";
 
 export default function Calendar() {
   const [hasData, setHasData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState("month");
+  const [activityType, setActivityType] = useState("all");
 
   useEffect(() => {
     const checkForData = async () => {
@@ -52,8 +55,27 @@ export default function Calendar() {
   }, []);
 
   const handleAddActivity = () => {
-    // Aqui você pode abrir um formulário ou modal para adicionar atividades
-    console.log("Adicionar atividade");
+    // Simular adição de atividade
+    setHasData(true);
+    toast.success("Nova atividade agendada com sucesso!");
+  };
+
+  const handleFilterChange = (value: string) => {
+    setActivityType(value);
+    toast.info(`Filtro aplicado: ${value === "all" ? "Todas atividades" : value}`);
+  };
+
+  const handleViewChange = (value: string) => {
+    setViewMode(value);
+    toast.info(`Visualização alterada para: ${value}`);
+  };
+
+  const handleViewPatientRecord = () => {
+    toast.info("Abrindo prontuário do paciente");
+  };
+
+  const handleShowDetails = () => {
+    toast.info("Visualizando detalhes da atividade");
   };
 
   return (
@@ -72,7 +94,11 @@ export default function Calendar() {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Select defaultValue="all">
+          <Select 
+            defaultValue="all" 
+            value={activityType}
+            onValueChange={handleFilterChange}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filtrar por tipo" />
             </SelectTrigger>
@@ -114,7 +140,11 @@ export default function Calendar() {
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">
-                      <Select defaultValue="month">
+                      <Select 
+                        defaultValue="month"
+                        value={viewMode}
+                        onValueChange={handleViewChange}
+                      >
                         <SelectTrigger className="w-[130px]">
                           <SelectValue />
                         </SelectTrigger>
@@ -124,7 +154,7 @@ export default function Calendar() {
                           <SelectItem value="month">Mês</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" onClick={() => toast.info("Filtros aplicados")}>
                         <Filter className="h-4 w-4" />
                       </Button>
                     </div>
@@ -159,7 +189,13 @@ export default function Calendar() {
                             <span>Sala 03</span>
                           </div>
                         </div>
-                        <Button variant="ghost" size="sm">Ver</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={handleShowDetails}
+                        >
+                          Ver
+                        </Button>
                       </div>
 
                       <div className="flex items-center gap-2 rounded-md border p-3">
@@ -174,7 +210,13 @@ export default function Calendar() {
                             <span>Salão Principal</span>
                           </div>
                         </div>
-                        <Button variant="ghost" size="sm">Ver</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={handleShowDetails}
+                        >
+                          Ver
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -189,9 +231,12 @@ export default function Calendar() {
                   </CardHeader>
                   <CardContent>
                     <div className="bg-muted/50 p-4 rounded-lg text-center">
-                      <p className="text-muted-foreground">
+                      <p className="text-muted-foreground mb-4">
                         O registro de presença nas atividades estará disponível em breve.
                       </p>
+                      <Button onClick={() => toast.success("Recurso será disponibilizado em breve!")}>
+                        Ativar Registro de Presença
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

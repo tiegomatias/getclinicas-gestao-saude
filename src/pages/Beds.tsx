@@ -19,10 +19,13 @@ import { Bed, Plus } from "lucide-react";
 import BedManagementGrid from "@/components/beds/BedManagementGrid";
 import EmptyState from "@/components/shared/EmptyState";
 import { clinicService } from "@/services/clinicService";
+import { bedService } from "@/services/bedService";
+import { toast } from "sonner";
 
 export default function Beds() {
   const [hasData, setHasData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const checkForData = async () => {
@@ -56,8 +59,35 @@ export default function Beds() {
   }, []);
 
   const handleAddBeds = () => {
-    // Aqui você pode abrir um formulário ou modal para adicionar leitos
-    console.log("Adicionar leitos");
+    // Simular adição de leitos
+    setHasData(true);
+    
+    // Atualizar os dados da clínica no localStorage
+    const clinicDataStr = localStorage.getItem("clinicData");
+    if (clinicDataStr) {
+      const clinicData = JSON.parse(clinicDataStr);
+      clinicData.has_beds_data = true;
+      localStorage.setItem("clinicData", JSON.stringify(clinicData));
+      
+      // Simular chamada à API
+      toast.promise(
+        new Promise((resolve) => setTimeout(resolve, 1000)),
+        {
+          loading: "Configurando leitos...",
+          success: "Leitos configurados com sucesso!",
+          error: "Erro ao configurar leitos."
+        }
+      );
+    }
+  };
+
+  const handleFilterChange = (value: string) => {
+    setStatusFilter(value);
+    toast.info(`Filtro aplicado: ${value === "all" ? "Todos os leitos" : value}`);
+  };
+
+  const handleViewDetails = () => {
+    toast.info("Visualizando detalhes da ala");
   };
 
   return (
@@ -78,7 +108,11 @@ export default function Beds() {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Select defaultValue="all">
+          <Select 
+            defaultValue="all" 
+            value={statusFilter}
+            onValueChange={handleFilterChange}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
@@ -110,7 +144,7 @@ export default function Beds() {
                 <p>Carregando...</p>
               </div>
             ) : hasData ? (
-              <BedManagementGrid />
+              <BedManagementGrid filterStatus={statusFilter} onViewDetails={handleViewDetails} />
             ) : (
               <EmptyState
                 icon={<Bed className="h-10 w-10 text-muted-foreground" />}
