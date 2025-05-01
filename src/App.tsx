@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useEffect } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -18,15 +18,6 @@ import Financeiro from "./pages/Financeiro";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 
-// Create a TitleComponent to update the document title on route change
-const TitleComponent = ({ children }: { children: React.ReactNode }) => {
-  useEffect(() => {
-    document.title = "GetClinicas - Sistema de Gestão Hospitalar";
-  }, []);
-
-  return <>{children}</>;
-};
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -35,24 +26,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <TitleComponent>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/pacientes" element={<Patients />} />
-              <Route path="/leitos" element={<Beds />} />
-              <Route path="/medicamentos" element={<Medications />} />
-              <Route path="/profissionais" element={<Professionals />} />
-              <Route path="/agenda" element={<Calendar />} />
-              <Route path="/documentos" element={<Documents />} />
-              <Route path="/financeiro" element={<Financeiro />} />
-              <Route path="/relatorios" element={<Relatorios />} />
-              <Route path="/configuracoes" element={<Configuracoes />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TitleComponent>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/pacientes" element={<Patients />} />
+            <Route path="/leitos" element={<Beds />} />
+            <Route path="/medicamentos" element={<Medications />} />
+            <Route path="/profissionais" element={<Professionals />} />
+            <Route path="/agenda" element={<Calendar />} />
+            <Route path="/documentos" element={<Documents />} />
+            <Route path="/financeiro" element={<Financeiro />} />
+            <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/configuracoes" element={<Configuracoes />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
