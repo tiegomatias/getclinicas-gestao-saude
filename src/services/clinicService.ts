@@ -74,21 +74,9 @@ export const clinicService = {
   // Verificar se uma clínica já possui dados
   async hasClinicData(id: string, dataType: ClinicDataType): Promise<boolean> {
     try {
-      // Since these tables don't actually exist in our Supabase schema yet,
-      // we need to handle them differently to avoid TypeScript errors
-      
-      // For development purposes, we'll just simulate checking for data
-      // In a real implementation, you would check actual tables once they're created
-      console.log(`Checking for ${dataType} data for clinic ${id} (mock implementation)`);
-      
-      // For demo purposes, always return false to show empty states
-      // This can be replaced with actual implementation once tables are created
-      return false;
-      
-      /* IMPLEMENTATION ONCE TABLES EXIST:
-      // This code would be used once the tables are created in Supabase
+      // Agora que as tabelas existem, podemos verificar diretamente
       const { data, error } = await supabase
-        .from(dataType) // This will work when the tables exist
+        .from(dataType)
         .select('id')
         .eq('clinic_id', id)
         .limit(1);
@@ -99,7 +87,6 @@ export const clinicService = {
       }
       
       return data && data.length > 0;
-      */
     } catch (error) {
       console.error(`Erro ao verificar dados de ${dataType}:`, error);
       return false;
@@ -203,12 +190,14 @@ export const clinicService = {
   
   // Atualizar dados de ocupação de leitos
   async updateBedOccupation(id: string, occupiedBeds: number, availableBeds: number, maintenanceBeds: number): Promise<Clinic> {
+    // Agora podemos atualizar diretamente na tabela de clínicas
     const { data, error } = await supabase
       .from('clinics')
       .update({
-        // We'll need to add these fields to the clinics table
-        // This is a workaround for now
-        name: id // Just to update something
+        occupied_beds: occupiedBeds,
+        available_beds: availableBeds,
+        maintenance_beds: maintenanceBeds,
+        has_beds_data: true
       })
       .eq('id', id)
       .select();
@@ -222,8 +211,7 @@ export const clinicService = {
       throw new Error("No data returned after updating bed occupation");
     }
     
-    // Since we can't update these fields directly in the database yet,
-    // we'll return a modified object
+    // Transform back to our Clinic type
     return {
       id: data[0].id,
       clinic_name: data[0].name,
@@ -238,5 +226,21 @@ export const clinicService = {
       has_beds_data: true,
       has_initial_data: false
     };
+  },
+  
+  // Adicionar função para associar um usuário a uma clínica
+  async addUserToClinic(clinicId: string, userId: string, role: string): Promise<void> {
+    const { error } = await supabase
+      .from('clinic_users')
+      .insert({
+        clinic_id: clinicId,
+        user_id: userId,
+        role: role
+      });
+      
+    if (error) {
+      console.error(`Erro ao adicionar usuário ${userId} à clínica ${clinicId}:`, error);
+      throw error;
+    }
   }
 };
