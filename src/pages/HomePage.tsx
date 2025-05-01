@@ -1,13 +1,18 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const handleGetStarted = (plan: string) => {
+    setSelectedPlan(plan);
+    toast.success(`Plano ${plan} selecionado!`);
     navigate(`/checkout?plan=${plan}`);
   };
 
@@ -253,9 +258,9 @@ const HomePage = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
               <img src="/placeholder.svg" alt="Logo" className="h-8 w-8 mr-2" />
-              <span className="text-xl font-bold">GetClinics</span>
+              <span className="text-lg font-semibold">GetClinics</span>
             </div>
-            <div className="text-gray-600">
+            <div className="text-sm text-gray-600">
               &copy; {new Date().getFullYear()} GetClinics. Todos os direitos reservados.
             </div>
           </div>

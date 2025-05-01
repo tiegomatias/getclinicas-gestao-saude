@@ -16,11 +16,22 @@ export default function MasterSettings() {
   const [allowRegistration, setAllowRegistration] = useState(true);
   const [securityLevel, setSecurityLevel] = useState("high");
   const [loading, setLoading] = useState(false);
+  const [require2fa, setRequire2fa] = useState(true);
+  const [weeklyReports, setWeeklyReports] = useState(true);
+  const [systemAlerts, setSystemAlerts] = useState(true);
 
   const handleSaveGeneral = () => {
     setLoading(true);
     
     setTimeout(() => {
+      // Salvar configurações na localStorage para persistência
+      const settings = {
+        systemName,
+        adminEmail,
+        allowRegistration
+      };
+      localStorage.setItem("masterGeneralSettings", JSON.stringify(settings));
+      
       toast.success("Configurações gerais salvas com sucesso!");
       setLoading(false);
     }, 1000);
@@ -30,7 +41,31 @@ export default function MasterSettings() {
     setLoading(true);
     
     setTimeout(() => {
+      // Salvar configurações de segurança
+      const securitySettings = {
+        securityLevel,
+        require2fa
+      };
+      localStorage.setItem("masterSecuritySettings", JSON.stringify(securitySettings));
+      
       toast.success("Configurações de segurança salvas com sucesso!");
+      setLoading(false);
+    }, 1000);
+  };
+
+  const handleSaveNotifications = () => {
+    setLoading(true);
+    
+    setTimeout(() => {
+      // Salvar configurações de notificações
+      const notificationSettings = {
+        sendEmails,
+        weeklyReports,
+        systemAlerts
+      };
+      localStorage.setItem("masterNotificationSettings", JSON.stringify(notificationSettings));
+      
+      toast.success("Configurações de notificações salvas com sucesso!");
       setLoading(false);
     }, 1000);
   };
@@ -133,7 +168,11 @@ export default function MasterSettings() {
                     Exige autenticação de dois fatores para administradores de clínicas
                   </p>
                 </div>
-                <Switch id="2fa" defaultChecked={true} />
+                <Switch 
+                  id="2fa" 
+                  checked={require2fa} 
+                  onCheckedChange={setRequire2fa}
+                />
               </div>
               
               <Button onClick={handleSaveSecurity} disabled={loading}>
@@ -171,7 +210,11 @@ export default function MasterSettings() {
                     Enviar relatórios semanais para administradores
                   </p>
                 </div>
-                <Switch id="weeklyReports" defaultChecked={true} />
+                <Switch 
+                  id="weeklyReports" 
+                  checked={weeklyReports} 
+                  onCheckedChange={setWeeklyReports}
+                />
               </div>
               
               <div className="flex items-center justify-between">
@@ -181,13 +224,17 @@ export default function MasterSettings() {
                     Notificar sobre eventos críticos do sistema
                   </p>
                 </div>
-                <Switch id="systemAlerts" defaultChecked={true} />
+                <Switch 
+                  id="systemAlerts" 
+                  checked={systemAlerts} 
+                  onCheckedChange={setSystemAlerts}
+                />
               </div>
               
               <Separator className="my-4" />
               
-              <Button onClick={() => toast.success("Configurações de notificações salvas!")}>
-                Salvar Alterações
+              <Button onClick={handleSaveNotifications} disabled={loading}>
+                {loading ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </CardContent>
           </Card>

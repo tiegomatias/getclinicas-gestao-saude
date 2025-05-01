@@ -1,190 +1,216 @@
 
-import React from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Define the form schema
-const formSchema = z.object({
-  name: z.string().min(3, {
-    message: "Nome deve ter pelo menos 3 caracteres.",
-  }),
-  role: z.string({
-    required_error: "Selecione o tipo de profissional.",
-  }),
-  register: z.string().min(3, {
-    message: "Registro profissional é obrigatório.",
-  }),
-  email: z.string().email({
-    message: "Digite um email válido.",
-  }),
-  phone: z.string().min(10, {
-    message: "Digite um telefone válido.",
-  }),
-  specialization: z.string().optional(),
-  bio: z.string().optional(),
-});
+const ProfessionalForm = () => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  
+  // Estados para campos do formulário
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [specialization, setSpecialization] = useState('');
+  const [licenseNumber, setLicenseNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [hasSystemAccess, setHasSystemAccess] = useState(false);
+  const [observations, setObservations] = useState('');
 
-export default function ProfessionalForm() {
-  // Initialize form
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      role: "",
-      register: "",
-      email: "",
-      phone: "",
-      specialization: "",
-      bio: "",
-    },
-  });
-
-  // Form submission
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // Here we would typically send the data to an API
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      // Validação básica
+      if (!name || !role) {
+        toast.error("Por favor, preencha os campos obrigatórios.");
+        setLoading(false);
+        return;
+      }
+      
+      // Obter ID da clínica atual
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        toast.error("Dados da clínica não encontrados.");
+        setLoading(false);
+        return;
+      }
+      
+      const clinicData = JSON.parse(clinicDataStr);
+      
+      // Criar objeto do profissional
+      const professionalData = {
+        name,
+        role,
+        specialization,
+        license_number: licenseNumber,
+        email,
+        phone,
+        birth_date: birthDate,
+        has_system_access: hasSystemAccess,
+        observations,
+        clinic_id: clinicData.id,
+        created_by: user?.id,
+        created_at: new Date().toISOString()
+      };
+      
+      // Simular inserção no banco de dados
+      setTimeout(() => {
+        // Salvar na localStorage para persistência temporária
+        const professionals = JSON.parse(localStorage.getItem("professionals") || "[]");
+        professionals.push(professionalData);
+        localStorage.setItem("professionals", JSON.stringify(professionals));
+        
+        toast.success("Profissional cadastrado com sucesso!");
+        setLoading(false);
+        
+        // Limpar formulário
+        setName('');
+        setRole('');
+        setSpecialization('');
+        setLicenseNumber('');
+        setEmail('');
+        setPhone('');
+        setBirthDate('');
+        setHasSystemAccess(false);
+        setObservations('');
+      }, 1000);
+      
+    } catch (error: any) {
+      toast.error(`Erro ao cadastrar profissional: ${error.message}`);
+      setLoading(false);
+    }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome Completo</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nome do profissional" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cargo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o cargo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="doctor">Médico</SelectItem>
-                    <SelectItem value="psychologist">Psicólogo</SelectItem>
-                    <SelectItem value="nurse">Enfermeiro</SelectItem>
-                    <SelectItem value="therapist">Terapeuta</SelectItem>
-                    <SelectItem value="technician">Técnico</SelectItem>
-                    <SelectItem value="reception">Recepção</SelectItem>
-                    <SelectItem value="admin">Administrativo</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="register"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Registro Profissional</FormLabel>
-                <FormControl>
-                  <Input placeholder="CRM/CRP/COREN/etc" {...field} />
-                </FormControl>
-                <FormDescription>Número do registro profissional quando aplicável</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="specialization"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Especialização</FormLabel>
-                <FormControl>
-                  <Input placeholder="Especialização ou área de atuação" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="email@exemplo.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Telefone</FormLabel>
-                <FormControl>
-                  <Input placeholder="(00) 00000-0000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome Completo *</Label>
+          <Input 
+            id="name" 
+            placeholder="Nome do profissional"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
           />
         </div>
-
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Biografia</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Informações adicionais sobre o profissional" 
-                  className="min-h-32"
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        
+        <div className="space-y-2">
+          <Label htmlFor="role">Função/Cargo *</Label>
+          <Select value={role} onValueChange={setRole}>
+            <SelectTrigger id="role">
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="doctor">Médico(a)</SelectItem>
+              <SelectItem value="psychologist">Psicólogo(a)</SelectItem>
+              <SelectItem value="nurse">Enfermeiro(a)</SelectItem>
+              <SelectItem value="therapist">Terapeuta</SelectItem>
+              <SelectItem value="social_worker">Assistente Social</SelectItem>
+              <SelectItem value="admin">Administrativo</SelectItem>
+              <SelectItem value="other">Outro</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="specialization">Especialidade/Área</Label>
+          <Input 
+            id="specialization" 
+            placeholder="Especialização"
+            value={specialization}
+            onChange={(e) => setSpecialization(e.target.value)}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="licenseNumber">Registro Profissional</Label>
+          <Input 
+            id="licenseNumber" 
+            placeholder="CRM, CRP, COREN, etc."
+            value={licenseNumber}
+            onChange={(e) => setLicenseNumber(e.target.value)}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="email">E-mail</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="exemplo@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="phone">Telefone</Label>
+          <Input 
+            id="phone" 
+            placeholder="(00) 00000-0000"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="birthDate">Data de Nascimento</Label>
+          <Input 
+            id="birthDate" 
+            type="date" 
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex items-center justify-between space-y-0 pt-4">
+          <div className="space-y-0.5">
+            <Label htmlFor="systemAccess">Acesso ao Sistema</Label>
+            <p className="text-sm text-muted-foreground">
+              Permitir que este profissional acesse o sistema
+            </p>
+          </div>
+          <Switch 
+            id="systemAccess" 
+            checked={hasSystemAccess}
+            onCheckedChange={setHasSystemAccess}
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="observations">Observações</Label>
+        <Textarea 
+          id="observations" 
+          placeholder="Informações adicionais sobre o profissional"
+          value={observations}
+          onChange={(e) => setObservations(e.target.value)}
+          rows={4}
         />
-
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline">Cancelar</Button>
-          <Button type="submit">Salvar Profissional</Button>
-        </div>
-      </form>
-    </Form>
+      </div>
+      
+      <div className="flex justify-end space-x-2">
+        <Button variant="outline" type="button" onClick={() => {
+          toast.info("Operação cancelada");
+        }}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? "Salvando..." : "Salvar Profissional"}
+        </Button>
+      </div>
+    </form>
   );
-}
+};
+
+export default ProfessionalForm;

@@ -22,9 +22,10 @@ import {
 import StatCard from "@/components/dashboard/StatCard";
 import EmptyState from "@/components/shared/EmptyState";
 import { clinicService } from "@/services/clinicService";
+import { toast } from "sonner";
 
 // Mock data for transactions
-const transactionData = [
+const initialTransactionData = [
   {
     id: "T1",
     date: "2025-05-01",
@@ -68,7 +69,7 @@ const transactionData = [
 ];
 
 // Mock data for unpaid bills
-const billsData = [
+const initialBillsData = [
   {
     id: "B1",
     dueDate: "2025-05-10",
@@ -96,6 +97,8 @@ export default function Financeiro() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasData, setHasData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [transactionData, setTransactionData] = useState(initialTransactionData);
+  const [billsData, setBillsData] = useState(initialBillsData);
 
   useEffect(() => {
     const checkForData = async () => {
@@ -111,7 +114,7 @@ export default function Financeiro() {
         const clinicData = JSON.parse(clinicDataStr);
         // Check if the clinic has financial data
         const hasFinancialData = await clinicService.hasClinicData(clinicData.id, "finances");
-        setHasData(hasFinancialData);
+        setHasData(hasFinancialData || transactionData.length > 0);
       } catch (error) {
         console.error("Erro ao verificar dados financeiros:", error);
         setHasData(false);
@@ -129,10 +132,43 @@ export default function Financeiro() {
   const monthlyBalance = "R$ 6.550,00";
   const pendingReceivables = "R$ 3.450,00";
 
+  // Função para adicionar uma nova transação
   const handleNewTransaction = () => {
-    // Logic to create a new transaction
-    // After successful creation, you would set hasData to true
+    const newTransaction = {
+      id: `T${transactionData.length + 1}`,
+      date: new Date().toISOString().split('T')[0],
+      description: "Nova Transação",
+      pacient: "Novo Paciente",
+      value: 100.00,
+      status: "Pendente"
+    };
+    
+    setTransactionData([newTransaction, ...transactionData]);
     setHasData(true);
+    toast.success("Nova transação adicionada com sucesso!");
+  };
+
+  // Função para pagar uma conta
+  const handlePayBill = (billId: string) => {
+    const updatedBills = billsData.filter(bill => bill.id !== billId);
+    setBillsData(updatedBills);
+    
+    // Adicionar esta conta como transação paga
+    const billToPay = billsData.find(bill => bill.id === billId);
+    if (billToPay) {
+      const newTransaction = {
+        id: `T${transactionData.length + 1}`,
+        date: new Date().toISOString().split('T')[0],
+        description: `Pagamento: ${billToPay.description}`,
+        pacient: "-",
+        value: billToPay.value,
+        status: "Pago"
+      };
+      
+      setTransactionData([newTransaction, ...transactionData]);
+    }
+    
+    toast.success("Conta paga com sucesso!");
   };
 
   if (isLoading) {
@@ -312,7 +348,11 @@ export default function Financeiro() {
                         {bill.value.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handlePayBill(bill.id)}
+                        >
                           Pagar
                         </Button>
                       </TableCell>
