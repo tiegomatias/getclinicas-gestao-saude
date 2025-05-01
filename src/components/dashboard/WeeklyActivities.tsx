@@ -1,8 +1,49 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+
+// Sample activities data
+const activities = [
+  {
+    id: 1,
+    title: "Terapia em Grupo",
+    day: "Segunda-feira",
+    time: "10:00 - 11:30",
+    location: "Sala 3",
+    participants: 8,
+    type: "group",
+  },
+  {
+    id: 2,
+    title: "Consulta Dr. Ana Silva",
+    day: "Segunda-feira",
+    time: "14:00 - 15:00",
+    location: "Consultório 2",
+    participants: 1,
+    type: "individual",
+  },
+  {
+    id: 3,
+    title: "Atividade Física",
+    day: "Terça-feira",
+    time: "09:00 - 10:00",
+    location: "Área Externa",
+    participants: 15,
+    type: "group",
+  },
+  {
+    id: 4,
+    title: "Terapia em Grupo",
+    day: "Quarta-feira",
+    time: "10:00 - 11:30",
+    location: "Sala 3",
+    participants: 8,
+    type: "group",
+  },
+];
 
 export default function WeeklyActivities() {
   const navigate = useNavigate();

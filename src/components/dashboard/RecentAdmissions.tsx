@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -5,6 +6,42 @@ import { Badge } from "@/components/ui/badge";
 import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+
+// Sample admissions data
+const admissions = [
+  {
+    id: 1,
+    name: "Ricardo Santos",
+    admission: "Voluntária",
+    date: "01/06/2025",
+    assignedTo: "Dr. Ana Silva",
+    status: "ativo",
+  },
+  {
+    id: 2,
+    name: "Márcia Oliveira",
+    admission: "Involuntária",
+    date: "30/05/2025",
+    assignedTo: "Dr. Paulo Costa",
+    status: "ativo",
+  },
+  {
+    id: 3,
+    name: "João Ferreira",
+    admission: "Compulsória",
+    date: "28/05/2025",
+    assignedTo: "Dr. Ana Silva",
+    status: "ativo",
+  },
+  {
+    id: 4,
+    name: "Carla Mendes",
+    admission: "Voluntária",
+    date: "25/05/2025",
+    assignedTo: "Dr. Carlos Mendes",
+    status: "alta",
+  }
+];
 
 export default function RecentAdmissions() {
   const navigate = useNavigate();
