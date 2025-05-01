@@ -10,7 +10,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -19,20 +19,24 @@ const Login = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for specific credentials
-    if (email === "tiegomatias@gmail.com" && password === "@Orecic1717") {
+    // Check for specific credentials - now accepting both email and username
+    const validEmail = "tiegomatias@gmail.com";
+    const validUsername = "tiegomatias";
+    const validPassword = "@Orecic1717";
+    
+    if ((usernameOrEmail === validEmail || usernameOrEmail === validUsername) && password === validPassword) {
       // Store authentication status in local storage
       localStorage.setItem("isAuthenticated", "true");
       if (rememberMe) {
-        localStorage.setItem("rememberedEmail", email);
+        localStorage.setItem("rememberedUsernameOrEmail", usernameOrEmail);
       } else {
-        localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberedUsernameOrEmail");
       }
       
       toast.success("Login realizado com sucesso!");
       navigate("/dashboard");
     } else {
-      toast.error("Credenciais inválidas. Por favor, verifique seu email e senha.");
+      toast.error("Credenciais inválidas. Por favor, verifique seu email/usuário e senha.");
     }
   };
 
@@ -45,11 +49,11 @@ const Login = () => {
     navigate("/");
   };
 
-  // Check for remembered email on component mount
+  // Check for remembered email/username on component mount
   React.useEffect(() => {
-    const rememberedEmail = localStorage.getItem("rememberedEmail");
-    if (rememberedEmail) {
-      setEmail(rememberedEmail);
+    const remembered = localStorage.getItem("rememberedUsernameOrEmail");
+    if (remembered) {
+      setUsernameOrEmail(remembered);
       setRememberMe(true);
     }
   }, []);
@@ -74,13 +78,13 @@ const Login = () => {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="usernameOrEmail">Email ou Nome de Usuário</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="nome@clinica.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="usernameOrEmail"
+                  type="text"
+                  placeholder="email@clinica.com ou nome de usuário"
+                  value={usernameOrEmail}
+                  onChange={(e) => setUsernameOrEmail(e.target.value)}
                   required
                 />
               </div>
@@ -133,7 +137,7 @@ const Login = () => {
                   htmlFor="remember"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  Lembrar meu email
+                  Lembrar meus dados
                 </label>
               </div>
               <Button type="submit" className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark">
