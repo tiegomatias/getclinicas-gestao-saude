@@ -1,0 +1,109 @@
+
+import { supabase } from "@/lib/supabase";
+import type { Clinic } from "@/lib/types";
+
+export const clinicService = {
+  // Buscar todas as clínicas
+  async getAllClinics(): Promise<Clinic[]> {
+    const { data, error } = await supabase
+      .from('clinics')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error("Erro ao buscar clínicas:", error);
+      throw error;
+    }
+    
+    return data as Clinic[];
+  },
+  
+  // Buscar uma clínica específica
+  async getClinicById(id: string): Promise<Clinic | null> {
+    const { data, error } = await supabase
+      .from('clinics')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (error) {
+      console.error(`Erro ao buscar clínica com ID ${id}:`, error);
+      throw error;
+    }
+    
+    return data as Clinic;
+  },
+  
+  // Criar uma nova clínica
+  async createClinic(clinicData: Partial<Clinic>): Promise<Clinic> {
+    const { data, error } = await supabase
+      .from('clinics')
+      .insert([{
+        ...clinicData,
+        beds_capacity: clinicData.beds_capacity || 30,
+        occupied_beds: 0,
+        available_beds: clinicData.beds_capacity || 30,
+        maintenance_beds: 0,
+        has_beds_data: false,
+        has_initial_data: false
+      }])
+      .select();
+      
+    if (error) {
+      console.error("Erro ao criar clínica:", error);
+      throw error;
+    }
+    
+    return data[0] as Clinic;
+  },
+  
+  // Atualizar uma clínica existente
+  async updateClinic(id: string, clinicData: Partial<Clinic>): Promise<Clinic> {
+    const { data, error } = await supabase
+      .from('clinics')
+      .update(clinicData)
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error(`Erro ao atualizar clínica com ID ${id}:`, error);
+      throw error;
+    }
+    
+    return data[0] as Clinic;
+  },
+  
+  // Excluir uma clínica
+  async deleteClinic(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('clinics')
+      .delete()
+      .eq('id', id);
+      
+    if (error) {
+      console.error(`Erro ao excluir clínica com ID ${id}:`, error);
+      throw error;
+    }
+  },
+  
+  // Atualizar dados de ocupação de leitos
+  async updateBedOccupation(id: string, occupiedBeds: number, availableBeds: number, maintenanceBeds: number): Promise<Clinic> {
+    const { data, error } = await supabase
+      .from('clinics')
+      .update({
+        occupied_beds: occupiedBeds,
+        available_beds: availableBeds,
+        maintenance_beds: maintenanceBeds,
+        has_beds_data: true
+      })
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error(`Erro ao atualizar ocupação de leitos para clínica ${id}:`, error);
+      throw error;
+    }
+    
+    return data[0] as Clinic;
+  }
+};
