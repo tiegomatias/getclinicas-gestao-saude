@@ -66,14 +66,19 @@ export const setupMasterAdmin = async (email: string, password: string) => {
 // Function to check if a user exists
 export const checkUserExists = async (email: string) => {
   try {
-    const { data, error } = await supabase.auth.admin.getUserByEmail(email);
+    // Using signIn method to check if user exists instead of admin.getUserByEmail
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false
+      }
+    });
     
-    if (error) {
-      console.error("Error checking if user exists:", error);
+    if (error && error.message.includes("User not found")) {
       return false;
     }
     
-    return !!data;
+    return true;
   } catch (error) {
     console.error("Error checking if user exists:", error);
     return false;
