@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus, Search, FilePdf } from "lucide-react";
+import { FileText, Plus, Search, FileIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ContractForm from "@/components/contracts/ContractForm";
 import ContractPreview from "@/components/contracts/ContractPreview";
@@ -148,7 +147,7 @@ export default function Contracts() {
                                 <FileText className="h-4 w-4" />
                               </Button>
                               <Button variant="ghost" size="sm">
-                                <FilePdf className="h-4 w-4" />
+                                <FileIcon className="h-4 w-4" />
                               </Button>
                             </div>
                           </td>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { FilePenIcon, FilePdf, Printer, Eye } from "lucide-react";
+import { FilePenIcon, FileIcon, Printer, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 interface ContractData {
@@ -178,7 +177,7 @@ export default function ContractPreview({
             Imprimir
           </Button>
           <Button onClick={handlePrintPDF}>
-            <FilePdf className="mr-2 h-4 w-4" />
+            <FileIcon className="mr-2 h-4 w-4" />
             Gerar PDF
           </Button>
         </DialogFooter>

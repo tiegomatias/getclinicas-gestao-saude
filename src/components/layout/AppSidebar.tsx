@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -25,7 +24,7 @@ import {
   DollarSign,
   ChartBarIcon,
   Settings,
-  FileContract,
+  File,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -71,7 +70,7 @@ export default function AppSidebar() {
     {
       title: "Contratos",
       path: "/contratos",
-      icon: FileContract,
+      icon: File,
     },
     {
       title: "Financeiro",
