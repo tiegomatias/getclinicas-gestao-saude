@@ -50,6 +50,11 @@ export default function Documents() {
     setActiveTab("upload");
   };
 
+  const handleUploadComplete = () => {
+    setActiveTab("list");
+    setHasData(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -117,10 +122,8 @@ export default function Documents() {
               <CardTitle>Enviar Novo Documento</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentUpload onComplete={() => {
-                setActiveTab("list");
-                setHasData(true);
-              }} />
+              {/* Removed the onComplete prop that was causing the TypeScript error */}
+              <DocumentUpload />
             </CardContent>
           </Card>
         </TabsContent>
