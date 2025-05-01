@@ -1,4 +1,3 @@
-
 import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -69,7 +68,11 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
-export default function PatientForm() {
+interface PatientFormProps {
+  onComplete?: () => void;
+}
+
+export default function PatientForm({ onComplete }: PatientFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -85,8 +88,17 @@ export default function PatientForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    toast.success("Paciente cadastrado com sucesso!");
     console.log(values);
+    if (onComplete) {
+      onComplete();
+    }
+  }
+
+  function handleCancel() {
+    form.reset();
+    if (onComplete) {
+      onComplete();
+    }
   }
 
   return (
@@ -322,7 +334,7 @@ export default function PatientForm() {
         />
 
         <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline">
+          <Button type="button" variant="outline" onClick={handleCancel}>
             Cancelar
           </Button>
           <Button type="submit">Cadastrar Paciente</Button>
