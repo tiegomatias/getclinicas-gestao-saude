@@ -21,6 +21,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Contracts from "./pages/Contracts";
 import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
+import Registration from "./pages/Registration";
 import AuthGuard from "./components/auth/AuthGuard";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/registro" element={<Registration />} />
           
           <Route path="/sistema" element={
             <AuthGuard>

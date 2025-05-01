@@ -80,7 +80,8 @@ const Checkout = () => {
     // Simulate checkout process
     setTimeout(() => {
       toast.success("Redirecionando para pagamento...");
-      navigate("/login");
+      // Change this from "/login" to "/registro" to go to the new registration page
+      navigate("/registro?plan=" + selectedPlan);
       setLoading(false);
     }, 1500);
   };
