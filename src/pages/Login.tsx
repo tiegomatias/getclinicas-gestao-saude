@@ -19,8 +19,8 @@ const Login = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // For demo purposes, accept any non-empty credentials
-    if (email && password) {
+    // Check for specific credentials
+    if (email === "tiegomatias@gmail.com" && password === "@Orecic1717") {
       // Store authentication status in local storage
       localStorage.setItem("isAuthenticated", "true");
       if (rememberMe) {
@@ -32,7 +32,7 @@ const Login = () => {
       toast.success("Login realizado com sucesso!");
       navigate("/dashboard");
     } else {
-      toast.error("Por favor, preencha todos os campos.");
+      toast.error("Credenciais inválidas. Por favor, verifique seu email e senha.");
     }
   };
 
