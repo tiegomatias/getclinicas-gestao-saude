@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +15,12 @@ const HomePage = () => {
     navigate("/login");
   };
 
+  const scrollToPlans = () => {
+    document.getElementById('plans-section')?.scrollIntoView({
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white">
       <header className="container mx-auto py-6 px-4">
@@ -28,7 +33,7 @@ const HomePage = () => {
             <Button variant="ghost" onClick={handleLogin} className="mr-2">
               Login
             </Button>
-            <Button onClick={() => navigate("/checkout")}>Escolher Plano</Button>
+            <Button onClick={scrollToPlans}>Escolher Plano</Button>
           </div>
         </div>
       </header>
@@ -45,7 +50,7 @@ const HomePage = () => {
             </p>
             <Button 
               size="lg" 
-              onClick={() => navigate("/checkout")}
+              onClick={scrollToPlans}
               className="text-lg py-6 px-8 bg-getclinicas-primary hover:bg-getclinicas-dark"
             >
               Escolher um Plano
@@ -53,7 +58,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        <section className="py-16 bg-gray-50">
+        <section id="plans-section" className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Planos e Preços</h2>
             
