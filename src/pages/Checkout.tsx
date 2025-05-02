@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -201,7 +202,7 @@ const Checkout = () => {
               <CardTitle>Dados para Pagamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p>
+              <p className="text-left">
                 Ao prosseguir, você será redirecionado para nossa página de pagamento 
                 segura, onde poderá finalizar sua assinatura com os métodos de 
                 pagamento disponíveis.
