@@ -492,6 +492,270 @@ export type Database = {
           },
         ]
       }
+      medication_administrations: {
+        Row: {
+          administered_at: string
+          administered_by: string
+          clinic_id: string
+          created_at: string | null
+          created_by: string | null
+          dosage: string
+          id: string
+          medication_id: string
+          observations: string | null
+          patient_id: string
+          prescription_id: string
+          status: string
+        }
+        Insert: {
+          administered_at?: string
+          administered_by: string
+          clinic_id: string
+          created_at?: string | null
+          created_by?: string | null
+          dosage: string
+          id?: string
+          medication_id: string
+          observations?: string | null
+          patient_id: string
+          prescription_id: string
+          status?: string
+        }
+        Update: {
+          administered_at?: string
+          administered_by?: string
+          clinic_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          dosage?: string
+          id?: string
+          medication_id?: string
+          observations?: string | null
+          patient_id?: string
+          prescription_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_administrations_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_administrations_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+          {
+            foreignKeyName: "medication_administrations_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medication_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_administrations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_administrations_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "medication_prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medication_inventory: {
+        Row: {
+          active: string
+          category: string
+          clinic_id: string
+          created_at: string | null
+          dosage: string
+          id: string
+          name: string
+          status: string
+          stock: number
+          updated_at: string | null
+        }
+        Insert: {
+          active: string
+          category: string
+          clinic_id: string
+          created_at?: string | null
+          dosage: string
+          id?: string
+          name: string
+          status?: string
+          stock?: number
+          updated_at?: string | null
+        }
+        Update: {
+          active?: string
+          category?: string
+          clinic_id?: string
+          created_at?: string | null
+          dosage?: string
+          id?: string
+          name?: string
+          status?: string
+          stock?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_inventory_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_inventory_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+        ]
+      }
+      medication_prescriptions: {
+        Row: {
+          clinic_id: string
+          created_at: string | null
+          created_by: string | null
+          dosage: string
+          end_date: string | null
+          frequency: string
+          id: string
+          medication_id: string
+          observations: string | null
+          patient_id: string
+          start_date: string
+          status: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string | null
+          created_by?: string | null
+          dosage: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          medication_id: string
+          observations?: string | null
+          patient_id: string
+          start_date?: string
+          status?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          dosage?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          medication_id?: string
+          observations?: string | null
+          patient_id?: string
+          start_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_prescriptions_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_prescriptions_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+          {
+            foreignKeyName: "medication_prescriptions_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medication_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medication_stock_history: {
+        Row: {
+          adjustment_type: string
+          clinic_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          medication_id: string
+          notes: string | null
+          quantity: number
+        }
+        Insert: {
+          adjustment_type: string
+          clinic_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          medication_id: string
+          notes?: string | null
+          quantity: number
+        }
+        Update: {
+          adjustment_type?: string
+          clinic_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          medication_id?: string
+          notes?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_stock_history_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_stock_history_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+          {
+            foreignKeyName: "medication_stock_history_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medication_inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medications: {
         Row: {
           clinic_id: string | null
