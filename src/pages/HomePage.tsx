@@ -269,7 +269,7 @@ const HomePage = () => {
               <Card className="shadow-lg hover:shadow-xl transition-shadow border-t-4 border-blue-500 transform hover:scale-105 transition-transform duration-300">
                 <CardHeader>
                   <CardTitle className="text-xl md:text-2xl">Plano Mensal</CardTitle>
-                  <CardDescription>Para clínicas que estão começando</CardDescription>
+                  <CardDescription className="text-center">Para clínicas que estão começando</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4 md:mb-6">
@@ -312,7 +312,7 @@ const HomePage = () => {
                     MAIS POPULAR
                   </div>
                   <CardTitle className="text-xl md:text-2xl">Plano Semestral</CardTitle>
-                  <CardDescription>Ideal para a maioria das clínicas</CardDescription>
+                  <CardDescription className="text-center">Ideal para a maioria das clínicas</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4 md:mb-6">
@@ -360,7 +360,7 @@ const HomePage = () => {
               <Card className="shadow-lg hover:shadow-xl transition-shadow border-t-4 border-green-500 transform hover:scale-105 transition-transform duration-300">
                 <CardHeader>
                   <CardTitle className="text-xl md:text-2xl">Plano Anual</CardTitle>
-                  <CardDescription>Para clínicas bem estabelecidas</CardDescription>
+                  <CardDescription className="text-center">Para clínicas bem estabelecidas</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4 md:mb-6">
