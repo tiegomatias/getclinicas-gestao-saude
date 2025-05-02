@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,10 +52,10 @@ const HomePage = () => {
         fill="currentColor"
       />
       <path
-        d="M12 12V7M12 12H15M12 12H9M12 12V15"
+        d="M12 7C10.5 9 8.83333 10 8 10C8 11 8.5 12 12 12C15.5 12 16 11 16 10C15.1667 10 13.5 9 12 7Z"
         stroke="white"
-        strokeWidth="2"
-        strokeLinecap="round"
+        strokeWidth="1.5"
+        fill="white"
       />
     </svg>
   );
