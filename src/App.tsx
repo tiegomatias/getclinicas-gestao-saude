@@ -36,6 +36,7 @@ import { Toaster } from "sonner";
 import Alimentacao from "./pages/Alimentacao";
 import Dispensa from "./pages/Alimentacao/Dispensa";
 import Supermercado from "./pages/Alimentacao/Supermercado";
+import DemoPage from "./pages/DemoPage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registration />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/demo" element={<DemoPage />} />
 
             {/* Master Admin Routes with MasterLayout */}
             <Route element={<AuthGuard role="master" />}>
