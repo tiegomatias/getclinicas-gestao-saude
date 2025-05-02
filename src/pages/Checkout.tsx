@@ -6,6 +6,39 @@ import { Separator } from "@/components/ui/separator";
 import { CheckIcon, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
+// Custom Logo SVG Component
+const GetClinicsLogo = () => (
+  <svg
+    width="48"
+    height="48"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="text-getclinicas-primary"
+  >
+    <path
+      d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2Z"
+      fill="currentColor"
+      opacity="0.2"
+    />
+    <path
+      d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2ZM18 12C18 16.5 14.87 20.74 12 21.82C9.13 20.74 6 16.5 6 12V7.4L12 4.66L18 7.4V12Z"
+      fill="currentColor"
+    />
+    <text
+      x="12"
+      y="14"
+      fontSize="9"
+      fontWeight="bold"
+      fill="white"
+      textAnchor="middle"
+      dominantBaseline="middle"
+    >
+      G
+    </text>
+  </svg>
+);
+
 type PlanDetails = {
   name: string;
   price: string;
@@ -111,8 +144,8 @@ const Checkout = () => {
       <header className="container mx-auto py-6 px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <img src="/placeholder.svg" alt="Logo" className="h-10 w-10 mr-2" />
-            <h1 className="text-2xl font-bold text-getclinicas-dark">GetClinics</h1>
+            <GetClinicsLogo />
+            <h1 className="text-2xl font-bold text-getclinicas-dark ml-2">GetClinics</h1>
           </div>
         </div>
       </header>
@@ -208,7 +241,7 @@ const Checkout = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <img src="/placeholder.svg" alt="Logo" className="h-8 w-8 mr-2" />
+              <GetClinicsLogo />
               <span className="text-xl font-bold">GetClinics</span>
             </div>
             <div className="text-gray-600">
