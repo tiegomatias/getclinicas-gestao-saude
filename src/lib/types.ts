@@ -99,3 +99,14 @@ export interface ClinicUser {
   role: string;
   created_at: string;
 }
+
+export interface StockHistoryEntry {
+  id: string;
+  medication_id: string;
+  adjustment_type: string;
+  quantity: number;
+  notes?: string;
+  created_at: string;
+  created_by?: string;
+  clinic_id: string;
+}

@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { StockHistoryEntry } from "@/lib/types";
 
 export const medicationService = {
   // Get all medications for a clinic
@@ -380,7 +380,7 @@ export const medicationService = {
   },
 
   // Obter histórico de estoque de um medicamento específico
-  async getMedicationStockHistory(medicationId: string) {
+  async getMedicationStockHistory(medicationId: string): Promise<StockHistoryEntry[]> {
     try {
       const { data, error } = await supabase
         .from("medication_stock_history")

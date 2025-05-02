@@ -57,11 +57,12 @@ interface MedicationListProps {
 interface StockHistoryEntry {
   id: string;
   medication_id: string;
-  adjustment_type: 'entrada' | 'saída';
+  adjustment_type: string; // Alterado de "entrada" | "saída" para string
   quantity: number;
   notes?: string;
   created_at: string;
   created_by?: string;
+  clinic_id: string; // Adicionado para compatibilidade com o retorno da API
 }
 
 export function MedicationList({ 
