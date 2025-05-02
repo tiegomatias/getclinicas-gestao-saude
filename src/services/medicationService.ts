@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { StockHistoryEntry } from "@/lib/types";
@@ -6,6 +7,7 @@ export const medicationService = {
   // Get all medications for a clinic
   async getMedications(clinicId: string) {
     try {
+      console.log("Buscando medicamentos para a clínica:", clinicId);
       const { data, error } = await supabase
         .from("medication_inventory")
         .select("*")
@@ -63,7 +65,7 @@ export const medicationService = {
         created_by: medication.created_by
       });
 
-      // Inserir o medicamento usando as políticas de segurança configuradas
+      // Inserir o medicamento com opções básicas
       const { data, error } = await supabase
         .from("medication_inventory")
         .insert({
@@ -361,6 +363,13 @@ export const medicationService = {
   // Check if clinic has medications data
   async hasClinicData(clinicId: string) {
     try {
+      if (!clinicId) {
+        console.log("ID de clínica não fornecido em hasClinicData");
+        return false;
+      }
+      
+      console.log("Verificando dados para clínica:", clinicId);
+      
       // Use count option to check if any data exists
       const { count, error } = await supabase
         .from("medication_inventory")
@@ -372,7 +381,10 @@ export const medicationService = {
         throw error;
       }
 
-      return count !== null && count > 0;
+      const hasData = count !== null && count > 0;
+      console.log(`Clínica ${clinicId} tem dados? ${hasData} (count: ${count})`);
+      
+      return hasData;
     } catch (error) {
       console.error("Error in hasClinicData:", error);
       return false;

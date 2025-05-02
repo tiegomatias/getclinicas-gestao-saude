@@ -141,19 +141,22 @@ export default function Medications() {
           return;
         }
         
+        console.log("ID da clínica obtido:", id);
         setClinicId(id);
 
         // Check if clinic has medication data
         const hasMedicationsData = await medicationService.hasClinicData(id);
+        console.log("Tem dados de medicamentos?", hasMedicationsData);
         setHasData(hasMedicationsData);
         
         if (hasMedicationsData) {
           await loadAllData(id);
+        } else {
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error loading medication data:", error);
         toast.error("Erro ao carregar dados");
-      } finally {
         setIsLoading(false);
       }
     };
@@ -163,14 +166,14 @@ export default function Medications() {
 
   const loadAllData = async (id: string) => {
     try {
-      const [medsData, patientsData, prescriptionsData, adminsData, expiringData, expiredData] = await Promise.all([
-        medicationService.getMedications(id),
-        patientService.getClinicPatients(id),
-        medicationService.getPrescriptions(id),
-        medicationService.getAdministrations(id, selectedDate),
-        medicationService.getExpiringMedications(id, 30),
-        medicationService.getExpiredMedications(id)
-      ]);
+      console.log("Carregando todos os dados para clínica:", id);
+      
+      const medsData = await medicationService.getMedications(id);
+      const patientsData = await patientService.getClinicPatients(id);
+      const prescriptionsData = await medicationService.getPrescriptions(id);
+      const adminsData = await medicationService.getAdministrations(id, selectedDate);
+      const expiringData = await medicationService.getExpiringMedications(id, 30);
+      const expiredData = await medicationService.getExpiredMedications(id);
 
       setMedications(medsData);
       setPatients(patientsData);
@@ -186,6 +189,8 @@ export default function Medications() {
     } catch (error) {
       console.error("Error loading medication data:", error);
       toast.error("Erro ao carregar dados");
+    } finally {
+      setIsLoading(false);
     }
   };
 

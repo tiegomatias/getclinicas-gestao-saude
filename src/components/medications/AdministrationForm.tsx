@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -20,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdministrationFormProps {
   open: boolean;
@@ -69,9 +70,21 @@ export function AdministrationForm({
     const fetchPrescriptions = async () => {
       try {
         setIsLoading(true);
+        console.log("Buscando prescrições para clínica:", clinicId);
+        
+        if (!clinicId) {
+          console.log("ID da clínica não encontrado em AdministrationForm");
+          setIsLoading(false);
+          return;
+        }
+        
         const data = await medicationService.getPrescriptions(clinicId);
+        console.log("Prescrições recebidas:", data.length);
+        
         // Only get active prescriptions
         const activePrescriptions = data.filter(p => p.status === 'Ativa');
+        console.log("Prescrições ativas:", activePrescriptions.length);
+        
         setPrescriptions(activePrescriptions);
       } catch (error) {
         console.error("Error fetching prescriptions:", error);
@@ -81,7 +94,7 @@ export function AdministrationForm({
       }
     };
 
-    if (open) {
+    if (open && clinicId) {
       fetchPrescriptions();
     }
   }, [open, clinicId]);
@@ -95,6 +108,7 @@ export function AdministrationForm({
   };
 
   const handlePrescriptionChange = (value: string) => {
+    console.log("Prescrição selecionada:", value);
     const prescription = prescriptions.find(p => p.id === value) || null;
     setSelectedPrescription(prescription);
     setFormData(prev => ({
@@ -111,10 +125,12 @@ export function AdministrationForm({
 
     try {
       setIsSubmitting(true);
+      console.log("Registrando administração para prescrição:", formData.prescriptionId);
       
       // Obter o user ID atual para rastreamento
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user?.id;
+      console.log("User ID atual:", userId);
       
       await medicationService.addAdministration({
         clinic_id: clinicId,
