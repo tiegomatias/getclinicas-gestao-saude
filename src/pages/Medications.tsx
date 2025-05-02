@@ -29,53 +29,7 @@ export default function Medications() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPatient, setSelectedPatient] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [medicationsList, setMedicationsList] = useState<any[]>([
-    {
-      id: 1,
-      name: "Fluoxetina",
-      active: "Cloridrato de fluoxetina",
-      category: "Antidepressivo",
-      dosage: "20mg",
-      stock: 87,
-      status: "Adequado",
-    },
-    {
-      id: 2,
-      name: "Clonazepam",
-      active: "Clonazepam",
-      category: "Ansiolítico",
-      dosage: "2mg",
-      stock: 45,
-      status: "Adequado",
-    },
-    {
-      id: 3,
-      name: "Risperidona",
-      active: "Risperidona",
-      category: "Antipsicótico",
-      dosage: "3mg",
-      stock: 12,
-      status: "Baixo",
-    },
-    {
-      id: 4,
-      name: "Topiramato",
-      active: "Topiramato",
-      category: "Anticonvulsivante",
-      dosage: "100mg",
-      stock: 56,
-      status: "Adequado",
-    },
-    {
-      id: 5,
-      name: "Naltrexona",
-      active: "Naltrexona",
-      category: "Antagonista opioide",
-      dosage: "50mg",
-      stock: 8,
-      status: "Crítico",
-    }
-  ]);
+  const [medicationsList, setMedicationsList] = useState<any[]>([]);
 
   useEffect(() => {
     const checkForData = async () => {
@@ -91,23 +45,22 @@ export default function Medications() {
         const clinicData = JSON.parse(clinicDataStr);
         const hasMedicationsData = await clinicService.hasClinicData(clinicData.id, "medications");
         
-        // Verificar se temos dados de medicamentos na lista ou se a clínica já tem dados
-        setHasData(hasMedicationsData || medicationsList.length > 0);
+        // Verificar se a clínica já tem dados
+        setHasData(hasMedicationsData);
       } catch (error) {
         console.error("Erro ao verificar dados de medicamentos:", error);
-        // Se houver erro, mas temos medicamentos na lista, ainda definimos hasData como true
-        setHasData(medicationsList.length > 0);
+        setHasData(false);
       } finally {
         setIsLoading(false);
       }
     };
     
     checkForData();
-  }, [medicationsList.length]);
+  }, []);
 
   const handleAddMedication = () => {
     // Gerar um ID único
-    const newId = Math.max(0, ...medicationsList.map(med => med.id)) + 1;
+    const newId = Math.max(0, ...medicationsList.map(med => med.id || 0)) + 1;
     
     // Simular adição de medicamento com dados de exemplo
     const newMedication = {
@@ -163,8 +116,8 @@ export default function Medications() {
   const filteredMedications = searchQuery 
     ? medicationsList.filter(med => 
         med.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        med.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        med.active.toLowerCase().includes(searchQuery.toLowerCase())
+        (med.category && med.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (med.active && med.active.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : medicationsList;
 

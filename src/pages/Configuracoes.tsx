@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,12 +63,12 @@ export default function Configuracoes() {
           
           // If we have additional clinic metadata in localStorage, use it
           const metadata = clinicData.metadata || {};
-          setPhone(metadata.phone || "(11) 3456-7890");
-          setAddress(metadata.address || "Av. Paulista, 1000");
-          setCity(metadata.city || "São Paulo");
-          setState(metadata.state || "SP");
-          setWebsite(metadata.website || "www.getclinicas.com");
-          setCnpj(metadata.cnpj || "12.345.678/0001-90");
+          setPhone(metadata.phone || "");
+          setAddress(metadata.address || "");
+          setCity(metadata.city || "");
+          setState(metadata.state || "");
+          setWebsite(metadata.website || "");
+          setCnpj(metadata.cnpj || "");
         }
       } catch (error) {
         console.error("Erro ao buscar dados da clínica:", error);
@@ -329,6 +330,7 @@ export default function Configuracoes() {
                   id="clinic-name" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="Digite o nome da sua clínica"
                 />
               </div>
               
@@ -338,6 +340,7 @@ export default function Configuracoes() {
                   id="cnpj" 
                   value={cnpj}
                   onChange={(e) => setCnpj(e.target.value)}
+                  placeholder="Digite o CNPJ da clínica"
                 />
               </div>
               
@@ -347,6 +350,7 @@ export default function Configuracoes() {
                   id="address" 
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Digite o endereço completo"
                 />
               </div>
               
@@ -357,6 +361,7 @@ export default function Configuracoes() {
                     id="city" 
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
+                    placeholder="Digite a cidade"
                   />
                 </div>
                 
@@ -366,6 +371,7 @@ export default function Configuracoes() {
                     id="state" 
                     value={state}
                     onChange={(e) => setState(e.target.value)}
+                    placeholder="Digite o estado"
                   />
                 </div>
               </div>
@@ -377,6 +383,7 @@ export default function Configuracoes() {
                     id="phone" 
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Digite o telefone"
                   />
                 </div>
                 
@@ -386,6 +393,7 @@ export default function Configuracoes() {
                     id="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Digite o e-mail"
                   />
                 </div>
               </div>
@@ -396,6 +404,7 @@ export default function Configuracoes() {
                   id="website" 
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="Digite o website"
                 />
               </div>
               
