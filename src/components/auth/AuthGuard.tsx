@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +13,17 @@ const AuthGuard = ({ role }: AuthGuardProps) => {
   const currentClinicId = localStorage.getItem("currentClinicId");
   const location = useLocation();
 
+  // Para depuração
+  useEffect(() => {
+    console.log("AuthGuard rendering with:", { 
+      isAuthenticated, 
+      isMasterAdmin, 
+      currentClinicId,
+      path: location.pathname,
+      loading
+    });
+  }, [isAuthenticated, isMasterAdmin, currentClinicId, location.pathname, loading]);
+  
   // Master admin paths don't require clinic ID
   const isMasterAdminPath = location.pathname === "/master" || location.pathname.startsWith("/master/");
   

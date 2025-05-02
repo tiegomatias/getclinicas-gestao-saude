@@ -5,11 +5,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const Index = () => {
-  const { isAuthenticated, isMasterAdmin } = useAuth();
+  const { isAuthenticated, isMasterAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Index page loaded, auth status:", { isAuthenticated, isMasterAdmin });
+    console.log("Index page loaded, auth status:", { isAuthenticated, isMasterAdmin, loading });
+    
+    // Espere o loading terminar antes de fazer redirecionamentos
+    if (loading) {
+      return;
+    }
     
     // Check if user is authenticated
     if (isAuthenticated) {
@@ -45,7 +50,7 @@ const Index = () => {
       // If not authenticated, show the homepage
       navigate("/home");
     }
-  }, [isAuthenticated, isMasterAdmin, navigate]);
+  }, [isAuthenticated, isMasterAdmin, navigate, loading]);
 
   // This component doesn't render anything visually,
   // it just redirects based on authentication

@@ -1,9 +1,8 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextProps {
   user: User | null;
@@ -24,6 +23,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [loading, setLoading] = useState(true);
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     console.log("AuthProvider initializing");
@@ -75,9 +75,17 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   localStorage.setItem('currentClinicId', clinics[0].id);
                   localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
                 }
+                
+                // Redirecione o usuário após a autenticação se estiver na página de login
+                if (location.pathname === '/login') {
+                  console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
+                  navigate(isMaster ? '/master' : '/dashboard');
+                }
               }
             } catch (err) {
               console.error("Error in auth state change handler:", err);
+            } finally {
+              setLoading(false);
             }
           }, 0);
         } else {
@@ -87,6 +95,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           localStorage.removeItem('currentClinicId');
           localStorage.removeItem('clinicData');
           localStorage.removeItem('allClinics');
+          setLoading(false);
         }
       }
     );
@@ -132,23 +141,30 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                     localStorage.setItem('currentClinicId', clinics[0].id);
                     localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
                   }
+                  
+                  // Redirecione o usuário após carregar a sessão se estiver na página de login
+                  if (location.pathname === '/login') {
+                    console.log("Redirecting after getting session to", isMaster ? '/master' : '/dashboard');
+                    navigate(isMaster ? '/master' : '/dashboard');
+                  }
+                  
+                  setLoading(false);
                 }
               });
           });
-          
-        localStorage.setItem('isAuthenticated', 'true');
+      } else {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, location.pathname]);
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
@@ -180,8 +196,10 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (!roleError && roleData && roleData.length > 0) {
           setIsMasterAdmin(true);
           localStorage.setItem('isMasterAdmin', 'true');
+          console.log("Redirecting master admin to /master");
           navigate('/master');
         } else {
+          console.log("Redirecting regular user to /dashboard");
           navigate('/dashboard');
         }
         
@@ -189,6 +207,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     } catch (error: any) {
       toast.error(`Erro ao fazer login: ${error.message || 'Tente novamente'}`);
+    } finally {
+      setLoading(false);
     }
   };
 

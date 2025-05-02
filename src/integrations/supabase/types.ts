@@ -225,25 +225,25 @@ export type Database = {
       }
       clinic_users: {
         Row: {
-          clinic_id: string | null
-          created_at: string | null
+          clinic_id: string
+          created_at: string
           id: string
           role: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
-          clinic_id?: string | null
-          created_at?: string | null
+          clinic_id: string
+          created_at?: string
           id?: string
           role: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
-          clinic_id?: string | null
-          created_at?: string | null
+          clinic_id?: string
+          created_at?: string
           id?: string
           role?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {

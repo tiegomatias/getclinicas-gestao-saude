@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,17 +46,27 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, isAuthenticated, loading: authLoading } = useAuth();
+  
+  // Se o usuário já está autenticado, redirecione
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      console.log("User already authenticated, redirecting from login page");
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate, authLoading]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
+      console.log("Attempting login with:", email);
       await signIn(email, password);
-      // Navigation is handled in the signIn function
+      // A navegação é manipulada na função signIn
     } catch (error) {
-      // Error handling is done in the signIn function
+      console.error("Login error:", error);
+      // O tratamento de erro é feito na função signIn
     } finally {
       setLoading(false);
     }
