@@ -39,6 +39,18 @@ const GetClinicsLogo = () => (
 const DemoPage = () => {
   const navigate = useNavigate();
 
+  // Updated function to correctly navigate to the plans section
+  const navigateToPlans = () => {
+    navigate("/");
+    // Give the page some time to load before scrolling
+    setTimeout(() => {
+      const plansSection = document.getElementById("plans-section");
+      if (plansSection) {
+        plansSection.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white">
       <header className="container mx-auto py-4 px-4 bg-white/80 backdrop-blur-md shadow-sm">
@@ -98,7 +110,7 @@ const DemoPage = () => {
 
           <div className="mt-8 flex justify-center">
             <Button 
-              onClick={() => navigate("/#plans-section")}
+              onClick={navigateToPlans}
               size="lg"
               className="bg-getclinicas-primary hover:bg-getclinicas-dark"
             >
