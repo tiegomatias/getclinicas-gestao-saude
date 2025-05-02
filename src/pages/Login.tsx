@@ -5,6 +5,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { Heart } from "lucide-react";
+
+// Custom Logo SVG Component
+const GetClinicsLogo = () => (
+  <svg
+    width="48"
+    height="48"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="text-getclinicas-primary"
+  >
+    <path
+      d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2Z"
+      fill="currentColor"
+      opacity="0.2"
+    />
+    <path
+      d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2ZM18 12C18 16.5 14.87 20.74 12 21.82C9.13 20.74 6 16.5 6 12V7.4L12 4.66L18 7.4V12Z"
+      fill="currentColor"
+    />
+    <foreignObject x="8" y="7" width="8" height="8">
+      <Heart className="h-5 w-5 text-white" fill="white" />
+    </foreignObject>
+  </svg>
+);
 
 const Login = () => {
   const navigate = useNavigate();
@@ -33,7 +59,7 @@ const Login = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-2">
-            <img src="/placeholder.svg" alt="Logo" className="h-12 w-12" />
+            <GetClinicsLogo />
           </div>
           <h1 className="text-2xl font-bold">GetClinics</h1>
           <p className="text-gray-600">Acesse sua conta</p>
