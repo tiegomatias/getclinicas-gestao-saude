@@ -38,7 +38,9 @@ export default function Dashboard() {
         setIsNewClinic(true);
         // Show a welcome toast
         setTimeout(() => {
-          toast.success(`Bem-vindo à ${clinic.clinicName || clinic.clinic_name || 'sua clínica'}! Seu espaço está pronto para uso.`);
+          // Handle both property naming conventions, with fallback
+          const clinicName = clinic.clinicName || (clinic.clinic_name ? clinic.clinic_name : 'sua clínica');
+          toast.success(`Bem-vindo à ${clinicName}! Seu espaço está pronto para uso.`);
         }, 1000);
       }
     }
@@ -53,7 +55,7 @@ export default function Dashboard() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">
           {clinicData ? 
-            `Bem-vindo à ${clinicData.clinicName || clinicData.clinic_name || 'sua clínica'}` : 
+            `Bem-vindo à ${clinicData.clinicName || (clinicData as any).clinic_name || 'sua clínica'}` : 
             "Bem-vindo ao GetClinicas"}
         </h1>
         <div className="flex flex-wrap gap-2">
