@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Dialog,
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { format } from "date-fns";
 
 interface StockAdjustmentFormProps {
   open: boolean;
@@ -23,6 +25,7 @@ interface StockAdjustmentFormProps {
     name: string;
     stock: number;
     clinic_id: string;
+    expiration_date?: string;
   } | null;
 }
 
@@ -103,6 +106,11 @@ export function StockAdjustmentForm({
             <p className="text-sm text-muted-foreground">
               Estoque atual: {medication.stock} unidades
             </p>
+            {medication.expiration_date && (
+              <p className="text-xs text-muted-foreground">
+                Validade: {format(new Date(medication.expiration_date), 'dd/MM/yyyy')}
+              </p>
+            )}
           </div>
           
           <div className="grid grid-cols-4 items-center gap-4">

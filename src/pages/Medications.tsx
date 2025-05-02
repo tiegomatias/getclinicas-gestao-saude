@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { PillIcon, Plus, Search } from "lucide-react";
+import { AlertTriangle, PillIcon, Plus, Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmptyState from "@/components/shared/EmptyState";
 import { medicationService } from "@/services/medicationService";
@@ -28,7 +29,7 @@ import { PrescriptionForm } from "@/components/medications/PrescriptionForm";
 import { PrescriptionsList } from "@/components/medications/PrescriptionsList";
 import { AdministrationForm } from "@/components/medications/AdministrationForm";
 import { AdministrationsList } from "@/components/medications/AdministrationsList";
-import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 // Interface para o tipo de medicamento
 interface Medication {
@@ -40,6 +41,10 @@ interface Medication {
   stock: number;
   status: string;
   clinic_id: string;
+  manufacturer?: string;
+  expiration_date?: string;
+  batch_number?: string;
+  observations?: string;
 }
 
 // Interface para o tipo de prescrição
@@ -101,6 +106,8 @@ export default function Medications() {
   const [administrations, setAdministrations] = useState<Administration[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [clinicId, setClinicId] = useState<string>("");
+  const [expiringMedications, setExpiringMedications] = useState<Medication[]>([]);
+  const [expiredMedications, setExpiredMedications] = useState<Medication[]>([]);
   
   // Estados para diálogos
   const [newMedicationDialogOpen, setNewMedicationDialogOpen] = useState(false);
@@ -156,17 +163,26 @@ export default function Medications() {
 
   const loadAllData = async (id: string) => {
     try {
-      const [medsData, patientsData, prescriptionsData, adminsData] = await Promise.all([
+      const [medsData, patientsData, prescriptionsData, adminsData, expiringData, expiredData] = await Promise.all([
         medicationService.getMedications(id),
         patientService.getClinicPatients(id),
         medicationService.getPrescriptions(id),
-        medicationService.getAdministrations(id, selectedDate)
+        medicationService.getAdministrations(id, selectedDate),
+        medicationService.getExpiringMedications(id, 30),
+        medicationService.getExpiredMedications(id)
       ]);
 
       setMedications(medsData);
       setPatients(patientsData);
       setPrescriptions(prescriptionsData);
       setAdministrations(adminsData);
+      setExpiringMedications(expiringData);
+      setExpiredMedications(expiredData);
+      
+      // Notificar sobre medicamentos vencidos, se houver
+      if (expiredData.length > 0) {
+        toast.warning(`Atenção! Há ${expiredData.length} medicamentos vencidos no estoque.`);
+      }
     } catch (error) {
       console.error("Error loading medication data:", error);
       toast.error("Erro ao carregar dados");
@@ -229,6 +245,12 @@ export default function Medications() {
       const data = await medicationService.getMedications(clinicId);
       setMedications(data);
       setHasData(data.length > 0);
+      
+      // Atualizar os medicamentos vencidos e próximos do vencimento
+      const expiringData = await medicationService.getExpiringMedications(clinicId, 30);
+      const expiredData = await medicationService.getExpiredMedications(clinicId);
+      setExpiringMedications(expiringData);
+      setExpiredMedications(expiredData);
     } catch (error) {
       console.error("Error refreshing medications:", error);
       toast.error("Erro ao atualizar dados de medicamentos");
@@ -293,6 +315,59 @@ export default function Medications() {
           </Button>
         </div>
       </div>
+
+      {/* Alertas de medicamentos */}
+      {(expiredMedications.length > 0 || expiringMedications.length > 0) && (
+        <div className="flex flex-col gap-3">
+          {expiredMedications.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-red-800">Medicamentos vencidos</p>
+                <p className="text-sm text-red-600">
+                  Há {expiredMedications.length} medicamento(s) vencido(s) no estoque que precisam ser descartados.
+                </p>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {expiredMedications.slice(0, 3).map(med => (
+                    <span key={med.id} className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                      {med.name} (vencimento: {format(new Date(med.expiration_date!), 'dd/MM/yyyy')})
+                    </span>
+                  ))}
+                  {expiredMedications.length > 3 && (
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                      + {expiredMedications.length - 3} mais
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {expiringMedications.length > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-yellow-800">Medicamentos próximos ao vencimento</p>
+                <p className="text-sm text-yellow-600">
+                  Há {expiringMedications.length} medicamento(s) que vencerão nos próximos 30 dias.
+                </p>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {expiringMedications.slice(0, 3).map(med => (
+                    <span key={med.id} className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                      {med.name} (vencimento: {format(new Date(med.expiration_date!), 'dd/MM/yyyy')})
+                    </span>
+                  ))}
+                  {expiringMedications.length > 3 && (
+                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                      + {expiringMedications.length - 3} mais
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <Tabs defaultValue="inventory">
         <TabsList>

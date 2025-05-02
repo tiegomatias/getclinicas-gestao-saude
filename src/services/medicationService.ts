@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -32,6 +31,10 @@ export const medicationService = {
     category: string;
     dosage: string;
     stock: number;
+    manufacturer?: string;
+    expirationDate?: string;
+    batchNumber?: string;
+    observations?: string;
     created_by?: string;
   }) {
     try {
@@ -54,6 +57,10 @@ export const medicationService = {
           dosage: medication.dosage,
           stock: stock,
           status: status,
+          manufacturer: medication.manufacturer,
+          expiration_date: medication.expirationDate,
+          batch_number: medication.batchNumber,
+          observations: medication.observations,
           created_by: medication.created_by
         })
         .select()
@@ -347,6 +354,78 @@ export const medicationService = {
     } catch (error) {
       console.error("Error in hasClinicData:", error);
       return false;
+    }
+  },
+
+  // Obter histórico de estoque de um medicamento específico
+  async getMedicationStockHistory(medicationId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("medication_stock_history")
+        .select("*")
+        .eq("medication_id", medicationId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching medication stock history:", error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Error in getMedicationStockHistory:", error);
+      throw error;
+    }
+  },
+
+  // Obter medicamentos vencidos ou próximos do vencimento
+  async getExpiringMedications(clinicId: string, daysThreshold: number = 30) {
+    try {
+      const today = new Date();
+      const thresholdDate = new Date();
+      thresholdDate.setDate(today.getDate() + daysThreshold);
+      
+      const { data, error } = await supabase
+        .from("medication_inventory")
+        .select("*")
+        .eq("clinic_id", clinicId)
+        .lte("expiration_date", thresholdDate.toISOString())
+        .gt("expiration_date", today.toISOString())
+        .order("expiration_date");
+
+      if (error) {
+        console.error("Error fetching expiring medications:", error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Error in getExpiringMedications:", error);
+      throw error;
+    }
+  },
+
+  // Obter medicamentos vencidos
+  async getExpiredMedications(clinicId: string) {
+    try {
+      const today = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from("medication_inventory")
+        .select("*")
+        .eq("clinic_id", clinicId)
+        .lt("expiration_date", today)
+        .order("expiration_date");
+
+      if (error) {
+        console.error("Error fetching expired medications:", error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Error in getExpiredMedications:", error);
+      throw error;
     }
   }
 };
