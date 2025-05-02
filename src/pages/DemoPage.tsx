@@ -96,10 +96,14 @@ const DemoPage = () => {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col md:flex-row justify-center gap-4">
-            <div className="text-center text-lg font-semibold text-getclinicas-primary">
-              Experimente Gratuitamente
-            </div>
+          <div className="mt-8 flex flex-col md:flex-row justify-center gap-4 items-center">
+            <Button 
+              onClick={() => navigate("/checkout?plan=Mensal")}
+              size="lg"
+              className="bg-getclinicas-primary hover:bg-getclinicas-dark"
+            >
+              Experimentar Gratuitamente
+            </Button>
             <div className="text-center text-lg font-semibold text-gray-600">
               Conheça Planos
             </div>
