@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -7,7 +7,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthContextProvider, useAuth } from "./contexts/AuthContext";
+import { AuthContextProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";

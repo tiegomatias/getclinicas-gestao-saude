@@ -2,14 +2,10 @@
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import MasterSidebar from "./MasterSidebar";
-import { useLocation } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 import AppHeader from "./AppHeader";
 
-interface MasterLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function MasterLayout({ children }: MasterLayoutProps) {
+export default function MasterLayout() {
   const location = useLocation();
   
   // Get the title based on the current route
@@ -28,7 +24,7 @@ export default function MasterLayout({ children }: MasterLayoutProps) {
         <div className="flex-1">
           <AppHeader title={getTitle()} />
           <main className="container mx-auto p-4 lg:p-6">
-            {children}
+            <Outlet />
           </main>
         </div>
       </div>

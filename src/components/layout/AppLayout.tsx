@@ -1,15 +1,11 @@
 
-import React, { ReactNode } from "react";
+import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
-import { useLocation } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 import AppHeader from "./AppHeader";
 
-interface AppLayoutProps {
-  children: ReactNode;
-}
-
-export default function AppLayout({ children }: AppLayoutProps) {
+export default function AppLayout() {
   const location = useLocation();
   
   // Get the title based on the current route
@@ -39,7 +35,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="flex-1">
           <AppHeader title={getTitle()} />
           <main className="container mx-auto p-4 lg:p-6">
-            {children}
+            <Outlet />
           </main>
         </div>
       </div>
