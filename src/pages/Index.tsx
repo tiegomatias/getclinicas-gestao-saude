@@ -20,19 +20,24 @@ const Index = () => {
         // Check if we have a selected clinic
         const clinicDataStr = localStorage.getItem("clinicData");
         if (clinicDataStr) {
-          const clinicData = JSON.parse(clinicDataStr);
-          if (clinicData && clinicData.id) {
-            // Use either clinicName property
-            const clinicName = clinicData.clinicName || (clinicData as any).clinic_name || 'sua clínica';
-            toast.success(`Bem-vindo de volta à ${clinicName}!`);
-            navigate("/dashboard");
-          } else {
-            // If no valid clinic, go to login
+          try {
+            const clinicData = JSON.parse(clinicDataStr);
+            if (clinicData && clinicData.id) {
+              // Use either clinicName property
+              const clinicName = clinicData.clinicName || (clinicData as any).clinic_name || 'sua clínica';
+              toast.success(`Bem-vindo de volta à ${clinicName}!`);
+              navigate("/dashboard");
+            } else {
+              // If no valid clinic, go to login
+              navigate("/login");
+            }
+          } catch (error) {
+            console.error("Error parsing clinicData:", error);
             navigate("/login");
           }
         } else {
-          // If no clinic data, go to login
-          navigate("/login");
+          // If no clinic data, go to home
+          navigate("/home");
         }
       }
     } else {
@@ -44,7 +49,7 @@ const Index = () => {
 
   // This component doesn't render anything visually,
   // it just redirects based on authentication
-  return <div>Redirecionando...</div>;
+  return <div className="flex items-center justify-center min-h-screen">Redirecionando...</div>;
 };
 
 export default Index;
