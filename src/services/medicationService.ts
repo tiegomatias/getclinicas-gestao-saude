@@ -116,7 +116,7 @@ export const medicationService = {
   async adjustStock(adjustment: {
     clinic_id: string;
     medication_id: string;
-    adjustment_type: "entrada" | "saída";
+    adjustment_type: string;
     quantity: number;
     notes?: string;
     created_by?: string;
