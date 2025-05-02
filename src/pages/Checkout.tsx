@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -42,7 +41,7 @@ const plans: Record<string, PlanDetails> = {
   },
   "Anual": {
     name: "Plano Anual",
-    price: "R$ 10.454,40",
+    price: "R$ 10.454",
     period: "ano",
     discount: "Economia de 12%",
     features: [
