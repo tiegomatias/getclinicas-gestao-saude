@@ -39,7 +39,7 @@ export default function Dashboard() {
         // Show a welcome toast
         setTimeout(() => {
           // Handle both property naming conventions, with fallback
-          const clinicName = clinic.clinicName || (clinic.clinic_name ? clinic.clinic_name : 'sua clínica');
+          const clinicName = clinic.clinicName || (clinic as any).clinic_name || 'sua clínica';
           toast.success(`Bem-vindo à ${clinicName}! Seu espaço está pronto para uso.`);
         }, 1000);
       }
@@ -141,12 +141,12 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white cursor-pointer hover:bg-green-50/50 transition-colors" onClick={() => handleNavigate("/profissionais")}>
+            <Card className="bg-white cursor-pointer hover:bg-green-50/50 transition-colors" onClick={() => handleNavigate("/medicamentos")}>
               <CardContent className="p-4 flex items-center gap-3">
                 <Users className="h-5 w-5 text-green-600" />
                 <div>
-                  <h3 className="font-medium">Cadastrar profissionais</h3>
-                  <p className="text-xs text-muted-foreground">Adicione a equipe da clínica</p>
+                  <h3 className="font-medium">Cadastrar medicamentos</h3>
+                  <p className="text-xs text-muted-foreground">Adicione medicamentos ao estoque</p>
                 </div>
               </CardContent>
             </Card>
