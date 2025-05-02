@@ -25,6 +25,7 @@ import Medications from '@/pages/Medications';
 import Configuracoes from '@/pages/Configuracoes';
 import NotFound from '@/pages/NotFound';
 import Index from '@/pages/Index';
+import DemoPage from '@/pages/DemoPage';
 
 // Layouts
 import AppLayout from '@/components/layout/AppLayout';
@@ -50,6 +51,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registration />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/demo" element={<DemoPage />} />
 
           {/* Protected routes for master admins */}
           <Route path="/master" element={

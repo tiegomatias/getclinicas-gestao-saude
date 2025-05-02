@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -115,6 +114,10 @@ const HomePage = () => {
     navigate("/login");
   };
 
+  const handleViewDemo = () => {
+    navigate("/demo");
+  };
+
   const scrollToPlans = () => {
     document.getElementById('plans-section')?.scrollIntoView({
       behavior: 'smooth'
@@ -205,7 +208,7 @@ const HomePage = () => {
               <Button 
                 variant="outline"
                 size={isMobile ? "default" : "lg"}
-                onClick={() => navigate("/demo")}
+                onClick={handleViewDemo}
                 className="text-base md:text-lg"
               >
                 Ver Demonstração
@@ -422,7 +425,7 @@ const HomePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="bg-gray-50 p-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300">
                 <div className="bg-blue-50 p-4 rounded-full w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 md:w-10 md:h-10 text-blue-500" />
+                  Users className="w-8 h-8 md:w-10 md:h-10 text-blue-500" />
                 </div>
                 <h3 className="text-lg md:text-xl font-bold mb-2 text-center">Gestão de Pacientes</h3>
                 <p className="text-gray-600 text-center">
