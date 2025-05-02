@@ -74,7 +74,8 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
       onSuccess();
     } catch (error: any) {
       console.error("Error adding medication:", error);
-      toast.error(`Erro ao adicionar medicamento: ${error.message || 'Desconhecido'}`);
+      // Simplified error message to avoid showing technical details to users
+      toast.error("Erro ao adicionar medicamento. Por favor, tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
