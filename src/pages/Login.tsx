@@ -1,9 +1,11 @@
+
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { ArrowLeft } from "lucide-react";
 
 // Custom Logo SVG Component
 const GetClinicsLogo = () => (
@@ -61,9 +63,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white flex flex-col items-center pt-4 md:pt-0 md:justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+        <div className="mb-4 ml-2">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate("/")} 
+            className="flex items-center gap-1 p-0 h-auto hover:bg-transparent"
+          >
+            <ArrowLeft size={16} />
+            <span>Voltar</span>
+          </Button>
+        </div>
+        
+        <div className="text-center mb-6 md:mb-8">
           <div className="flex justify-center mb-2">
             <GetClinicsLogo />
           </div>
