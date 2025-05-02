@@ -48,11 +48,6 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
     try {
       setIsSubmitting(true);
       
-      console.log("Adding medication with data:", {
-        clinic_id: clinicId,
-        ...newMedication
-      });
-
       await medicationService.addMedication({
         clinic_id: clinicId,
         name: newMedication.name,
@@ -74,8 +69,10 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
       onSuccess();
     } catch (error: any) {
       console.error("Error adding medication:", error);
-      // Simplified error message to avoid showing technical details to users
-      toast.error("Erro ao adicionar medicamento. Por favor, tente novamente.");
+      
+      // Extract error message for more informative toast
+      const errorMessage = error.message || "Erro desconhecido";
+      toast.error(`Erro ao adicionar medicamento: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
