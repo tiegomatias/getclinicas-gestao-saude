@@ -1,6 +1,7 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import type { Patient } from "@/lib/types";
+import { toast } from "sonner";
 
 export const patientService = {
   // Buscar todos os pacientes de uma clínica

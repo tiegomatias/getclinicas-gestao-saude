@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Dialog,
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StockAdjustmentFormProps {
   open: boolean;
@@ -35,6 +37,7 @@ export function StockAdjustmentForm({
   const [adjustment, setAdjustment] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
   if (!medication) return null;
 
@@ -49,9 +52,11 @@ export function StockAdjustmentForm({
     try {
       setIsSubmitting(true);
       
-      // Obter o user ID atual para rastreamento
-      const { data: session } = await supabase.auth.getSession();
-      const userId = session?.session?.user?.id;
+      const userId = user?.id;
+      if (!userId) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
       
       const adjustmentType = adjustmentValue > 0 ? "entrada" : "saída";
       const quantity = Math.abs(adjustmentValue);
