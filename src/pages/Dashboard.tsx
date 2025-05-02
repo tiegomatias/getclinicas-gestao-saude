@@ -50,6 +50,22 @@ export default function Dashboard() {
     navigate(path);
   };
 
+  // Format date function to handle possible invalid dates
+  const formatDate = (dateStr: string | undefined): string => {
+    if (!dateStr) return "Data não disponível";
+    
+    try {
+      const date = new Date(dateStr);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return "Data não disponível";
+      }
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      return "Data não disponível";
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -90,7 +106,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-blue-600">Data de registro</p>
-              <p className="font-medium">{new Date(clinicData.createdAt).toLocaleDateString('pt-BR')}</p>
+              <p className="font-medium">{formatDate(clinicData.createdAt)}</p>
             </div>
             <div>
               <p className="text-sm text-blue-600">ID da Clínica</p>
