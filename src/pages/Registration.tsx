@@ -54,7 +54,7 @@ const Registration = () => {
     setLoading(true);
     
     try {
-      // 1. Primeiro registramos o usuário (sem aguardar a confirmação por email)
+      // 1. Primeiro registramos o usuário usando a API de autenticação do Supabase
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: adminEmail,
         password,
@@ -90,22 +90,7 @@ const Registration = () => {
         throw new Error("Erro ao criar clínica");
       }
       
-      // 3. Inserção direta na tabela user_roles usando service_role key (isso é feito no backend em produção)
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert([
-          {
-            user_id: signUpData.user.id,
-            role: 'clinic_admin'
-          }
-        ]);
-      
-      if (roleError) {
-        console.error("Erro ao definir função do usuário:", roleError);
-        // Continuamos mesmo se houver erro aqui, pois o administrador poderá corrigir manualmente
-      }
-      
-      // 4. Adicionar o usuário como admin da clínica
+      // 3. Adicionamos o usuário como admin da clínica na tabela clinic_users
       const { error: clinicUserError } = await supabase
         .from('clinic_users')
         .insert([
@@ -121,7 +106,7 @@ const Registration = () => {
         // Continuamos mesmo com erro, administrador poderá corrigir manualmente
       }
       
-      // Salvar dados da clínica no localStorage
+      // 4. Salvar dados da clínica no localStorage
       localStorage.setItem("currentClinicId", clinic[0].id);
       localStorage.setItem("clinicData", JSON.stringify(clinic[0]));
       
@@ -140,6 +125,7 @@ const Registration = () => {
       
     } catch (error: any) {
       toast.error(`Erro ao registrar: ${error.message}`);
+      console.error("Erro completo:", error);
     } finally {
       setLoading(false);
     }
