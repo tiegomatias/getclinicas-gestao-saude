@@ -19,6 +19,11 @@ export const MasterFinanceCard = ({
   planData,
   totalMonthlyRevenue,
 }: MasterFinanceCardProps) => {
+  // Format numbers without cents
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -42,7 +47,7 @@ export const MasterFinanceCard = ({
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Valor mensal: R$ {plan.monthlyRevenue.toLocaleString('pt-BR')}</span>
+                <span>Valor mensal: R$ {formatCurrency(plan.monthlyRevenue)}</span>
                 <span>
                   {((plan.monthlyRevenue / totalMonthlyRevenue) * 100).toFixed(1)}%
                 </span>
@@ -63,12 +68,12 @@ export const MasterFinanceCard = ({
             <div className="flex items-center justify-between">
               <span className="font-medium">Total Mensal:</span>
               <span className="font-bold">
-                R$ {totalMonthlyRevenue.toLocaleString('pt-BR')}
+                R$ {formatCurrency(totalMonthlyRevenue)}
               </span>
             </div>
             <div className="flex items-center justify-between text-sm text-muted-foreground mt-1">
               <span>Faturamento anual estimado:</span>
-              <span>R$ {(totalMonthlyRevenue * 12).toLocaleString('pt-BR')}</span>
+              <span>R$ {formatCurrency(totalMonthlyRevenue * 12)}</span>
             </div>
           </div>
         </div>

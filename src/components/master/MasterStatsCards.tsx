@@ -21,6 +21,11 @@ export const MasterStatsCards = ({
     month: "2-digit",
     year: "numeric",
   });
+  
+  // Format numbers without cents
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  };
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -67,7 +72,7 @@ export const MasterStatsCards = ({
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <p className="text-muted-foreground text-sm">Faturamento Mensal</p>
-            <p className="text-3xl font-bold">R$ {totalRevenue.toLocaleString('pt-BR')}</p>
+            <p className="text-3xl font-bold">R$ {formatCurrency(totalRevenue)}</p>
             <p className="text-xs text-muted-foreground mt-1">Assinaturas ativas</p>
           </div>
           <div className="h-12 w-12 bg-purple-500/10 rounded-full flex items-center justify-center">
