@@ -21,6 +21,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
     if (path.includes("agenda")) return "Agenda";
     if (path.includes("leitos")) return "Gestão de Leitos";
     if (path.includes("medicamento")) return "Controle de Medicamentos";
+    if (path.includes("alimentacao")) return "Gestão de Alimentação";
+    if (path.includes("alimentacao/dispensa")) return "Gestão de Dispensa";
+    if (path.includes("alimentacao/supermercado")) return "Lista de Supermercado";
     if (path.includes("documentos")) return "Documentos";
     if (path.includes("contratos")) return "Contratos";
     if (path.includes("financeiro")) return "Financeiro";

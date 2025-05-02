@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckIcon, Menu, Star, Users, CircleCheck, FilePen, FileText, UserRound } from "lucide-react";
+import { CheckIcon, Menu, Star, Users, CircleCheck, FilePen, FileText, UserRound, CookingPot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -142,6 +142,41 @@ const HomePage = () => {
       role: "Gerente Administrativa",
       image: "/placeholder.svg",
       comment: "A facilidade de gerar relatórios e controlar os leitos nos ajudou a melhorar nossa tomada de decisões. Simplesmente indispensável!"
+    }
+  ];
+
+  const features = [
+    {
+      icon: <CookingPot className="h-8 w-8 text-primary" />,
+      title: "Gestão de Alimentação",
+      description: "Controle completo de estoque de alimentos, listas de supermercado e planejamento nutricional para seus pacientes."
+    },
+    {
+      icon: <Users className="h-8 w-8 text-primary" />,
+      title: "Gestão de Pacientes",
+      description: "Cadastre, monitore e acompanhe o histórico completo dos pacientes em tratamento."
+    },
+    {
+      icon: <CircleCheck className="h-8 w-8 text-primary" />,
+      title: "Gestão de Leitos",
+      description: "Controle em tempo real a ocupação e disponibilidade dos leitos da clínica."
+    },
+    {
+      icon: <svg className="h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>,
+      title: "Relatórios Detalhados",
+      description: "Acompanhe métricas e indicadores para tomada de decisões estratégicas."
+    },
+    {
+      icon: <UserRound className="h-8 w-8 text-primary" />,
+      title: "Gestão de Profissionais",
+      description: "Organize as equipes de saúde, escalas de trabalho e acompanhe o desempenho dos profissionais da sua clínica."
+    },
+    {
+      icon: <FilePen className="h-8 w-8 text-primary" />,
+      title: "Geração Rápida de Contratos",
+      description: "Crie contratos padronizados em segundos, personalizáveis para cada paciente e situação."
     }
   ];
 

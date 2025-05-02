@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -27,6 +26,9 @@ import {
   Settings,
   File,
   LogOut,
+  Apple,
+  ShoppingCart,
+  Package,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -69,6 +71,11 @@ export default function AppSidebar() {
       title: "Medicamentos",
       path: "/medicamentos",
       icon: PillIcon,
+    },
+    {
+      title: "Alimentação",
+      path: "/alimentacao",
+      icon: Apple,
     },
     {
       title: "Documentos",
@@ -129,10 +136,10 @@ export default function AppSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.path}>
+                  <SidebarMenuButton asChild isActive={location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)}>
                     <Link to={item.path} className={cn(
                       "flex items-center gap-3",
-                      location.pathname === item.path ? "font-medium" : ""
+                      (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)) ? "font-medium" : ""
                     )}>
                       <item.icon size={18} />
                       <span>{item.title}</span>
