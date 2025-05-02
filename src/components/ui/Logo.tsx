@@ -22,7 +22,7 @@ export const Logo = ({ size = "md", showText = true }: LogoProps) => {
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="text-getclinicas-primary"
+        className="text-white"
       >
         <path
           d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2Z"
