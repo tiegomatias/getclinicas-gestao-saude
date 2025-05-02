@@ -279,19 +279,19 @@ const HomePage = () => {
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Acesso completo ao sistema</span>
+                      <span className="text-left">Acesso completo ao sistema</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Geração ilimitada de contratos</span>
+                      <span className="text-left">Geração ilimitada de contratos</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Suporte por e-mail</span>
+                      <span className="text-left">Suporte por e-mail</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Atualizações do sistema</span>
+                      <span className="text-left">Atualizações do sistema</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -326,23 +326,23 @@ const HomePage = () => {
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Acesso completo ao sistema</span>
+                      <span className="text-left">Acesso completo ao sistema</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Geração ilimitada de contratos</span>
+                      <span className="text-left">Geração ilimitada de contratos</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Suporte prioritário</span>
+                      <span className="text-left">Suporte prioritário</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Atualizações do sistema</span>
+                      <span className="text-left">Atualizações do sistema</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Treinamento da equipe</span>
+                      <span className="text-left">Treinamento da equipe</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -374,27 +374,27 @@ const HomePage = () => {
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Acesso completo ao sistema</span>
+                      <span className="text-left">Acesso completo ao sistema</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Geração ilimitada de contratos</span>
+                      <span className="text-left">Geração ilimitada de contratos</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Suporte VIP 24/7</span>
+                      <span className="text-left">Suporte VIP 24/7</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Atualizações prioritárias</span>
+                      <span className="text-left">Atualizações prioritárias</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Treinamento completo da equipe</span>
+                      <span className="text-left">Treinamento completo da equipe</span>
                     </li>
                     <li className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-left md:text-left text-center w-full">Personalização de modelos</span>
+                      <span className="text-left">Personalização de modelos</span>
                     </li>
                   </ul>
                 </CardContent>
