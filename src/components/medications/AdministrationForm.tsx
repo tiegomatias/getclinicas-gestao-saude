@@ -55,6 +55,7 @@ export function AdministrationForm({
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [error, setError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     prescriptionId: "",
@@ -70,10 +71,36 @@ export function AdministrationForm({
     const fetchPrescriptions = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         console.log("Buscando prescrições para clínica:", clinicId);
         
         if (!clinicId) {
           console.log("ID da clínica não encontrado em AdministrationForm");
+          setError("ID da clínica não encontrado. Por favor, verifique se você está logado corretamente.");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Verificar se o usuário está autenticado
+        const { data: session } = await supabase.auth.getSession();
+        if (!session?.session?.user) {
+          console.log("Usuário não autenticado");
+          setError("Usuário não autenticado. Por favor, faça login novamente.");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Verificar se o usuário tem acesso à clínica
+        const { data: clinicAccess, error: clinicAccessError } = await supabase
+          .from("clinic_users")
+          .select("*")
+          .eq("clinic_id", clinicId)
+          .eq("user_id", session.session.user.id)
+          .single();
+          
+        if (clinicAccessError || !clinicAccess) {
+          console.error("Erro ao verificar acesso à clínica:", clinicAccessError);
+          setError("Você não tem permissão para acessar esta clínica.");
           setIsLoading(false);
           return;
         }
@@ -88,6 +115,7 @@ export function AdministrationForm({
         setPrescriptions(activePrescriptions);
       } catch (error) {
         console.error("Error fetching prescriptions:", error);
+        setError("Erro ao carregar prescrições. Tente novamente mais tarde.");
         toast.error("Erro ao carregar prescrições");
       } finally {
         setIsLoading(false);
@@ -125,12 +153,22 @@ export function AdministrationForm({
 
     try {
       setIsSubmitting(true);
+      setError(null);
+      
       console.log("Registrando administração para prescrição:", formData.prescriptionId);
       
       // Obter o user ID atual para rastreamento
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user?.id;
       console.log("User ID atual:", userId);
+      
+      if (!userId) {
+        throw new Error("Usuário não autenticado");
+      }
+      
+      if (!clinicId) {
+        throw new Error("ID da clínica não encontrado");
+      }
       
       await medicationService.addAdministration({
         clinic_id: clinicId,
@@ -157,8 +195,9 @@ export function AdministrationForm({
       
       onOpenChange(false);
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error registering administration:", error);
+      setError(`Erro ao registrar administração: ${error.message || "Tente novamente"}`);
       toast.error("Erro ao registrar administração");
     } finally {
       setIsSubmitting(false);
@@ -186,6 +225,12 @@ export function AdministrationForm({
             Registre a administração de um medicamento a um paciente
           </DialogDescription>
         </DialogHeader>
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
+            {error}
+          </div>
+        )}
         
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
