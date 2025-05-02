@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +25,11 @@ const HomePage = () => {
   const isMobile = useIsMobile();
   const [countdown, setCountdown] = useState({ days: 3, hours: 12, minutes: 45, seconds: 30 });
   const [visibleSection, setVisibleSection] = useState("");
+
+  // Format numbers without cents
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  };
 
   // Animação para seções conforme scroll
   useEffect(() => {
@@ -325,10 +329,10 @@ const HomePage = () => {
                   <div className="mb-4 md:mb-6">
                     <div className="flex items-center justify-center mb-1">
                       <p className="text-sm line-through text-gray-400 mr-2">R$ 11.880</p>
-                      <p className="text-3xl md:text-4xl font-bold">R$ 10.454,40</p>
+                      <p className="text-3xl md:text-4xl font-bold">R$ 10.454</p>
                     </div>
                     <p className="text-gray-500">por ano</p>
-                    <p className="text-green-600 text-sm font-medium">Economia de 12% (R$ 1.425,60)</p>
+                    <p className="text-green-600 text-sm font-medium">Economia de 12% (R$ 1.426)</p>
                   </div>
                   <ul className="space-y-2">
                     <li className="flex items-start">
