@@ -1,15 +1,15 @@
 
-import React, { useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import React from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AuthGuardProps {
-  children: React.ReactNode;
+  role?: "master";
 }
 
-const AuthGuard = ({ children }: AuthGuardProps) => {
-  const { isAuthenticated, isMasterAdmin, loading, session } = useAuth();
+const AuthGuard = ({ role }: AuthGuardProps) => {
+  const { isAuthenticated, isMasterAdmin, loading } = useAuth();
   const currentClinicId = localStorage.getItem("currentClinicId");
   const location = useLocation();
 
@@ -17,45 +17,10 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   const isMasterAdminPath = location.pathname === "/master" || location.pathname.startsWith("/master/");
   
   // For master admin paths, we only need isAuthenticated and isMasterAdmin
-  const canAccessMasterAdmin = isAuthenticated && isMasterAdmin && isMasterAdminPath;
+  const canAccessMasterAdmin = isAuthenticated && isMasterAdmin && (role === "master" || isMasterAdminPath);
   
   // For clinic paths, we need both authentication and clinic ID
   const isFullyAuthenticated = isAuthenticated && currentClinicId;
-
-  useEffect(() => {
-    // Verificar se temos um token de sessão válido
-    if (session?.access_token && !isAuthenticated) {
-      console.log("Sessão existe mas isAuthenticated é false, recarregando auth state");
-    }
-    
-    // Only check clinic data if we're not on a master admin path
-    if (isFullyAuthenticated && !isMasterAdminPath) {
-      const allClinics = JSON.parse(localStorage.getItem("allClinics") || "[]");
-      const clinicData = JSON.parse(localStorage.getItem("clinicData") || "{}");
-      
-      console.log("Auth check: ", { 
-        isAuthenticated, 
-        currentClinicId, 
-        clinicDataExists: !!clinicData.id,
-        allClinics: allClinics.length 
-      });
-      
-      const clinicExists = allClinics.some((clinic: any) => clinic.id === currentClinicId);
-      
-      if (!clinicExists && allClinics.length > 0) {
-        // If clinic doesn't exist in our records, log the user out
-        localStorage.removeItem("currentClinicId");
-        localStorage.removeItem("clinicData");
-        toast.error("Sessão inválida. Por favor, faça login novamente.");
-      } else {
-        // Load the correct clinic data for the current session
-        const currentClinic = allClinics.find((clinic: any) => clinic.id === currentClinicId);
-        if (currentClinic) {
-          localStorage.setItem("clinicData", JSON.stringify(currentClinic));
-        }
-      }
-    }
-  }, [isFullyAuthenticated, currentClinicId, isMasterAdminPath, isAuthenticated, session]);
 
   // Show loading state while checking authentication
   if (loading) {
@@ -66,12 +31,14 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   if (location.pathname === "/" || 
       location.pathname === "/login" || 
       location.pathname === "/registro" || 
-      location.pathname === "/checkout") {
-    return <>{children}</>;
+      location.pathname === "/checkout" ||
+      location.pathname === "/home") {
+    return <Outlet />;
   }
 
   // If trying to access master admin path without proper credentials
-  if (isMasterAdminPath && !canAccessMasterAdmin) {
+  if (role === "master" && !canAccessMasterAdmin) {
+    toast.error("Acesso não autorizado. Você precisa ser um administrador mestre.");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -80,12 +47,7 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If authenticated and trying to access login page, redirect to dashboard
-  if ((isFullyAuthenticated || canAccessMasterAdmin) && location.pathname === "/login") {
-    return <Navigate to={isMasterAdmin ? "/master" : "/dashboard"} replace />;
-  }
-
-  return <>{children}</>;
+  return <Outlet />;
 };
 
 export default AuthGuard;

@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
 } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { createClient } from "@supabase/supabase-js";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { AuthContextProvider } from "./contexts/AuthContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthContextProvider, useAuth } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
@@ -34,9 +31,8 @@ import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 import MasterLayout from "./components/layout/MasterLayout";
 import AppLayout from "./components/layout/AppLayout";
-import { AuthGuard } from "./components/AuthGuard";
+import AuthGuard from "./components/auth/AuthGuard";
 import { Toaster } from "sonner";
-import { AuthContext } from "./contexts/AuthContext";
 import Alimentacao from "./pages/Alimentacao";
 import Dispensa from "./pages/Alimentacao/Dispensa";
 import Supermercado from "./pages/Alimentacao/Supermercado";
@@ -44,19 +40,10 @@ import Supermercado from "./pages/Alimentacao/Supermercado";
 const queryClient = new QueryClient();
 
 function App() {
-  const [authValue, setAuthValue] = useState({
-    isAuthenticated: false,
-    isMasterAdmin: false,
-    user: null,
-    session: null,
-    isLoading: true,
-    signOut: () => Promise<void>,
-  });
-
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AuthContext.Provider value={authValue}>
+        <AuthContextProvider>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/home" element={<HomePage />} />
@@ -97,7 +84,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
-        </AuthContext.Provider>
+        </AuthContextProvider>
       </Router>
     </QueryClientProvider>
   );
