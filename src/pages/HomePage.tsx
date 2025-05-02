@@ -31,6 +31,34 @@ const HomePage = () => {
     return value.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   };
 
+  // Custom Logo SVG Component
+  const GetClinicsLogo = () => (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="text-getclinicas-primary"
+    >
+      <path
+        d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2Z"
+        fill="currentColor"
+        opacity="0.2"
+      />
+      <path
+        d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2ZM18 12C18 16.5 14.87 20.74 12 21.82C9.13 20.74 6 16.5 6 12V7.4L12 4.66L18 7.4V12Z"
+        fill="currentColor"
+      />
+      <path
+        d="M12 12V7M12 12H15M12 12H9M12 12V15"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+
   // Animação para seções conforme scroll
   useEffect(() => {
     const handleScroll = () => {
@@ -113,8 +141,8 @@ const HomePage = () => {
       <header className="container mx-auto py-4 px-4 sticky top-0 bg-white/80 backdrop-blur-md z-50 shadow-sm">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <img src="/placeholder.svg" alt="Logo" className="h-8 w-8 mr-2" />
-            <h1 className="text-xl font-bold text-getclinicas-dark">GetClinics</h1>
+            <GetClinicsLogo />
+            <h1 className="text-xl font-bold text-getclinicas-dark ml-2">GetClinics</h1>
           </div>
           
           {isMobile ? (
@@ -548,8 +576,8 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <img src="/placeholder.svg" alt="Logo" className="h-6 w-6 md:h-8 md:w-8 mr-2" />
-              <span className="text-base md:text-lg font-semibold">GetClinics</span>
+              <GetClinicsLogo />
+              <span className="text-base md:text-lg font-semibold ml-2">GetClinics</span>
             </div>
             <div className="text-xs md:text-sm text-gray-600">
               &copy; {new Date().getFullYear()} GetClinics. Todos os direitos reservados.
