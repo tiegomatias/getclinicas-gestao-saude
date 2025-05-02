@@ -38,7 +38,7 @@ export default function Dashboard() {
         setIsNewClinic(true);
         // Show a welcome toast
         setTimeout(() => {
-          toast.success(`Bem-vindo à ${clinic.clinicName}! Seu espaço está pronto para uso.`);
+          toast.success(`Bem-vindo à ${clinic.clinicName || clinic.clinic_name || 'sua clínica'}! Seu espaço está pronto para uso.`);
         }, 1000);
       }
     }
@@ -52,7 +52,9 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {clinicData ? `Bem-vindo à ${clinicData.clinicName}` : "Bem-vindo ao GetClinicas"}
+          {clinicData ? 
+            `Bem-vindo à ${clinicData.clinicName || clinicData.clinic_name || 'sua clínica'}` : 
+            "Bem-vindo ao GetClinicas"}
         </h1>
         <div className="flex flex-wrap gap-2">
           <Select defaultValue="current">

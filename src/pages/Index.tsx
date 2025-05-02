@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -20,7 +20,9 @@ const Index = () => {
         if (clinicDataStr) {
           const clinicData = JSON.parse(clinicDataStr);
           if (clinicData && clinicData.id) {
-            toast.success(`Bem-vindo de volta à clínica ${clinicData.clinic_name || ''}!`);
+            // Use either clinicName or clinic_name property to account for both formats
+            const clinicName = clinicData.clinicName || clinicData.clinic_name || "sua clínica";
+            toast.success(`Bem-vindo de volta à ${clinicName}!`);
             navigate("/dashboard");
           } else {
             // Se não tiver uma clínica válida, ir para o login
