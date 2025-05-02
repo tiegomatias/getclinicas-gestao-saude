@@ -124,7 +124,7 @@ export default function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="flex items-center gap-2 px-4 py-2">
         <div className="flex items-center gap-2">
-          <Logo size="sm" />
+          <Logo size="sm" whiteShield={true} />
         </div>
         <div className="ml-auto md:hidden">
           <SidebarTrigger />

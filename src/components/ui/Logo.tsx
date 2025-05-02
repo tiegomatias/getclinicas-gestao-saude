@@ -4,9 +4,10 @@ import React from "react";
 interface LogoProps {
   size?: "sm" | "md" | "lg";
   showText?: boolean;
+  whiteShield?: boolean;
 }
 
-export const Logo = ({ size = "md", showText = true }: LogoProps) => {
+export const Logo = ({ size = "md", showText = true, whiteShield = false }: LogoProps) => {
   // Size mappings
   const sizes = {
     sm: { svg: 24, text: "text-base" },
@@ -22,7 +23,7 @@ export const Logo = ({ size = "md", showText = true }: LogoProps) => {
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="text-getclinicas-primary"
+        className={whiteShield ? "text-white" : "text-getclinicas-primary"}
       >
         <path
           d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2Z"

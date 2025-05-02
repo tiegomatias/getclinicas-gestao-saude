@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -75,7 +74,7 @@ export default function MasterSidebar() {
     <Sidebar>
       <SidebarHeader className="flex items-center gap-2 px-4 py-2">
         <div className="flex items-center gap-2">
-          <Logo size="sm" />
+          <Logo size="sm" whiteShield={true} />
           <span className="text-xl font-bold text-white">GetClinics Master</span>
         </div>
         <div className="ml-auto md:hidden">
