@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -41,16 +42,20 @@ export const medicationService = {
         status = "Baixo";
       }
 
-      // Use RPC instead of direct insert to avoid RLS recursion
-      const { data, error } = await supabase.rpc('add_medication', {
-        p_clinic_id: medication.clinic_id,
-        p_name: medication.name,
-        p_active: medication.active,
-        p_category: medication.category,
-        p_dosage: medication.dosage,
-        p_stock: stock,
-        p_status: status
-      });
+      // Direct insert to avoid type issues with RPC functions
+      const { data, error } = await supabase
+        .from("medication_inventory")
+        .insert({
+          clinic_id: medication.clinic_id,
+          name: medication.name,
+          active: medication.active,
+          category: medication.category,
+          dosage: medication.dosage,
+          stock: stock,
+          status: status
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error("Error adding medication:", error);
@@ -58,7 +63,7 @@ export const medicationService = {
       }
 
       // Record the initial stock as an entry in the history
-      if (stock > 0 && data?.id) {
+      if (stock > 0) {
         await this.adjustStock({
           clinic_id: medication.clinic_id,
           medication_id: data.id,
