@@ -576,39 +576,51 @@ export type Database = {
       medication_inventory: {
         Row: {
           active: string
+          batch_number: string | null
           category: string
           clinic_id: string
           created_at: string | null
           created_by: string | null
           dosage: string
+          expiration_date: string | null
           id: string
+          manufacturer: string | null
           name: string
+          observations: string | null
           status: string
           stock: number
           updated_at: string | null
         }
         Insert: {
           active: string
+          batch_number?: string | null
           category: string
           clinic_id: string
           created_at?: string | null
           created_by?: string | null
           dosage: string
+          expiration_date?: string | null
           id?: string
+          manufacturer?: string | null
           name: string
+          observations?: string | null
           status?: string
           stock?: number
           updated_at?: string | null
         }
         Update: {
           active?: string
+          batch_number?: string | null
           category?: string
           clinic_id?: string
           created_at?: string | null
           created_by?: string | null
           dosage?: string
+          expiration_date?: string | null
           id?: string
+          manufacturer?: string | null
           name?: string
+          observations?: string | null
           status?: string
           stock?: number
           updated_at?: string | null
