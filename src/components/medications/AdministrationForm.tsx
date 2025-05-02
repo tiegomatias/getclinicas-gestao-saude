@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AdministrationFormProps {
   open: boolean;
@@ -56,6 +56,7 @@ export function AdministrationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth(); // Usando o contexto de autenticação em vez de chamadas diretas ao supabase
   
   const [formData, setFormData] = useState({
     prescriptionId: "",
@@ -81,29 +82,17 @@ export function AdministrationForm({
           return;
         }
         
-        // Verificar se o usuário está autenticado
-        const { data: session } = await supabase.auth.getSession();
-        if (!session?.session?.user) {
+        // Verificar se o usuário está autenticado usando o contexto
+        if (!user) {
           console.log("Usuário não autenticado");
           setError("Usuário não autenticado. Por favor, faça login novamente.");
           setIsLoading(false);
           return;
         }
         
-        // Verificar se o usuário tem acesso à clínica
-        const { data: clinicAccess, error: clinicAccessError } = await supabase
-          .from("clinic_users")
-          .select("*")
-          .eq("clinic_id", clinicId)
-          .eq("user_id", session.session.user.id)
-          .single();
-          
-        if (clinicAccessError || !clinicAccess) {
-          console.error("Erro ao verificar acesso à clínica:", clinicAccessError);
-          setError("Você não tem permissão para acessar esta clínica.");
-          setIsLoading(false);
-          return;
-        }
+        // Removemos a verificação direta a clinic_users para evitar recursão infinita
+        // Com as políticas RLS configuradas corretamente, a chamada abaixo só retornará dados 
+        // se o usuário tiver acesso à clínica
         
         const data = await medicationService.getPrescriptions(clinicId);
         console.log("Prescrições recebidas:", data.length);
@@ -125,7 +114,7 @@ export function AdministrationForm({
     if (open && clinicId) {
       fetchPrescriptions();
     }
-  }, [open, clinicId]);
+  }, [open, clinicId, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -157,9 +146,8 @@ export function AdministrationForm({
       
       console.log("Registrando administração para prescrição:", formData.prescriptionId);
       
-      // Obter o user ID atual para rastreamento
-      const { data: session } = await supabase.auth.getSession();
-      const userId = session?.session?.user?.id;
+      // Obter o user ID do contexto de autenticação
+      const userId = user?.id;
       console.log("User ID atual:", userId);
       
       if (!userId) {
