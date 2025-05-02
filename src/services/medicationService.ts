@@ -32,6 +32,7 @@ export const medicationService = {
     category: string;
     dosage: string;
     stock: number;
+    created_by?: string;
   }) {
     try {
       const stock = Number(medication.stock);
@@ -42,15 +43,7 @@ export const medicationService = {
         status = "Baixo";
       }
 
-      // Create medication without relying on RLS policies
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session) {
-        throw new Error("Usuário não autenticado");
-      }
-      
-      // Use service_role key implicitly by calling an RPC function
-      // This bypasses RLS policies and avoids the recursion issue
+      // Inserir o medicamento usando as políticas de segurança configuradas
       const { data, error } = await supabase
         .from("medication_inventory")
         .insert({
@@ -60,7 +53,8 @@ export const medicationService = {
           category: medication.category,
           dosage: medication.dosage,
           stock: stock,
-          status: status
+          status: status,
+          created_by: medication.created_by
         })
         .select()
         .single();
@@ -78,6 +72,7 @@ export const medicationService = {
           adjustment_type: "entrada",
           quantity: stock,
           notes: "Estoque inicial",
+          created_by: medication.created_by
         });
       }
 
@@ -95,12 +90,16 @@ export const medicationService = {
     adjustment_type: "entrada" | "saída";
     quantity: number;
     notes?: string;
+    created_by?: string;
   }) {
     try {
       // First add to history
       const { error: historyError } = await supabase
         .from("medication_stock_history")
-        .insert(adjustment);
+        .insert({
+          ...adjustment,
+          created_by: adjustment.created_by
+        });
 
       if (historyError) {
         console.error("Error recording stock history:", historyError);
@@ -218,11 +217,15 @@ export const medicationService = {
     start_date: string;
     end_date?: string;
     observations?: string;
+    created_by?: string;
   }) {
     try {
       const { data, error } = await supabase
         .from("medication_prescriptions")
-        .insert(prescription)
+        .insert({
+          ...prescription,
+          created_by: prescription.created_by
+        })
         .select()
         .single();
 
@@ -287,11 +290,15 @@ export const medicationService = {
     administered_by: string;
     administered_at: string;
     observations?: string;
+    created_by?: string;
   }) {
     try {
       const { data, error } = await supabase
         .from("medication_administrations")
-        .insert(administration)
+        .insert({
+          ...administration,
+          created_by: administration.created_by
+        })
         .select()
         .single();
 
@@ -307,7 +314,8 @@ export const medicationService = {
           medication_id: administration.medication_id,
           adjustment_type: "saída",
           quantity: 1, // Assuming 1 unit per administration
-          notes: `Administração para paciente`
+          notes: `Administração para paciente`,
+          created_by: administration.created_by
         });
       } catch (stockError) {
         console.error("Error updating stock after administration:", stockError);

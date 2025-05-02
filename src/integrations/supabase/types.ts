@@ -579,6 +579,7 @@ export type Database = {
           category: string
           clinic_id: string
           created_at: string | null
+          created_by: string | null
           dosage: string
           id: string
           name: string
@@ -591,6 +592,7 @@ export type Database = {
           category: string
           clinic_id: string
           created_at?: string | null
+          created_by?: string | null
           dosage: string
           id?: string
           name: string
@@ -603,6 +605,7 @@ export type Database = {
           category?: string
           clinic_id?: string
           created_at?: string | null
+          created_by?: string | null
           dosage?: string
           id?: string
           name?: string
@@ -1009,6 +1012,10 @@ export type Database = {
           _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
         }
+        Returns: boolean
+      }
+      is_clinic_member: {
+        Args: { clinic_uuid: string }
         Returns: boolean
       }
       recalculate_bed_counters: {

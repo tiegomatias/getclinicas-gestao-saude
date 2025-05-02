@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface AdministrationFormProps {
   open: boolean;
@@ -112,6 +112,10 @@ export function AdministrationForm({
     try {
       setIsSubmitting(true);
       
+      // Obter o user ID atual para rastreamento
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id;
+      
       await medicationService.addAdministration({
         clinic_id: clinicId,
         prescription_id: formData.prescriptionId,
@@ -120,7 +124,8 @@ export function AdministrationForm({
         dosage: selectedPrescription.dosage,
         administered_by: formData.administeredBy,
         administered_at: formData.administeredAt,
-        observations: formData.observations || undefined
+        observations: formData.observations || undefined,
+        created_by: userId
       });
       
       toast.success("Administração registrada com sucesso");

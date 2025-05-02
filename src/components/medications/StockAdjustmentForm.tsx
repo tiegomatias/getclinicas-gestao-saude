@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Dialog,
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface StockAdjustmentFormProps {
   open: boolean;
@@ -49,6 +49,10 @@ export function StockAdjustmentForm({
     try {
       setIsSubmitting(true);
       
+      // Obter o user ID atual para rastreamento
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id;
+      
       const adjustmentType = adjustmentValue > 0 ? "entrada" : "saída";
       const quantity = Math.abs(adjustmentValue);
 
@@ -57,7 +61,8 @@ export function StockAdjustmentForm({
         medication_id: medication.id,
         adjustment_type: adjustmentType,
         quantity,
-        notes: notes || undefined
+        notes: notes || undefined,
+        created_by: userId
       });
 
       // Show the appropriate message

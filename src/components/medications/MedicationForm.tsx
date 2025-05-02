@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MedicationFormProps {
   open: boolean;
@@ -48,13 +49,17 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
     try {
       setIsSubmitting(true);
       
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id;
+      
       await medicationService.addMedication({
         clinic_id: clinicId,
         name: newMedication.name,
         active: newMedication.active,
         category: newMedication.category,
         dosage: newMedication.dosage,
-        stock: newMedication.stock
+        stock: newMedication.stock,
+        created_by: userId
       });
       
       toast.success("Medicamento adicionado com sucesso");
@@ -70,7 +75,7 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
     } catch (error: any) {
       console.error("Error adding medication:", error);
       
-      // Provide a simplified user-friendly error message
+      // Fornecer mensagem de erro mais amigável
       toast.error("Erro ao adicionar medicamento. Por favor, tente novamente.");
     } finally {
       setIsSubmitting(false);

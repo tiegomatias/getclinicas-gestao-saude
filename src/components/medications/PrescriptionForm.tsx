@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -22,6 +21,7 @@ import {
 import { medicationService } from "@/services/medicationService";
 import { patientService } from "@/services/patientService";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface PrescriptionFormProps {
   open: boolean;
@@ -121,6 +121,10 @@ export function PrescriptionForm({
     try {
       setIsSubmitting(true);
       
+      // Obter o user ID atual para rastreamento
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id;
+      
       await medicationService.addPrescription({
         clinic_id: clinicId,
         patient_id: formData.patientId,
@@ -129,7 +133,8 @@ export function PrescriptionForm({
         frequency: formData.frequency,
         start_date: formData.startDate,
         end_date: formData.endDate || undefined,
-        observations: formData.observations || undefined
+        observations: formData.observations || undefined,
+        created_by: userId
       });
       
       toast.success("Prescrição criada com sucesso");
