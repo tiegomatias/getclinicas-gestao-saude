@@ -1,11 +1,9 @@
-
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Heart } from "lucide-react";
 
 // Custom Logo SVG Component
 const GetClinicsLogo = () => (
@@ -26,9 +24,17 @@ const GetClinicsLogo = () => (
       d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2ZM18 12C18 16.5 14.87 20.74 12 21.82C9.13 20.74 6 16.5 6 12V7.4L12 4.66L18 7.4V12Z"
       fill="currentColor"
     />
-    <foreignObject x="8" y="7" width="8" height="8">
-      <Heart className="h-5 w-5 text-white" fill="white" />
-    </foreignObject>
+    <text
+      x="12"
+      y="15"
+      fontSize="10"
+      fontWeight="bold"
+      fill="white"
+      textAnchor="middle"
+      dominantBaseline="middle"
+    >
+      G
+    </text>
   </svg>
 );
 

@@ -34,12 +34,17 @@ const GetClinicsLogo = () => (
       d="M12 2L4 6V12C4 17.55 7.84 22.74 12 24C16.16 22.74 20 17.55 20 12V6L12 2ZM18 12C18 16.5 14.87 20.74 12 21.82C9.13 20.74 6 16.5 6 12V7.4L12 4.66L18 7.4V12Z"
       fill="currentColor"
     />
-    <path
-      d="M12 7C10.5 9 8.83333 10 8 10C8 11 8.5 12 12 12C15.5 12 16 11 16 10C15.1667 10 13.5 9 12 7Z"
-      stroke="white"
-      strokeWidth="1.5"
+    <text
+      x="12"
+      y="14"
+      fontSize="9"
+      fontWeight="bold"
       fill="white"
-    />
+      textAnchor="middle"
+      dominantBaseline="middle"
+    >
+      G
+    </text>
   </svg>
 );
 
