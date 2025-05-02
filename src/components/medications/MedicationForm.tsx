@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MedicationFormProps {
   open: boolean;
@@ -31,6 +31,7 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
     stock: 0
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -49,8 +50,7 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
     try {
       setIsSubmitting(true);
       
-      const { data: session } = await supabase.auth.getSession();
-      const userId = session?.session?.user?.id;
+      const userId = user?.id;
       
       await medicationService.addMedication({
         clinic_id: clinicId,
