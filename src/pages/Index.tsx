@@ -9,38 +9,38 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Se o usuário já estiver autenticado, verificamos se é admin master
+    // Check if user is authenticated
     if (isAuthenticated) {
       if (isMasterAdmin) {
         toast.success("Bem-vindo de volta ao painel administrativo!");
         navigate("/master");
       } else {
-        // Verificar se temos uma clínica selecionada
+        // Check if we have a selected clinic
         const clinicDataStr = localStorage.getItem("clinicData");
         if (clinicDataStr) {
           const clinicData = JSON.parse(clinicDataStr);
           if (clinicData && clinicData.id) {
-            // Use either clinicName or clinic_name property to account for both formats
-            const clinicName = clinicData.clinicName || clinicData.clinic_name || "sua clínica";
+            // Use either clinicName property
+            const clinicName = clinicData.clinicName || (clinicData as any).clinic_name || 'sua clínica';
             toast.success(`Bem-vindo de volta à ${clinicName}!`);
             navigate("/dashboard");
           } else {
-            // Se não tiver uma clínica válida, ir para o login
+            // If no valid clinic, go to login
             navigate("/login");
           }
         } else {
-          // Se não tiver dados de clínica, ir para o login
+          // If no clinic data, go to login
           navigate("/login");
         }
       }
     } else {
-      // Se não estiver autenticado, ir para o login
-      navigate("/login");
+      // If not authenticated, show the homepage
+      navigate("/home");
     }
   }, [isAuthenticated, isMasterAdmin, navigate]);
 
-  // Este componente não renderiza nada visualmente,
-  // apenas redireciona com base na autenticação
+  // This component doesn't render anything visually,
+  // it just redirects based on authentication
   return null;
 };
 
