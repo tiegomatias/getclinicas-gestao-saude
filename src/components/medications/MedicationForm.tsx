@@ -88,11 +88,35 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
       
       const userId = user?.id;
       
+      if (!userId) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+      
+      if (!clinicId) {
+        toast.error("ID da clínica não encontrado");
+        return;
+      }
+
+      console.log("Enviando dados:", {
+        clinic_id: clinicId,
+        name: newMedication.name,
+        active: newMedication.active,
+        category: newMedication.category || newMedication.medicationType,
+        dosage: `${newMedication.dosage} ${newMedication.unit}`,
+        stock: newMedication.stock,
+        manufacturer: newMedication.manufacturer,
+        expirationDate: newMedication.expirationDate,
+        batchNumber: newMedication.batchNumber,
+        observations: newMedication.observations,
+        created_by: userId
+      });
+      
       await medicationService.addMedication({
         clinic_id: clinicId,
         name: newMedication.name,
         active: newMedication.active,
-        category: newMedication.category || newMedication.medicationType, // Usar tipo como categoria se não houver categoria
+        category: newMedication.category || newMedication.medicationType,
         dosage: `${newMedication.dosage} ${newMedication.unit}`,
         stock: newMedication.stock,
         manufacturer: newMedication.manufacturer,
@@ -121,7 +145,15 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
     } catch (error: any) {
       console.error("Error adding medication:", error);
       
-      toast.error("Erro ao adicionar medicamento. Por favor, tente novamente.");
+      // Extrair mensagem de erro mais detalhada
+      let errorMessage = "Erro ao adicionar medicamento. Por favor, tente novamente.";
+      if (error?.message) {
+        errorMessage = `Erro: ${error.message}`;
+      } else if (error?.error_description) {
+        errorMessage = error.error_description;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

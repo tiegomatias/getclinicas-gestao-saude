@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase";
+
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const medicationService = {
@@ -46,6 +47,22 @@ export const medicationService = {
         status = "Baixo";
       }
 
+      // Log para depuração
+      console.log("Enviando para Supabase:", {
+        clinic_id: medication.clinic_id,
+        name: medication.name,
+        active: medication.active,
+        category: medication.category,
+        dosage: medication.dosage,
+        stock: stock,
+        status: status,
+        manufacturer: medication.manufacturer,
+        expiration_date: medication.expirationDate,
+        batch_number: medication.batchNumber,
+        observations: medication.observations,
+        created_by: medication.created_by
+      });
+
       // Inserir o medicamento usando as políticas de segurança configuradas
       const { data, error } = await supabase
         .from("medication_inventory")
@@ -63,19 +80,24 @@ export const medicationService = {
           observations: medication.observations,
           created_by: medication.created_by
         })
-        .select()
-        .single();
+        .select();
 
       if (error) {
-        console.error("Error adding medication:", error);
+        console.error("Error adding medication (Supabase):", error);
         throw error;
       }
+
+      if (!data || data.length === 0) {
+        throw new Error("Nenhum dado retornado após a inserção");
+      }
+
+      const newMedication = data[0];
 
       // Record the initial stock as an entry in the history
       if (stock > 0) {
         await this.adjustStock({
           clinic_id: medication.clinic_id,
-          medication_id: data.id,
+          medication_id: newMedication.id,
           adjustment_type: "entrada",
           quantity: stock,
           notes: "Estoque inicial",
@@ -83,7 +105,7 @@ export const medicationService = {
         });
       }
 
-      return data;
+      return newMedication;
     } catch (error) {
       console.error("Error in addMedication:", error);
       throw error;
