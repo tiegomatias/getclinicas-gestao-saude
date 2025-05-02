@@ -70,9 +70,8 @@ export function MedicationForm({ open, onOpenChange, onSuccess, clinicId }: Medi
     } catch (error: any) {
       console.error("Error adding medication:", error);
       
-      // Extract error message for more informative toast
-      const errorMessage = error.message || "Erro desconhecido";
-      toast.error(`Erro ao adicionar medicamento: ${errorMessage}`);
+      // Provide a simplified user-friendly error message
+      toast.error("Erro ao adicionar medicamento. Por favor, tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
