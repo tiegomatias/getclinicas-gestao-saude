@@ -98,7 +98,7 @@ const DemoPage = () => {
 
           <div className="mt-8 flex justify-center">
             <Button 
-              onClick={() => navigate("/checkout?plan=Mensal")}
+              onClick={() => navigate("/#plans-section")}
               size="lg"
               className="bg-getclinicas-primary hover:bg-getclinicas-dark"
             >
