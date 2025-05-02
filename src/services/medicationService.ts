@@ -42,10 +42,15 @@ export const medicationService = {
         status = "Baixo";
       }
 
+      // Direct insert without checking clinic user policy
       const { data, error } = await supabase
         .from("medication_inventory")
         .insert({
-          ...medication,
+          clinic_id: medication.clinic_id,
+          name: medication.name,
+          active: medication.active,
+          category: medication.category,
+          dosage: medication.dosage,
           stock,
           status,
         })
@@ -311,9 +316,10 @@ export const medicationService = {
   // Check if clinic has medications data
   async hasClinicData(clinicId: string) {
     try {
+      // Use count option to check if any data exists
       const { count, error } = await supabase
         .from("medication_inventory")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("clinic_id", clinicId);
 
       if (error) {
@@ -321,7 +327,7 @@ export const medicationService = {
         throw error;
       }
 
-      return count ? count > 0 : false;
+      return count !== null && count > 0;
     } catch (error) {
       console.error("Error in hasClinicData:", error);
       return false;
