@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -21,7 +22,7 @@ import {
 import { medicationService } from "@/services/medicationService";
 import { patientService } from "@/services/patientService";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PrescriptionFormProps {
   open: boolean;
@@ -51,6 +52,7 @@ export function PrescriptionForm({
   const [medications, setMedications] = useState<Medication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     patientId: "",
@@ -121,9 +123,8 @@ export function PrescriptionForm({
     try {
       setIsSubmitting(true);
       
-      // Obter o user ID atual para rastreamento
-      const { data: session } = await supabase.auth.getSession();
-      const userId = session?.session?.user?.id;
+      // Use the user from context instead of fetching from Supabase directly
+      const userId = user?.id;
       
       await medicationService.addPrescription({
         clinic_id: clinicId,
