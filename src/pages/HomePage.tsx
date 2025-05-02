@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckIcon, Menu, Star, Users, CircleCheck } from "lucide-react";
+import { CheckIcon, Menu, Star, Users, CircleCheck, FilePen, FileText, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -416,6 +416,61 @@ const HomePage = () => {
                 <p className="text-gray-600 text-center">
                   Acompanhe métricas e indicadores para tomada de decisões estratégicas.
                 </p>
+              </div>
+            </div>
+            
+            {/* Segunda linha de recursos com gestão de profissionais e geração de contratos */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+              <div className="bg-gray-50 p-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300">
+                <div className="bg-yellow-50 p-4 rounded-full w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-4">
+                  <UserRound className="w-8 h-8 md:w-10 md:h-10 text-yellow-500" />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold mb-2 text-center">Gestão de Profissionais</h3>
+                <p className="text-gray-600 text-center">
+                  Organize as equipes de saúde, escalas de trabalho e acompanhe o desempenho dos profissionais da sua clínica.
+                </p>
+                <div className="mt-4">
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600">Cadastro completo de profissionais</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600">Controle de especialidades</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600">Gestão de escalas de trabalho</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300">
+                <div className="bg-blue-50 p-4 rounded-full w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-4">
+                  <FilePen className="w-8 h-8 md:w-10 md:h-10 text-blue-500" />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold mb-2 text-center">Geração Rápida de Contratos</h3>
+                <p className="text-gray-600 text-center">
+                  Crie contratos padronizados em segundos, personalizáveis para cada paciente e situação.
+                </p>
+                <div className="mt-4">
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600">Modelos de contratos personalizáveis</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600">Geração em PDF com 1 clique</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600">Armazenamento seguro de documentos</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
