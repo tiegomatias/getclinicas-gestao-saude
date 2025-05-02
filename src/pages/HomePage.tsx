@@ -2,10 +2,16 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -34,16 +40,35 @@ const HomePage = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <img src="/placeholder.svg" alt="Logo" className="h-8 w-8 mr-2" />
-            <h1 className="text-xl md:text-2xl font-bold text-getclinicas-dark">GetClinics</h1>
+            <h1 className="text-xl font-bold text-getclinicas-dark">GetClinics</h1>
           </div>
-          <div className="flex gap-1 md:gap-2">
-            <Button variant="ghost" onClick={handleLogin} className="text-sm md:text-base px-2 md:px-4">
-              Login
-            </Button>
-            <Button onClick={scrollToPlans} className="text-sm md:text-base px-2 md:px-4">
-              Escolher Plano
-            </Button>
-          </div>
+          
+          {isMobile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleLogin}>
+                  Login
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={scrollToPlans}>
+                  Escolher Plano
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={handleLogin} className="text-base px-4">
+                Login
+              </Button>
+              <Button onClick={scrollToPlans} className="text-base px-4">
+                Escolher Plano
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 
