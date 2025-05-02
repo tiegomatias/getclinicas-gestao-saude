@@ -9,6 +9,8 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Index page loaded, auth status:", { isAuthenticated, isMasterAdmin });
+    
     // Check if user is authenticated
     if (isAuthenticated) {
       if (isMasterAdmin) {
@@ -34,6 +36,7 @@ const Index = () => {
         }
       }
     } else {
+      console.log("User not authenticated, redirecting to home");
       // If not authenticated, show the homepage
       navigate("/home");
     }
@@ -41,7 +44,7 @@ const Index = () => {
 
   // This component doesn't render anything visually,
   // it just redirects based on authentication
-  return null;
+  return <div>Redirecionando...</div>;
 };
 
 export default Index;
