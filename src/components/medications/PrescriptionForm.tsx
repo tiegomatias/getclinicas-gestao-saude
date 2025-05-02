@@ -67,7 +67,7 @@ export function PrescriptionForm({
       try {
         setIsLoading(true);
         const [patientsData, medicationsData] = await Promise.all([
-          patientService.getPatients(clinicId),
+          patientService.getClinicPatients(clinicId),
           medicationService.getMedications(clinicId)
         ]);
         

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -159,7 +158,7 @@ export default function Medications() {
     try {
       const [medsData, patientsData, prescriptionsData, adminsData] = await Promise.all([
         medicationService.getMedications(id),
-        patientService.getPatients(id),
+        patientService.getClinicPatients(id),
         medicationService.getPrescriptions(id),
         medicationService.getAdministrations(id, selectedDate)
       ]);
