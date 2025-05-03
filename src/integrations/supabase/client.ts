@@ -14,6 +14,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    flowType: "pkce",
+    // Definindo o domínio principal para redirecionamentos
+    redirectTo: `https://getclinics.org/auth/callback`
   }
 });
