@@ -35,7 +35,7 @@ export const setupMasterAdmin = async (email: string, password: string) => {
         
         // Use castDbInsert to bypass TypeScript strict checking
         await supabase.from('user_roles').insert(
-          castDbInsert(userRoleData)
+          castDbInsert<UserRole>(userRoleData)
         );
       }
       
@@ -58,7 +58,7 @@ export const setupMasterAdmin = async (email: string, password: string) => {
         
         // Use castDbInsert to bypass TypeScript strict checking
         await supabase.from('user_roles').insert(
-          castDbInsert(userRoleData)
+          castDbInsert<UserRole>(userRoleData)
         );
         
         console.log("User promoted to master admin");

@@ -16,7 +16,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     detectSessionInUrl: true,
     flowType: "pkce",
-    // Correct property name according to Supabase JS v2
+    // Correct property name is redirectTo, not redirectUrl
     redirectTo: `https://getclinics.org/auth/callback`
   }
 });
