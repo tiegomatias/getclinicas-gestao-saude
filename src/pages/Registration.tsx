@@ -54,6 +54,8 @@ const Registration = () => {
     setLoading(true);
     
     try {
+      console.log("Registrando usuário e clínica...");
+      
       // 1. Register the user using Supabase auth
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: adminEmail,
@@ -65,7 +67,12 @@ const Registration = () => {
         }
       });
       
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        console.error("Erro ao registrar usuário:", signUpError);
+        throw signUpError;
+      }
+      
+      console.log("Usuário criado com sucesso:", signUpData);
       
       if (!signUpData.user) {
         throw new Error("Não foi possível criar o usuário");
@@ -84,7 +91,12 @@ const Registration = () => {
         ])
         .select();
       
-      if (clinicError) throw clinicError;
+      if (clinicError) {
+        console.error("Erro ao criar clínica:", clinicError);
+        throw clinicError;
+      }
+      
+      console.log("Clínica criada com sucesso:", clinic);
       
       if (!clinic || clinic.length === 0) {
         throw new Error("Erro ao criar clínica");
@@ -104,6 +116,8 @@ const Registration = () => {
       if (clinicUserError) {
         console.error("Erro ao associar usuário à clínica:", clinicUserError);
         // We continue even with error, administrator will be able to fix manually
+      } else {
+        console.log("Usuário associado à clínica com sucesso");
       }
       
       // 4. Save clinic data in localStorage
@@ -117,25 +131,29 @@ const Registration = () => {
       }));
       
       // 5. Auto-login
+      console.log("Tentando fazer login automático...");
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email: adminEmail,
         password
       });
       
       if (loginError) {
+        console.error("Erro ao fazer login automático:", loginError);
         throw loginError;
       }
       
+      console.log("Login automático realizado com sucesso");
       toast.success("Clínica registrada com sucesso!");
       
       // Adding a small delay before redirecting to ensure localStorage is set
       setTimeout(() => {
+        console.log("Redirecionando para o dashboard...");
         navigate("/dashboard");
       }, 500);
       
     } catch (error: any) {
+      console.error("Erro completo ao registrar:", error);
       toast.error(`Erro ao registrar: ${error.message}`);
-      console.error("Erro completo:", error);
     } finally {
       setLoading(false);
     }
