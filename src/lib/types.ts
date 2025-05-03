@@ -1,4 +1,5 @@
 
+
 export interface Clinic {
   id: string;
   clinic_name: string;
@@ -110,3 +111,26 @@ export interface StockHistoryEntry {
   created_by?: string;
   clinic_id: string;
 }
+
+export interface MedicationPrescription {
+  id: string;
+  clinic_id: string;
+  patient_id: string;
+  patient: {
+    id: string;
+    name: string;
+  };
+  medication_id: string;
+  medication: {
+    id: string;
+    name: string;
+    dosage: string;
+  };
+  dosage: string;
+  frequency: string;
+  start_date: string;
+  end_date?: string | null;
+  status: string;
+  observations?: string | null;
+}
+

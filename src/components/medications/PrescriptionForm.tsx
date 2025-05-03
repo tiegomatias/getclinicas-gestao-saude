@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -24,11 +24,14 @@ import { patientService } from "@/services/patientService";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-interface PrescriptionFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
-  clinicId: string;
+interface Medication {
+  id: string;
+  name: string;
+  dosage: string;
+  stock: number;
+  category: string;
+  status: string;
+  active: string;
 }
 
 interface Patient {
@@ -36,20 +39,21 @@ interface Patient {
   name: string;
 }
 
-interface Medication {
-  id: string;
-  name: string;
-  dosage: string;
+interface PrescriptionFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+  clinicId: string;
 }
 
-export function PrescriptionForm({ 
-  open, 
-  onOpenChange, 
-  onSuccess, 
-  clinicId 
+export function PrescriptionForm({
+  open,
+  onOpenChange,
+  onSuccess,
+  clinicId
 }: PrescriptionFormProps) {
-  const [patients, setPatients] = useState<Patient[]>([]);
   const [medications, setMedications] = useState<Medication[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
@@ -66,37 +70,38 @@ export function PrescriptionForm({
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const [patientsData, medicationsData] = await Promise.all([
-          patientService.getClinicPatients(clinicId),
-          medicationService.getMedications(clinicId)
-        ]);
-        
-        if (patientsData && Array.isArray(patientsData)) {
-          setPatients(patientsData as Patient[]);
-        } else {
-          console.error("Formato de dados de pacientes inválido:", patientsData);
-          setPatients([]);
-        }
+      if (open && clinicId) {
+        try {
+          setIsLoading(true);
+          
+          const [patientsData, medicationsData] = await Promise.all([
+            patientService.getClinicPatients(clinicId),
+            medicationService.getMedications(clinicId)
+          ]);
+          
+          if (patientsData && Array.isArray(patientsData)) {
+            setPatients(patientsData as unknown as Patient[]);
+          } else {
+            console.error("Formato de dados de pacientes inválido:", patientsData);
+            setPatients([]);
+          }
 
-        if (medicationsData && Array.isArray(medicationsData)) {
-          setMedications(medicationsData as Medication[]);
-        } else {
-          console.error("Formato de dados de medicamentos inválido:", medicationsData);
-          setMedications([]);
+          if (medicationsData && Array.isArray(medicationsData)) {
+            setMedications(medicationsData as unknown as Medication[]);
+          } else {
+            console.error("Formato de dados de medicamentos inválido:", medicationsData);
+            setMedications([]);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          toast.error("Erro ao carregar dados");
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Erro ao carregar dados");
-      } finally {
-        setIsLoading(false);
       }
     };
     
-    if (open) {
-      fetchData();
-    }
+    fetchData();
   }, [open, clinicId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

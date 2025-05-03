@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -94,16 +95,19 @@ export function AdministrationForm({
         // Com as políticas RLS configuradas corretamente, a chamada abaixo só retornará dados 
         // se o usuário tiver acesso à clínica
         
-        const data = await medicationService.getPrescriptions(clinicId);
-        console.log("Prescrições recebidas:", data.length);
+        const result = await medicationService.getPrescriptions(clinicId);
+        console.log("Prescrições recebidas:", result.length);
         
-        if (data && Array.isArray(data)) {
+        if (result && Array.isArray(result)) {
+          // Use explicit type assertion to tell TypeScript this data conforms to our Prescription interface
+          const data = result as unknown as Prescription[];
+          
           // Only get active prescriptions - make sure we check if status exists
-          const activePrescriptions = data.filter(p => p && typeof p === 'object' && p.status === 'Ativa') as Prescription[];
+          const activePrescriptions = data.filter(p => p && typeof p === 'object' && p.status === 'Ativa');
           console.log("Prescrições ativas:", activePrescriptions.length);
           setPrescriptions(activePrescriptions);
         } else {
-          console.error("Formato de dados inválido retornado pela API:", data);
+          console.error("Formato de dados inválido retornado pela API:", result);
           setError("Formato de dados inválido retornado pela API");
           setPrescriptions([]);
         }
