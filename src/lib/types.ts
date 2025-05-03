@@ -1,5 +1,4 @@
 
-
 export interface Clinic {
   id: string;
   clinic_name: string;
@@ -134,3 +133,30 @@ export interface MedicationPrescription {
   observations?: string | null;
 }
 
+// Define a type for the user_roles table structure
+export interface UserRole {
+  id: string;
+  user_id: string;
+  role: 'master_admin' | 'clinic_admin' | 'user';
+}
+
+// Define type for Medication that aligns with database structure
+export interface Medication {
+  id: string;
+  clinic_id: string;
+  name: string;
+  active: string;
+  category: string;
+  dosage: string;
+  stock: number;
+  status: string;
+  manufacturer?: string;
+  expiration_date?: string;
+  batch_number?: string;
+  observations?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Define a utility type for type assertions with Supabase
+export type SupabaseDataResponse<T> = T[] | null;

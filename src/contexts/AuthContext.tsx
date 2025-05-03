@@ -4,6 +4,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { UserRole } from '@/lib/types';
 
 interface AuthContextProps {
   user: User | null;
@@ -40,11 +41,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           // Check if user is master admin - using setTimeout to avoid recursion
           setTimeout(async () => {
             try {
+              // Use type casting to fix the TypeScript errors
               const { data, error } = await supabase
                 .from('user_roles')
                 .select('role')
-                .eq('user_id', currentSession.user.id as string)
-                .eq('role', 'master_admin' as string);
+                .eq('user_id', currentSession.user.id)
+                .eq('role', 'master_admin');
               
               if (error) {
                 console.error("Error checking master admin status:", error);
@@ -60,24 +62,24 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 localStorage.setItem('isMasterAdmin', 'true');
               }
               
-              // Também carrega as clínicas do usuário
+              // Also load user's clinics
               const { data: clinics, error: clinicsError } = await supabase
                 .from('clinics')
                 .select('*')
-                .eq('admin_id', currentSession.user.id as string);
+                .eq('admin_id', currentSession.user.id);
                 
               if (clinicsError) {
                 console.error("Error fetching user clinics:", clinicsError);
               } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
                 localStorage.setItem('allClinics', JSON.stringify(clinics));
                 
-                // Se não tiver uma clínica selecionada, seleciona a primeira
+                // If no clinic is selected, select the first one
                 if (!localStorage.getItem('currentClinicId')) {
                   localStorage.setItem('currentClinicId', clinics[0].id);
                   localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
                 }
                 
-                // Redirecione o usuário após a autenticação se estiver na página de login
+                // Redirect the user after authentication if on the login page
                 if (location.pathname === '/login') {
                   console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
                   navigate(isMaster ? '/master' : '/dashboard');
@@ -112,8 +114,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', currentSession.user.id as string)
-          .eq('role', 'master_admin' as string)
+          .eq('user_id', currentSession.user.id)
+          .eq('role', 'master_admin')
           .then(({ data, error }) => {
             if (error) {
               console.error("Error checking master admin status:", error);
@@ -126,27 +128,27 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               localStorage.setItem('isMasterAdmin', 'true');
             }
             
-            // Também carrega as clínicas do usuário
+            // Also load user's clinics
             supabase
               .from('clinics')
               .select('*')
-              .eq('admin_id', currentSession.user.id as string)
+              .eq('admin_id', currentSession.user.id)
               .then(({ data: clinics, error: clinicsError }) => {
                 if (clinicsError) {
                   console.error("Error fetching user clinics:", clinicsError);
                 } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
                   localStorage.setItem('allClinics', JSON.stringify(clinics));
                   
-                  // Se não tiver uma clínica selecionada, seleciona a primeira
+                  // If no clinic is selected, select the first one
                   if (!localStorage.getItem('currentClinicId')) {
                     const clinicData = clinics[0];
-                    if (clinicData && typeof clinicData === 'object' && 'id' in clinicData) {
+                    if (clinicData) {
                       localStorage.setItem('currentClinicId', clinicData.id);
                       localStorage.setItem('clinicData', JSON.stringify(clinicData));
                     }
                   }
                   
-                  // Redirecione o usuário após carregar a sessão se estiver na página de login
+                  // Redirect the user after loading session if on the login page
                   if (location.pathname === '/login') {
                     console.log("Redirecting after getting session to", isMaster ? '/master' : '/dashboard');
                     navigate(isMaster ? '/master' : '/dashboard');

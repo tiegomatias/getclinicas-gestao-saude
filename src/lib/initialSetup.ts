@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { UserRole } from "@/lib/types";
 
 // Function to create a master admin user programmatically
 // This should only be used for development/testing purposes
@@ -26,11 +27,11 @@ export const setupMasterAdmin = async (email: string, password: string) => {
       if (error) throw error;
       
       if (data.user) {
-        // Set user as master_admin
+        // Set user as master_admin using type assertion
         await supabase.from('user_roles').insert({
           user_id: data.user.id,
           role: 'master_admin'
-        });
+        } as unknown as UserRole);
       }
       
       console.log("Master admin created successfully");
@@ -48,7 +49,7 @@ export const setupMasterAdmin = async (email: string, password: string) => {
         await supabase.from('user_roles').insert({
           user_id: user.id,
           role: 'master_admin'
-        });
+        } as unknown as UserRole);
         
         console.log("User promoted to master admin");
       } else {

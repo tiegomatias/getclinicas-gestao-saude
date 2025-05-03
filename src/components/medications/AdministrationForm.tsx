@@ -22,6 +22,7 @@ import {
 import { medicationService } from "@/services/medicationService";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { MedicationPrescription } from "@/lib/types";
 
 interface AdministrationFormProps {
   open: boolean;
@@ -83,7 +84,7 @@ export function AdministrationForm({
           return;
         }
         
-        // Verificar se o usuário está autenticado usando o contexto
+        // Verify if the user is authenticated using the context
         if (!user) {
           console.log("Usuário não autenticado");
           setError("Usuário não autenticado. Por favor, faça login novamente.");
@@ -91,19 +92,22 @@ export function AdministrationForm({
           return;
         }
         
-        // Removemos a verificação direta a clinic_users para evitar recursão infinita
-        // Com as políticas RLS configuradas corretamente, a chamada abaixo só retornará dados 
-        // se o usuário tiver acesso à clínica
+        // We removed the direct check to clinic_users to avoid infinite recursion
+        // With the RLS policies configured correctly, the call below will only return data 
+        // if the user has access to the clinic
         
         const result = await medicationService.getPrescriptions(clinicId);
         console.log("Prescrições recebidas:", result.length);
         
         if (result && Array.isArray(result)) {
-          // Use explicit type assertion to tell TypeScript this data conforms to our Prescription interface
-          const data = result as unknown as Prescription[];
+          // Use type assertion to convert to our Prescription type
+          const data = result as unknown as MedicationPrescription[];
           
-          // Only get active prescriptions - make sure we check if status exists
-          const activePrescriptions = data.filter(p => p && typeof p === 'object' && p.status === 'Ativa');
+          // Only get active prescriptions - using safe property access
+          const activePrescriptions = data.filter(p => 
+            p && typeof p === 'object' && p.status === 'Ativa'
+          );
+          
           console.log("Prescrições ativas:", activePrescriptions.length);
           setPrescriptions(activePrescriptions);
         } else {
@@ -155,7 +159,7 @@ export function AdministrationForm({
       
       console.log("Registrando administração para prescrição:", formData.prescriptionId);
       
-      // Obter o user ID do contexto de autenticação
+      // Get the user ID from the authentication context
       const userId = user?.id;
       console.log("User ID atual:", userId);
       

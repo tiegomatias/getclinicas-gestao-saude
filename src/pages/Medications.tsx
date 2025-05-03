@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,46 +29,15 @@ import { PrescriptionsList } from "@/components/medications/PrescriptionsList";
 import { AdministrationForm } from "@/components/medications/AdministrationForm";
 import { AdministrationsList } from "@/components/medications/AdministrationsList";
 import { format } from "date-fns";
+import { Medication, MedicationPrescription } from "@/lib/types";
 
-// Interface para o tipo de medicamento
-interface Medication {
+// Interface for the patient type
+interface Patient {
   id: string;
   name: string;
-  active: string;
-  category: string;
-  dosage: string;
-  stock: number;
-  status: string;
-  clinic_id: string;
-  manufacturer?: string;
-  expiration_date?: string;
-  batch_number?: string;
-  observations?: string;
 }
 
-// Interface para o tipo de prescrição
-interface Prescription {
-  id: string;
-  patient_id: string;
-  patient: {
-    id: string;
-    name: string;
-  };
-  medication_id: string;
-  medication: {
-    id: string;
-    name: string;
-    dosage: string;
-  };
-  dosage: string;
-  frequency: string;
-  start_date: string;
-  end_date: string | null;
-  status: string;
-  observations: string | null;
-}
-
-// Interface para o tipo de administração
+// Interface for the administration type
 interface Administration {
   id: string;
   prescription_id: string;
@@ -89,12 +57,6 @@ interface Administration {
   observations: string | null;
 }
 
-// Interface para o tipo de paciente
-interface Patient {
-  id: string;
-  name: string;
-}
-
 export default function Medications() {
   const [hasData, setHasData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -102,14 +64,14 @@ export default function Medications() {
   const [selectedPatient, setSelectedPatient] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [medications, setMedications] = useState<Medication[]>([]);
-  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [prescriptions, setPrescriptions] = useState<MedicationPrescription[]>([]);
   const [administrations, setAdministrations] = useState<Administration[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [clinicId, setClinicId] = useState<string>("");
   const [expiringMedications, setExpiringMedications] = useState<Medication[]>([]);
   const [expiredMedications, setExpiredMedications] = useState<Medication[]>([]);
   
-  // Estados para diálogos
+  // States for dialogs
   const [newMedicationDialogOpen, setNewMedicationDialogOpen] = useState(false);
   const [adjustStockDialogOpen, setAdjustStockDialogOpen] = useState(false);
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null);
@@ -175,14 +137,15 @@ export default function Medications() {
       const expiringData = await medicationService.getExpiringMedications(id, 30);
       const expiredData = await medicationService.getExpiredMedications(id);
 
-      setMedications(medsData);
-      setPatients(patientsData);
-      setPrescriptions(prescriptionsData);
-      setAdministrations(adminsData);
-      setExpiringMedications(expiringData);
-      setExpiredMedications(expiredData);
+      // Type assertions to match our interface types
+      setMedications(medsData as Medication[]);
+      setPatients(patientsData as Patient[]);
+      setPrescriptions(prescriptionsData as MedicationPrescription[]);
+      setAdministrations(adminsData as Administration[]);
+      setExpiringMedications(expiringData as Medication[]);
+      setExpiredMedications(expiredData as Medication[]);
       
-      // Notificar sobre medicamentos vencidos, se houver
+      // Notify about expired medications, if any
       if (expiredData.length > 0) {
         toast.warning(`Atenção! Há ${expiredData.length} medicamentos vencidos no estoque.`);
       }
@@ -194,37 +157,37 @@ export default function Medications() {
     }
   };
 
-  // Função para adicionar novo medicamento
+  // Function to add new medication
   const handleAddMedication = () => {
     setNewMedicationDialogOpen(true);
   };
 
-  // Função para abrir o diálogo de ajuste de estoque
+  // Function to open the stock adjustment dialog
   const handleAdjustStock = (medication: Medication) => {
     setSelectedMedication(medication);
     setAdjustStockDialogOpen(true);
   };
 
-  // Função para criar nova prescrição
+  // Function to create new prescription
   const handleNewPrescription = () => {
     setNewPrescriptionDialogOpen(true);
   };
 
-  // Função para registrar nova administração
+  // Function to register new administration
   const handleRegisterAdministration = () => {
     setNewAdministrationDialogOpen(true);
   };
   
-  // Atualizar prescrições quando o paciente selecionado mudar
+  // Update prescriptions when the selected patient changes
   const handlePatientChange = async (value: string) => {
     setSelectedPatient(value);
     try {
       if (value === "all") {
         const data = await medicationService.getPrescriptions(clinicId);
-        setPrescriptions(data);
+        setPrescriptions(data as MedicationPrescription[]);
       } else {
         const data = await medicationService.getPrescriptions(clinicId, value);
-        setPrescriptions(data);
+        setPrescriptions(data as MedicationPrescription[]);
       }
     } catch (error) {
       console.error("Error fetching prescriptions:", error);
@@ -232,12 +195,12 @@ export default function Medications() {
     }
   };
   
-  // Atualizar administrações quando a data selecionada mudar
+  // Update administrations when the selected date changes
   const handleDateChange = async (value: string) => {
     setSelectedDate(value);
     try {
       const data = await medicationService.getAdministrations(clinicId, value);
-      setAdministrations(data);
+      setAdministrations(data as Administration[]);
     } catch (error) {
       console.error("Error fetching administrations:", error);
       toast.error("Erro ao carregar administrações");
@@ -248,14 +211,14 @@ export default function Medications() {
   const refreshMedications = async () => {
     try {
       const data = await medicationService.getMedications(clinicId);
-      setMedications(data);
+      setMedications(data as Medication[]);
       setHasData(data.length > 0);
       
-      // Atualizar os medicamentos vencidos e próximos do vencimento
+      // Update expiring and expired medications
       const expiringData = await medicationService.getExpiringMedications(clinicId, 30);
       const expiredData = await medicationService.getExpiredMedications(clinicId);
-      setExpiringMedications(expiringData);
-      setExpiredMedications(expiredData);
+      setExpiringMedications(expiringData as Medication[]);
+      setExpiredMedications(expiredData as Medication[]);
     } catch (error) {
       console.error("Error refreshing medications:", error);
       toast.error("Erro ao atualizar dados de medicamentos");
@@ -266,10 +229,10 @@ export default function Medications() {
     try {
       if (selectedPatient === "all") {
         const data = await medicationService.getPrescriptions(clinicId);
-        setPrescriptions(data);
+        setPrescriptions(data as MedicationPrescription[]);
       } else {
         const data = await medicationService.getPrescriptions(clinicId, selectedPatient);
-        setPrescriptions(data);
+        setPrescriptions(data as MedicationPrescription[]);
       }
     } catch (error) {
       console.error("Error refreshing prescriptions:", error);
@@ -280,7 +243,7 @@ export default function Medications() {
   const refreshAdministrations = async () => {
     try {
       const data = await medicationService.getAdministrations(clinicId, selectedDate);
-      setAdministrations(data);
+      setAdministrations(data as Administration[]);
     } catch (error) {
       console.error("Error refreshing administrations:", error);
       toast.error("Erro ao atualizar administrações");
@@ -321,7 +284,7 @@ export default function Medications() {
         </div>
       </div>
 
-      {/* Alertas de medicamentos */}
+      {/* Medication alerts */}
       {(expiredMedications.length > 0 || expiringMedications.length > 0) && (
         <div className="flex flex-col gap-3">
           {expiredMedications.length > 0 && (
@@ -335,7 +298,7 @@ export default function Medications() {
                 <div className="mt-1 flex flex-wrap gap-1">
                   {expiredMedications.slice(0, 3).map(med => (
                     <span key={med.id} className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                      {med.name} (vencimento: {format(new Date(med.expiration_date!), 'dd/MM/yyyy')})
+                      {med.name} (vencimento: {med.expiration_date ? format(new Date(med.expiration_date), 'dd/MM/yyyy') : 'N/A'})
                     </span>
                   ))}
                   {expiredMedications.length > 3 && (
@@ -359,7 +322,7 @@ export default function Medications() {
                 <div className="mt-1 flex flex-wrap gap-1">
                   {expiringMedications.slice(0, 3).map(med => (
                     <span key={med.id} className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                      {med.name} (vencimento: {format(new Date(med.expiration_date!), 'dd/MM/yyyy')})
+                      {med.name} (vencimento: {med.expiration_date ? format(new Date(med.expiration_date), 'dd/MM/yyyy') : 'N/A'})
                     </span>
                   ))}
                   {expiringMedications.length > 3 && (
@@ -483,7 +446,7 @@ export default function Medications() {
         )}
       </Tabs>
       
-      {/* Formulários em diálogos */}
+      {/* Dialog forms */}
       <MedicationForm 
         open={newMedicationDialogOpen} 
         onOpenChange={setNewMedicationDialogOpen}
