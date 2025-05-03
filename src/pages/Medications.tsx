@@ -139,27 +139,27 @@ export default function Medications() {
 
       // Type assertions with safety checks
       if (medsData && Array.isArray(medsData)) {
-        setMedications(medsData as Medication[]);
+        setMedications(medsData as unknown as Medication[]);
       }
       
       if (patientsData && Array.isArray(patientsData)) {
-        setPatients(patientsData as Patient[]);
+        setPatients(patientsData as unknown as Patient[]);
       }
       
       if (prescriptionsData && Array.isArray(prescriptionsData)) {
-        setPrescriptions(prescriptionsData as MedicationPrescription[]);
+        setPrescriptions(prescriptionsData as unknown as MedicationPrescription[]);
       }
       
       if (adminsData && Array.isArray(adminsData)) {
-        setAdministrations(adminsData as Administration[]);
+        setAdministrations(adminsData as unknown as Administration[]);
       }
       
       if (expiringData && Array.isArray(expiringData)) {
-        setExpiringMedications(expiringData as Medication[]);
+        setExpiringMedications(expiringData as unknown as Medication[]);
       }
       
       if (expiredData && Array.isArray(expiredData)) {
-        setExpiredMedications(expiredData as Medication[]);
+        setExpiredMedications(expiredData as unknown as Medication[]);
         
         // Notify about expired medications, if any
         if (expiredData.length > 0) {
@@ -199,12 +199,14 @@ export default function Medications() {
   const handlePatientChange = async (value: string) => {
     setSelectedPatient(value);
     try {
+      let data;
       if (value === "all") {
-        const data = await medicationService.getPrescriptions(clinicId);
-        setPrescriptions(data as MedicationPrescription[]);
+        data = await medicationService.getPrescriptions(clinicId);
       } else {
-        const data = await medicationService.getPrescriptions(clinicId, value);
-        setPrescriptions(data as MedicationPrescription[]);
+        data = await medicationService.getPrescriptions(clinicId, value);
+      }
+      if (data && Array.isArray(data)) {
+        setPrescriptions(data as unknown as MedicationPrescription[]);
       }
     } catch (error) {
       console.error("Error fetching prescriptions:", error);

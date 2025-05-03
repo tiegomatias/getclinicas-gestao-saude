@@ -33,7 +33,7 @@ export const setupMasterAdmin = async (email: string, password: string) => {
           role: 'master_admin'
         };
         
-        // Use castDbInsert with 'as any' to bypass TypeScript strict checking
+        // Use castDbInsert to bypass TypeScript strict checking
         await supabase.from('user_roles').insert(
           castDbInsert(userRoleData)
         );
@@ -56,7 +56,7 @@ export const setupMasterAdmin = async (email: string, password: string) => {
           role: 'master_admin'
         };
         
-        // Use castDbInsert with 'as any' to bypass TypeScript strict checking
+        // Use castDbInsert to bypass TypeScript strict checking
         await supabase.from('user_roles').insert(
           castDbInsert(userRoleData)
         );

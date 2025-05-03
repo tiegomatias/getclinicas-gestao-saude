@@ -1,4 +1,3 @@
-
 import { Database } from '@/integrations/supabase/types';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -232,9 +231,8 @@ export type SupabaseDataResponse<T> = T[] | null;
 export const asDbUUID = (id: string): unknown => id as unknown as DbUUID;
 export const asDbRole = (role: string): unknown => role as unknown as DbRole;
 
-// Additional helper functions to safely cast types for database operations
+// Enhanced helper function to safely cast types for database operations
+// This explicitly uses 'as any' to bypass strict type checking
 export function castDbInsert<T>(data: Record<string, unknown>): any {
-  // Changing implementation to use 'as any' to bypass strict type checking
-  // This is necessary because the Supabase types are very strict
   return data as any;
 }
