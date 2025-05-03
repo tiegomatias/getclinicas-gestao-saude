@@ -11,14 +11,16 @@ const Index = () => {
   useEffect(() => {
     console.log("Index page loaded, auth status:", { isAuthenticated, isMasterAdmin, loading });
     
-    // Espere o loading terminar antes de fazer redirecionamentos
+    // Wait for loading to finish before redirecting
     if (loading) {
+      console.log("Auth is still loading, waiting...");
       return;
     }
     
     // Check if user is authenticated
     if (isAuthenticated) {
       if (isMasterAdmin) {
+        console.log("User is master admin, redirecting to /master");
         toast.success("Bem-vindo de volta ao painel administrativo!");
         navigate("/master");
       } else {
@@ -29,11 +31,12 @@ const Index = () => {
             const clinicData = JSON.parse(clinicDataStr);
             if (clinicData && clinicData.id) {
               // Use either clinicName property
-              const clinicName = clinicData.clinicName || (clinicData as any).clinic_name || 'sua clínica';
+              const clinicName = clinicData.clinicName || clinicData.name || (clinicData as any).clinic_name || 'sua clínica';
+              console.log("User has clinic data, redirecting to /dashboard");
               toast.success(`Bem-vindo de volta à ${clinicName}!`);
               navigate("/dashboard");
             } else {
-              // If no valid clinic, go to login
+              console.log("No valid clinic ID found, redirecting to /login");
               navigate("/login");
             }
           } catch (error) {
@@ -41,7 +44,7 @@ const Index = () => {
             navigate("/login");
           }
         } else {
-          // If no clinic data, go to home
+          console.log("No clinic data found, redirecting to /home");
           navigate("/home");
         }
       }

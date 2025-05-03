@@ -54,7 +54,7 @@ const Registration = () => {
     setLoading(true);
     
     try {
-      // 1. Primeiro registramos o usuário usando a API de autenticação do Supabase
+      // 1. Register the user using Supabase auth
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: adminEmail,
         password,
@@ -71,7 +71,7 @@ const Registration = () => {
         throw new Error("Não foi possível criar o usuário");
       }
       
-      // 2. Criamos a clínica associada ao usuário
+      // 2. Create the clinic associated with the user
       const { data: clinic, error: clinicError } = await supabase
         .from('clinics')
         .insert([
@@ -90,7 +90,7 @@ const Registration = () => {
         throw new Error("Erro ao criar clínica");
       }
       
-      // 3. Adicionamos o usuário como admin da clínica na tabela clinic_users
+      // 3. Add the user as an admin of the clinic in the clinic_users table
       const { error: clinicUserError } = await supabase
         .from('clinic_users')
         .insert([
@@ -103,14 +103,20 @@ const Registration = () => {
       
       if (clinicUserError) {
         console.error("Erro ao associar usuário à clínica:", clinicUserError);
-        // Continuamos mesmo com erro, administrador poderá corrigir manualmente
+        // We continue even with error, administrator will be able to fix manually
       }
       
-      // 4. Salvar dados da clínica no localStorage
+      // 4. Save clinic data in localStorage
       localStorage.setItem("currentClinicId", clinic[0].id);
-      localStorage.setItem("clinicData", JSON.stringify(clinic[0]));
+      localStorage.setItem("clinicData", JSON.stringify({
+        id: clinic[0].id,
+        clinicName: clinic[0].name,
+        plan: clinic[0].plan,
+        createdAt: clinic[0].created_at || new Date().toISOString(),
+        hasInitialData: false
+      }));
       
-      // 5. Fazer login automaticamente
+      // 5. Auto-login
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email: adminEmail,
         password
@@ -121,7 +127,11 @@ const Registration = () => {
       }
       
       toast.success("Clínica registrada com sucesso!");
-      navigate("/dashboard");
+      
+      // Adding a small delay before redirecting to ensure localStorage is set
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500);
       
     } catch (error: any) {
       toast.error(`Erro ao registrar: ${error.message}`);
