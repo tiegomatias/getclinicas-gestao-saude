@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { DbRole, DbUUID, UserRole, safelyParseObject } from "@/lib/types";
+import { DbRole, DbUUID, UserRole, asDbRole, asDbUUID, safelyParseObject } from "@/lib/types";
 
 // Function to create a master admin user programmatically
 // This should only be used for development/testing purposes
@@ -27,31 +27,33 @@ export const setupMasterAdmin = async (email: string, password: string) => {
       if (error) throw error;
       
       if (data.user) {
-        // Set user as master_admin with explicit type casting
-        const userRoleData = {
-          user_id: data.user.id as unknown as DbUUID,
-          role: 'master_admin' as DbRole
-        };
+        // Use our utility functions to properly cast types
+        const userId = asDbUUID(data.user.id);
+        const role = asDbRole('master_admin');
         
-        // Use as unknown as to handle the type conversion
-        await supabase.from('user_roles').insert(userRoleData as unknown as Record<string, unknown>);
+        // Use type casting for database insertion
+        await supabase.from('user_roles').insert({
+          user_id: userId,
+          role: role
+        } as unknown as Record<string, unknown>);
       }
       
       console.log("Master admin created successfully");
       return data.user;
     } else {
       // Check if user is master_admin
+      const userId = asDbUUID(user.id);
       const { data: roles } = await supabase
         .from('user_roles')
         .select()
-        .eq('user_id', user.id as unknown as DbUUID)
-        .eq('role', 'master_admin' as DbRole);
+        .eq('user_id', userId)
+        .eq('role', asDbRole('master_admin'));
       
       // If not master_admin, set role
       if (!roles || roles.length === 0) {
         const userRoleData = {
-          user_id: user.id as unknown as DbUUID,
-          role: 'master_admin' as DbRole
+          user_id: asDbUUID(user.id),
+          role: asDbRole('master_admin')
         };
         
         await supabase.from('user_roles').insert(userRoleData as unknown as Record<string, unknown>);

@@ -1,4 +1,5 @@
 import { Database } from '@/integrations/supabase/types';
+import { PostgrestError } from '@supabase/supabase-js';
 
 export interface Clinic {
   id: string;
@@ -186,6 +187,15 @@ export interface Prescription {
   observations?: string | null;
 }
 
+// Helper function to safely parse database response data to specific types
+export function parseDbResult<T>(data: unknown): T[] {
+  if (!data) return [];
+  if (Array.isArray(data)) {
+    return data as T[];
+  }
+  return [];
+}
+
 // Helper function to safely cast database objects to application types
 export function safelyParseObject<T>(obj: any): T | null {
   if (!obj) return null;
@@ -209,5 +219,14 @@ export function isSupabaseError(obj: any): boolean {
   return obj && typeof obj === 'object' && 'error' in obj;
 }
 
+// Function to check if a result is a PostgrestError
+export function isPostgrestError(result: any): result is PostgrestError {
+  return result && typeof result === 'object' && 'code' in result && 'message' in result;
+}
+
 // Define specific types for Supabase data filtering
 export type SupabaseDataResponse<T> = T[] | null;
+
+// RLS Policy helpers - to help with casting string to DB native types
+export const asDbUUID = (id: string): unknown => id as unknown as DbUUID;
+export const asDbRole = (role: string): unknown => role as unknown as DbRole;

@@ -4,7 +4,15 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { DbRole, DbUUID, isSupabaseError, safelyParseArray, safelyParseObject } from '@/lib/types';
+import { 
+  DbRole, 
+  DbUUID, 
+  asDbRole, 
+  asDbUUID,
+  isSupabaseError, 
+  safelyParseArray, 
+  safelyParseObject 
+} from '@/lib/types';
 
 interface AuthContextProps {
   user: User | null;
@@ -41,13 +49,13 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           // Check if user is master admin - using setTimeout to avoid recursion
           setTimeout(async () => {
             try {
-              // Use type casting to fix the TypeScript errors
-              const userId = currentSession.user.id as unknown as DbUUID;
+              // Use proper type casting
+              const userId = asDbUUID(currentSession.user.id);
               const { data, error } = await supabase
                 .from('user_roles')
                 .select('role')
                 .eq('user_id', userId)
-                .eq('role', 'master_admin' as unknown as DbRole);
+                .eq('role', asDbRole('master_admin'));
               
               if (error) {
                 console.error("Error checking master admin status:", error);
@@ -65,7 +73,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               
               // Also load user's clinics
               try {
-                const adminId = currentSession.user.id as unknown as DbUUID;
+                const adminId = asDbUUID(currentSession.user.id);
                 const { data: clinics, error: clinicsError } = await supabase
                   .from('clinics')
                   .select('*')
@@ -81,8 +89,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   // If no clinic is selected, select the first one
                   if (!localStorage.getItem('currentClinicId')) {
                     const firstClinic = safelyParseObject(clinics[0]);
-                    if (firstClinic && 'id' in firstClinic) {
-                      localStorage.setItem('currentClinicId', firstClinic.id);
+                    if (firstClinic && typeof firstClinic === 'object' && 'id' in firstClinic) {
+                      localStorage.setItem('currentClinicId', String(firstClinic.id));
                       localStorage.setItem('clinicData', JSON.stringify(firstClinic));
                     }
                   }
@@ -95,6 +103,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 }
               } catch (err) {
                 console.error("Error processing clinics data:", err);
+              } finally {
+                setLoading(false);
               }
             } catch (err) {
               console.error("Error in auth state change handler:", err);
@@ -124,12 +134,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         // Check if user is master admin on initial load
         const checkMasterAdminStatus = async () => {
           try {
-            const userId = currentSession.user.id as unknown as DbUUID;
+            const userId = asDbUUID(currentSession.user.id);
             const { data, error } = await supabase
               .from('user_roles')
               .select('role')
               .eq('user_id', userId)
-              .eq('role', 'master_admin' as unknown as DbRole);
+              .eq('role', asDbRole('master_admin'));
             
             if (error) {
               console.error("Error checking master admin status:", error);
@@ -145,7 +155,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             
             // Also load user's clinics
             try {
-              const adminId = currentSession.user.id as unknown as DbUUID;
+              const adminId = asDbUUID(currentSession.user.id);
               const { data: clinics, error: clinicsError } = await supabase
                 .from('clinics')
                 .select('*')
@@ -161,8 +171,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 // If no clinic is selected, select the first one
                 if (!localStorage.getItem('currentClinicId')) {
                   const firstClinic = safelyParseObject(clinics[0]);
-                  if (firstClinic && 'id' in firstClinic) {
-                    localStorage.setItem('currentClinicId', firstClinic.id);
+                  if (firstClinic && typeof firstClinic === 'object' && 'id' in firstClinic) {
+                    localStorage.setItem('currentClinicId', String(firstClinic.id));
                     localStorage.setItem('clinicData', JSON.stringify(firstClinic));
                   }
                 }
@@ -207,7 +217,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         
         // Fetch user clinics after login
         try {
-          const adminId = data.user.id as unknown as DbUUID;
+          const adminId = asDbUUID(data.user.id);
           const { data: clinics, error: clinicsError } = await supabase
             .from('clinics')
             .select('*')
@@ -221,8 +231,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             localStorage.setItem('allClinics', JSON.stringify(safeClinicData));
             
             const firstClinic = safelyParseObject(clinics[0]);
-            if (firstClinic && 'id' in firstClinic) {
-              localStorage.setItem('currentClinicId', firstClinic.id);
+            if (firstClinic && typeof firstClinic === 'object' && 'id' in firstClinic) {
+              localStorage.setItem('currentClinicId', String(firstClinic.id));
               localStorage.setItem('clinicData', JSON.stringify(firstClinic));
             }
           }
@@ -232,12 +242,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         
         // Check if user is master admin
         try {
-          const userId = data.user.id as unknown as DbUUID;
+          const userId = asDbUUID(data.user.id);
           const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', userId)
-            .eq('role', 'master_admin' as unknown as DbRole);
+            .eq('role', asDbRole('master_admin'));
             
           if (!roleError && roleData && roleData.length > 0) {
             setIsMasterAdmin(true);
