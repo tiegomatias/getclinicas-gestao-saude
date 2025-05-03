@@ -230,3 +230,8 @@ export type SupabaseDataResponse<T> = T[] | null;
 // RLS Policy helpers - to help with casting string to DB native types
 export const asDbUUID = (id: string): unknown => id as unknown as DbUUID;
 export const asDbRole = (role: string): unknown => role as unknown as DbRole;
+
+// Additional helper functions to safely cast types for database operations
+export function castDbInsert<T>(data: Record<string, unknown>): Record<string, unknown> {
+  return data as Record<string, unknown>;
+}
