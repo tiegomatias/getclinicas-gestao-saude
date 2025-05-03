@@ -50,12 +50,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           // Check if user is master admin - using setTimeout to avoid recursion
           setTimeout(async () => {
             try {
-              // Properly format query parameters
+              // Properly format query parameters with type casting
               const { data, error } = await supabase
                 .from('user_roles')
                 .select('role')
-                .eq('user_id', currentSession.user.id)
-                .eq('role', 'master_admin');
+                .eq('user_id', currentSession.user.id as any)
+                .eq('role', 'master_admin' as any);
               
               if (error) {
                 console.error("Error checking master admin status:", error);
@@ -76,7 +76,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 const { data: clinics, error: clinicsError } = await supabase
                   .from('clinics')
                   .select('*')
-                  .eq('admin_id', currentSession.user.id);
+                  .eq('admin_id', currentSession.user.id as any);
                   
                 if (clinicsError) {
                   console.error("Error fetching user clinics:", clinicsError);
@@ -87,8 +87,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   // If no clinic is selected, select the first one
                   if (!localStorage.getItem('currentClinicId')) {
                     if (clinics[0] && typeof clinics[0] === 'object' && 'id' in clinics[0]) {
-                      localStorage.setItem('currentClinicId', String(clinics[0].id));
-                      localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
+                      localStorage.setItem('currentClinicId', String(clinics[0].id || ''));
+                      localStorage.setItem('clinicData', JSON.stringify(clinics[0] || {}));
                     }
                   }
                   
@@ -133,8 +133,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             const { data, error } = await supabase
               .from('user_roles')
               .select('role')
-              .eq('user_id', currentSession.user.id)
-              .eq('role', 'master_admin');
+              .eq('user_id', currentSession.user.id as any)
+              .eq('role', 'master_admin' as any);
             
             if (error) {
               console.error("Error checking master admin status:", error);
@@ -153,7 +153,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               const { data: clinics, error: clinicsError } = await supabase
                 .from('clinics')
                 .select('*')
-                .eq('admin_id', currentSession.user.id);
+                .eq('admin_id', currentSession.user.id as any);
                 
               if (clinicsError) {
                 console.error("Error fetching user clinics:", clinicsError);
@@ -164,8 +164,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 // If no clinic is selected, select the first one
                 if (!localStorage.getItem('currentClinicId')) {
                   if (clinics[0] && typeof clinics[0] === 'object' && 'id' in clinics[0]) {
-                    localStorage.setItem('currentClinicId', String(clinics[0].id));
-                    localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
+                    localStorage.setItem('currentClinicId', String(clinics[0].id || ''));
+                    localStorage.setItem('clinicData', JSON.stringify(clinics[0] || {}));
                   }
                 }
                 
@@ -212,7 +212,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           const { data: clinics, error: clinicsError } = await supabase
             .from('clinics')
             .select('*')
-            .eq('admin_id', data.user.id);
+            .eq('admin_id', data.user.id as any);
             
           if (clinicsError) {
             console.error("Error fetching user clinics:", clinicsError);
@@ -222,8 +222,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             
             // If no clinic is selected, select the first one
             if (clinics[0] && typeof clinics[0] === 'object' && 'id' in clinics[0]) {
-              localStorage.setItem('currentClinicId', String(clinics[0].id));
-              localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
+              localStorage.setItem('currentClinicId', String(clinics[0].id || ''));
+              localStorage.setItem('clinicData', JSON.stringify(clinics[0] || {}));
             }
           }
         } catch (err) {
@@ -235,8 +235,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
             .select('role')
-            .eq('user_id', data.user.id)
-            .eq('role', 'master_admin');
+            .eq('user_id', data.user.id as any)
+            .eq('role', 'master_admin' as any);
             
           if (!roleError && roleData && roleData.length > 0) {
             setIsMasterAdmin(true);
