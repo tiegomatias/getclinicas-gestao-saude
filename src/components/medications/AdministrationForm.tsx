@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -44,6 +43,7 @@ interface Prescription {
     dosage: string;
   };
   dosage: string;
+  status?: string;
 }
 
 export function AdministrationForm({
@@ -56,7 +56,7 @@ export function AdministrationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth(); // Usando o contexto de autenticação em vez de chamadas diretas ao supabase
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     prescriptionId: "",
@@ -97,11 +97,16 @@ export function AdministrationForm({
         const data = await medicationService.getPrescriptions(clinicId);
         console.log("Prescrições recebidas:", data.length);
         
-        // Only get active prescriptions
-        const activePrescriptions = data.filter(p => p.status === 'Ativa');
-        console.log("Prescrições ativas:", activePrescriptions.length);
-        
-        setPrescriptions(activePrescriptions);
+        if (data && Array.isArray(data)) {
+          // Only get active prescriptions - make sure we check if status exists
+          const activePrescriptions = data.filter(p => p && typeof p === 'object' && p.status === 'Ativa') as Prescription[];
+          console.log("Prescrições ativas:", activePrescriptions.length);
+          setPrescriptions(activePrescriptions);
+        } else {
+          console.error("Formato de dados inválido retornado pela API:", data);
+          setError("Formato de dados inválido retornado pela API");
+          setPrescriptions([]);
+        }
       } catch (error) {
         console.error("Error fetching prescriptions:", error);
         setError("Erro ao carregar prescrições. Tente novamente mais tarde.");

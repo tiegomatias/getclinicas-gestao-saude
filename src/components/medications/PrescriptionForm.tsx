@@ -73,8 +73,19 @@ export function PrescriptionForm({
           medicationService.getMedications(clinicId)
         ]);
         
-        setPatients(patientsData);
-        setMedications(medicationsData);
+        if (patientsData && Array.isArray(patientsData)) {
+          setPatients(patientsData as Patient[]);
+        } else {
+          console.error("Formato de dados de pacientes inválido:", patientsData);
+          setPatients([]);
+        }
+
+        if (medicationsData && Array.isArray(medicationsData)) {
+          setMedications(medicationsData as Medication[]);
+        } else {
+          console.error("Formato de dados de medicamentos inválido:", medicationsData);
+          setMedications([]);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Erro ao carregar dados");

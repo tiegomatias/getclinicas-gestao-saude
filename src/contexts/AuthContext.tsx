@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -133,7 +134,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               .then(({ data: clinics, error: clinicsError }) => {
                 if (clinicsError) {
                   console.error("Error fetching user clinics:", clinicsError);
-                } else if (clinics && clinics.length > 0) {
+                } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
                   localStorage.setItem('allClinics', JSON.stringify(clinics));
                   
                   // Se não tiver uma clínica selecionada, seleciona a primeira
@@ -180,7 +181,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           
         if (clinicsError) {
           console.error("Error fetching user clinics:", clinicsError);
-        } else if (clinics && clinics.length > 0) {
+        } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
           localStorage.setItem('allClinics', JSON.stringify(clinics));
           localStorage.setItem('currentClinicId', clinics[0].id);
           localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
