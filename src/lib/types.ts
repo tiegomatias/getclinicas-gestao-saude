@@ -1,4 +1,3 @@
-
 import { Database } from '@/integrations/supabase/types';
 
 export interface Clinic {
@@ -135,11 +134,16 @@ export interface MedicationPrescription {
   observations?: string | null;
 }
 
+// Define a more precise type for the user_roles table structure
+// These will be used for type assertion when interacting with Supabase
+export type DbUUID = string;
+export type DbRole = Database['public']['Enums']['app_role'];
+
 // Define a type for the user_roles table structure
 export interface UserRole {
   id?: string;
-  user_id: string;
-  role: 'master_admin' | 'clinic_admin' | 'user';
+  user_id: DbUUID;
+  role: DbRole;
 }
 
 // Define type for Medication that aligns with database structure
@@ -182,8 +186,23 @@ export interface Prescription {
   observations?: string | null;
 }
 
-// Define a utility type for type assertions with Supabase
-export type SupabaseDataResponse<T> = T[] | null;
+// Helper function to safely cast database objects to application types
+export function safelyParseObject<T>(obj: any): T | null {
+  if (!obj) return null;
+  if (typeof obj === 'object' && !Array.isArray(obj) && obj !== null && !('error' in obj)) {
+    return obj as T;
+  }
+  return null;
+}
+
+// Helper function to safely parse arrays from database responses
+export function safelyParseArray<T>(arr: any): T[] {
+  if (!arr) return [];
+  if (Array.isArray(arr)) {
+    return arr.filter(item => typeof item === 'object' && !('error' in item)) as T[];
+  }
+  return [];
+}
 
 // Type guard to check if an object is a Supabase error
 export function isSupabaseError(obj: any): boolean {
@@ -191,5 +210,4 @@ export function isSupabaseError(obj: any): boolean {
 }
 
 // Define specific types for Supabase data filtering
-export type DbUUID = Database['public']['Tables']['user_roles']['Row']['user_id'];
-export type DbRole = Database['public']['Tables']['user_roles']['Row']['role'];
+export type SupabaseDataResponse<T> = T[] | null;

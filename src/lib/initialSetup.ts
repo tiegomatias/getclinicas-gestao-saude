@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { DbRole, DbUUID, UserRole } from "@/lib/types";
-import { Database } from "@/integrations/supabase/types";
+import { DbRole, DbUUID, UserRole, safelyParseObject } from "@/lib/types";
 
 // Function to create a master admin user programmatically
 // This should only be used for development/testing purposes
@@ -28,12 +27,14 @@ export const setupMasterAdmin = async (email: string, password: string) => {
       if (error) throw error;
       
       if (data.user) {
-        // Set user as master_admin with proper type casting
+        // Set user as master_admin with explicit type casting
         const userRoleData = {
-          user_id: data.user.id as DbUUID,
+          user_id: data.user.id as unknown as DbUUID,
           role: 'master_admin' as DbRole
         };
-        await supabase.from('user_roles').insert(userRoleData);
+        
+        // Use as unknown as to handle the type conversion
+        await supabase.from('user_roles').insert(userRoleData as unknown as Record<string, unknown>);
       }
       
       console.log("Master admin created successfully");
@@ -43,16 +44,17 @@ export const setupMasterAdmin = async (email: string, password: string) => {
       const { data: roles } = await supabase
         .from('user_roles')
         .select()
-        .eq('user_id', user.id as DbUUID)
+        .eq('user_id', user.id as unknown as DbUUID)
         .eq('role', 'master_admin' as DbRole);
       
       // If not master_admin, set role
       if (!roles || roles.length === 0) {
         const userRoleData = {
-          user_id: user.id as DbUUID,
+          user_id: user.id as unknown as DbUUID,
           role: 'master_admin' as DbRole
         };
-        await supabase.from('user_roles').insert(userRoleData);
+        
+        await supabase.from('user_roles').insert(userRoleData as unknown as Record<string, unknown>);
         
         console.log("User promoted to master admin");
       } else {
