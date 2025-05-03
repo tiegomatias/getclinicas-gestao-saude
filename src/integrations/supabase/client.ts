@@ -16,8 +16,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     detectSessionInUrl: true,
     flowType: "pkce",
-    // Using proper key for redirect URL configuration
-    // This property is correctly called "site_url" in recent Supabase clients
-    site_url: `https://getclinics.org/auth/callback`
+    // Using correct property name for redirectURL config in recent Supabase clients
+    redirectTo: `https://getclinics.org/auth/callback`
   }
 });

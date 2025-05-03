@@ -1,4 +1,6 @@
 
+import { Database } from '@/integrations/supabase/types';
+
 export interface Clinic {
   id: string;
   clinic_name: string;
@@ -135,7 +137,7 @@ export interface MedicationPrescription {
 
 // Define a type for the user_roles table structure
 export interface UserRole {
-  id: string;
+  id?: string;
   user_id: string;
   role: 'master_admin' | 'clinic_admin' | 'user';
 }
@@ -158,5 +160,36 @@ export interface Medication {
   updated_at?: string;
 }
 
+// Define type for Prescription specifically for form use
+export interface Prescription {
+  id: string;
+  medication_id: string;
+  patient_id: string;
+  patient: {
+    id: string;
+    name: string;
+  };
+  medication: {
+    id: string;
+    name: string;
+    dosage: string;
+  };
+  dosage: string;
+  frequency: string;
+  start_date: string;
+  end_date?: string | null;
+  status: string;
+  observations?: string | null;
+}
+
 // Define a utility type for type assertions with Supabase
 export type SupabaseDataResponse<T> = T[] | null;
+
+// Type guard to check if an object is a Supabase error
+export function isSupabaseError(obj: any): boolean {
+  return obj && typeof obj === 'object' && 'error' in obj;
+}
+
+// Define specific types for Supabase data filtering
+export type DbUUID = Database['public']['Tables']['user_roles']['Row']['user_id'];
+export type DbRole = Database['public']['Tables']['user_roles']['Row']['role'];
