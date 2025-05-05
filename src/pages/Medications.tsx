@@ -137,7 +137,7 @@ export default function Medications() {
       const expiringData = await medicationService.getExpiringMedications(id, 30);
       const expiredData = await medicationService.getExpiredMedications(id);
 
-      // Type assertions with safety checks
+      // Type assertions with explicit casting to avoid type mismatch errors
       if (medsData && Array.isArray(medsData)) {
         setMedications(medsData as unknown as Medication[]);
       }
@@ -219,7 +219,8 @@ export default function Medications() {
     setSelectedDate(value);
     try {
       const data = await medicationService.getAdministrations(clinicId, value);
-      setAdministrations(data as Administration[]);
+      // Fix type assertion with explicit cast
+      setAdministrations(data as unknown as Administration[]);
     } catch (error) {
       console.error("Error fetching administrations:", error);
       toast.error("Erro ao carregar administrações");

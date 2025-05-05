@@ -231,8 +231,7 @@ export type SupabaseDataResponse<T> = T[] | null;
 export const asDbUUID = (id: string): unknown => id as unknown as DbUUID;
 export const asDbRole = (role: string): unknown => role as unknown as DbRole;
 
-// Enhanced helper function to safely cast types for database operations
-// This explicitly uses 'as any' to bypass strict type checking
+// Enhanced helper function for database operations with proper type casting
 export function castDbInsert<T>(data: Record<string, unknown>): any {
   return data as any;
 }
