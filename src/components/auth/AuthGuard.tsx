@@ -28,6 +28,12 @@ const AuthGuard = ({ role }: AuthGuardProps) => {
     });
   }, [isAuthenticated, isMasterAdmin, currentClinicId, location.pathname, loading]);
   
+  // Se estivermos em uma rota pública, sempre permitir acesso
+  if (PUBLIC_ROUTES.includes(location.pathname)) {
+    console.log("On public route, proceeding normally");
+    return <Outlet />;
+  }
+  
   // Master admin paths don't require clinic ID
   const isMasterAdminPath = location.pathname === "/master" || location.pathname.startsWith("/master/");
   
@@ -40,12 +46,6 @@ const AuthGuard = ({ role }: AuthGuardProps) => {
   // Show loading state while checking authentication
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
-  }
-
-  // If we're on public pages, no need to redirect
-  if (PUBLIC_ROUTES.includes(location.pathname)) {
-    console.log("On public route, proceeding normally");
-    return <Outlet />;
   }
 
   // If trying to access master admin path without proper credentials

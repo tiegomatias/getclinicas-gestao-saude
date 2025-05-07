@@ -16,7 +16,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     detectSessionInUrl: true,
     flowType: "pkce",
-    // Fix: use 'redirectUrl' instead of 'redirectTo' which is not in the type definition
-    redirectUrl: `https://getclinics.org/auth/callback`
+    // Remove redirectUrl property as it's not in the type definition
   }
 });
