@@ -182,7 +182,7 @@ export interface Prescription {
   dosage: string;
   frequency: string;
   start_date: string;
-  end_date?: string | null;
+  end_date?: string | null; // Changed from required to optional to match MedicationPrescription
   status: string;
   observations?: string | null;
 }
