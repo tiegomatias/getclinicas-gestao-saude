@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,7 +35,6 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
     console.log("AuthProvider initializing");
@@ -88,14 +88,17 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   if (!localStorage.getItem('currentClinicId')) {
                     if (clinics[0] && typeof clinics[0] === 'object') {
                       const clinic = clinics[0] as any;
-                      if (clinic && typeof clinic === 'object' && clinic.id) {
-                        localStorage.setItem('currentClinicId', String(clinic.id));
-                        localStorage.setItem('clinicData', JSON.stringify(clinic));
+                      if (clinic && typeof clinic === 'object') {
+                        const clinicId = clinic.id;
+                        if (clinicId) {
+                          localStorage.setItem('currentClinicId', String(clinicId));
+                          localStorage.setItem('clinicData', JSON.stringify(clinic));
+                        }
                       }
                     }
                   }
                   
-                  // Somente redirecionar se estiver na página de login e não em outras
+                  // Redirect the user after authentication if on the login page
                   if (location.pathname === '/login') {
                     console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
                     navigate(isMaster ? '/master' : '/dashboard');
@@ -105,12 +108,10 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 console.error("Error processing clinics data:", err);
               } finally {
                 setLoading(false);
-                setAuthInitialized(true);
               }
             } catch (err) {
               console.error("Error in auth state change handler:", err);
               setLoading(false);
-              setAuthInitialized(true);
             }
           }, 0);
         } else {
@@ -121,7 +122,6 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           localStorage.removeItem('clinicData');
           localStorage.removeItem('allClinics');
           setLoading(false);
-          setAuthInitialized(true);
         }
       }
     );
@@ -172,14 +172,17 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   if (clinics[0] && typeof clinics[0] === 'object') {
                     const clinic = clinics[0] as any;
                     // Add null check for clinic and safely access properties
-                    if (clinic && typeof clinic === 'object' && clinic.id) {
-                      localStorage.setItem('currentClinicId', String(clinic.id));
-                      localStorage.setItem('clinicData', JSON.stringify(clinic));
+                    if (clinic && typeof clinic === 'object') {
+                      const clinicId = clinic.id;
+                      if (clinicId) {
+                        localStorage.setItem('currentClinicId', String(clinicId));
+                        localStorage.setItem('clinicData', JSON.stringify(clinic));
+                      }
                     }
                   }
                 }
                 
-                // Somente redirecionar se estiver na página de login e não em outras
+                // Redirect the user after loading session if on the login page
                 if (location.pathname === '/login') {
                   console.log("Redirecting after getting session to", isMaster ? '/master' : '/dashboard');
                   navigate(isMaster ? '/master' : '/dashboard');
@@ -189,19 +192,16 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               console.error("Error processing clinics data:", err);
             } finally {
               setLoading(false);
-              setAuthInitialized(true);
             }
           } catch (err) {
             console.error("Error checking master admin status:", err);
             setLoading(false);
-            setAuthInitialized(true);
           }
         };
         
         checkMasterAdminStatus();
       } else {
         setLoading(false);
-        setAuthInitialized(true);
       }
     });
 
@@ -237,9 +237,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             if (clinics[0] && typeof clinics[0] === 'object') {
               const clinic = clinics[0] as any;
               // Add null check for clinic and safely access properties
-              if (clinic && typeof clinic === 'object' && clinic.id) {
-                localStorage.setItem('currentClinicId', String(clinic.id));
-                localStorage.setItem('clinicData', JSON.stringify(clinic));
+              if (clinic && typeof clinic === 'object') {
+                const clinicId = clinic.id;
+                if (clinicId) {
+                  localStorage.setItem('currentClinicId', String(clinicId));
+                  localStorage.setItem('clinicData', JSON.stringify(clinic));
+                }
               }
             }
           }
