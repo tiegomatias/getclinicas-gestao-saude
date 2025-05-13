@@ -34,11 +34,6 @@ const AuthGuard = ({ role }: AuthGuardProps) => {
     return <Outlet />;
   }
   
-  // Show loading state while checking authentication
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
-  }
-  
   // Master admin paths don't require clinic ID
   const isMasterAdminPath = location.pathname === "/master" || location.pathname.startsWith("/master/");
   
@@ -47,6 +42,11 @@ const AuthGuard = ({ role }: AuthGuardProps) => {
   
   // For clinic paths, we need both authentication and clinic ID
   const isFullyAuthenticated = isAuthenticated && currentClinicId;
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+  }
 
   // If trying to access master admin path without proper credentials
   if (role === "master" && !canAccessMasterAdmin) {

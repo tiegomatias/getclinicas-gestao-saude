@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -48,14 +47,13 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { signIn, isAuthenticated, loading: authLoading } = useAuth();
   
-  // Fix: Only redirect if user is authenticated AND not currently on the login page
+  // Se o usuário já está autenticado, redirecione
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      // Only redirect if we're already authenticated and on the login page
-      const from = location.state?.from?.pathname || "/";
-      navigate(from, { replace: true });
+      console.log("User already authenticated, redirecting from login page");
+      navigate("/");
     }
-  }, [isAuthenticated, navigate, authLoading, location.state]);
+  }, [isAuthenticated, navigate, authLoading]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +62,10 @@ const Login = () => {
     try {
       console.log("Attempting login with:", email);
       await signIn(email, password);
-      // Navigation is handled by the useEffect above
+      // A navegação é manipulada na função signIn
     } catch (error) {
       console.error("Login error:", error);
-      // Error handling is done in the signIn function
+      // O tratamento de erro é feito na função signIn
     } finally {
       setLoading(false);
     }
@@ -79,7 +77,7 @@ const Login = () => {
         <div className="mb-4 ml-2">
           <Button 
             variant="ghost" 
-            onClick={() => navigate("/home")} 
+            onClick={() => navigate("/")} 
             className="flex items-center gap-1 p-0 h-auto hover:bg-transparent"
           >
             <ArrowLeft size={16} />
