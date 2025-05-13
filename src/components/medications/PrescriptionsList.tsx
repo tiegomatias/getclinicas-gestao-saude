@@ -10,10 +10,21 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { MedicationPrescription } from "@/lib/types";
+
+interface Prescription {
+  id: string;
+  patient: { id: string; name: string };
+  medication: { id: string; name: string; dosage: string };
+  dosage: string;
+  frequency: string;
+  start_date: string;
+  end_date: string | null;
+  status: string;
+  observations: string | null;
+}
 
 interface PrescriptionsListProps {
-  prescriptions: MedicationPrescription[];
+  prescriptions: Prescription[];
 }
 
 export function PrescriptionsList({ prescriptions }: PrescriptionsListProps) {

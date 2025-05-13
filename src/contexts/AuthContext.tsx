@@ -1,18 +1,10 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  DbRole, 
-  DbUUID, 
-  asDbRole, 
-  asDbUUID,
-  isSupabaseError, 
-  safelyParseArray, 
-  safelyParseObject,
-  castDbInsert
-} from '@/lib/types';
+import { UserRole } from '@/lib/types';
 
 interface AuthContextProps {
   user: User | null;
@@ -34,7 +26,6 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
     console.log("AuthProvider initializing");
@@ -50,12 +41,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           // Check if user is master admin - using setTimeout to avoid recursion
           setTimeout(async () => {
             try {
-              // Properly format query parameters with type casting
+              // Use type casting to fix the TypeScript errors
               const { data, error } = await supabase
                 .from('user_roles')
                 .select('role')
-                .eq('user_id', currentSession.user.id as any)
-                .eq('role', 'master_admin' as any);
+                .eq('user_id', currentSession.user.id)
+                .eq('role', 'master_admin');
               
               if (error) {
                 console.error("Error checking master admin status:", error);
@@ -72,45 +63,32 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               }
               
               // Also load user's clinics
-              try {
-                const { data: clinics, error: clinicsError } = await supabase
-                  .from('clinics')
-                  .select('*')
-                  .eq('admin_id', currentSession.user.id as any);
-                  
-                if (clinicsError) {
-                  console.error("Error fetching user clinics:", clinicsError);
-                } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
-                  // Safely parse and store clinic data
-                  localStorage.setItem('allClinics', JSON.stringify(clinics));
-                  
-                  // If no clinic is selected, select the first one
-                  if (!localStorage.getItem('currentClinicId')) {
-                    if (clinics[0] && typeof clinics[0] === 'object') {
-                      const clinic = clinics[0] as any;
-                      if (clinic && typeof clinic === 'object' && clinic.id) {
-                        localStorage.setItem('currentClinicId', String(clinic.id));
-                        localStorage.setItem('clinicData', JSON.stringify(clinic));
-                      }
-                    }
-                  }
-                  
-                  // Somente redirecionar se estiver na página de login e não em outras
-                  if (location.pathname === '/login') {
-                    console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
-                    navigate(isMaster ? '/master' : '/dashboard');
-                  }
+              const { data: clinics, error: clinicsError } = await supabase
+                .from('clinics')
+                .select('*')
+                .eq('admin_id', currentSession.user.id);
+                
+              if (clinicsError) {
+                console.error("Error fetching user clinics:", clinicsError);
+              } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
+                localStorage.setItem('allClinics', JSON.stringify(clinics));
+                
+                // If no clinic is selected, select the first one
+                if (!localStorage.getItem('currentClinicId')) {
+                  localStorage.setItem('currentClinicId', clinics[0].id);
+                  localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
                 }
-              } catch (err) {
-                console.error("Error processing clinics data:", err);
-              } finally {
-                setLoading(false);
-                setAuthInitialized(true);
+                
+                // Redirect the user after authentication if on the login page
+                if (location.pathname === '/login') {
+                  console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
+                  navigate(isMaster ? '/master' : '/dashboard');
+                }
               }
             } catch (err) {
               console.error("Error in auth state change handler:", err);
+            } finally {
               setLoading(false);
-              setAuthInitialized(true);
             }
           }, 0);
         } else {
@@ -121,7 +99,6 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           localStorage.removeItem('clinicData');
           localStorage.removeItem('allClinics');
           setLoading(false);
-          setAuthInitialized(true);
         }
       }
     );
@@ -134,17 +111,14 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       if (currentSession?.user) {
         // Check if user is master admin on initial load
-        const checkMasterAdminStatus = async () => {
-          try {
-            const { data, error } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', currentSession.user.id as any)
-              .eq('role', 'master_admin' as any);
-            
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', currentSession.user.id)
+          .eq('role', 'master_admin')
+          .then(({ data, error }) => {
             if (error) {
               console.error("Error checking master admin status:", error);
-              return;
             }
             
             const isMaster = !!data && data.length > 0;
@@ -155,53 +129,37 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }
             
             // Also load user's clinics
-            try {
-              const { data: clinics, error: clinicsError } = await supabase
-                .from('clinics')
-                .select('*')
-                .eq('admin_id', currentSession.user.id as any);
-                
-              if (clinicsError) {
-                console.error("Error fetching user clinics:", clinicsError);
-              } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
-                // Safely store clinic data
-                localStorage.setItem('allClinics', JSON.stringify(clinics));
-                
-                // If no clinic is selected, select the first one
-                if (!localStorage.getItem('currentClinicId')) {
-                  if (clinics[0] && typeof clinics[0] === 'object') {
-                    const clinic = clinics[0] as any;
-                    // Add null check for clinic and safely access properties
-                    if (clinic && typeof clinic === 'object' && clinic.id) {
-                      localStorage.setItem('currentClinicId', String(clinic.id));
-                      localStorage.setItem('clinicData', JSON.stringify(clinic));
+            supabase
+              .from('clinics')
+              .select('*')
+              .eq('admin_id', currentSession.user.id)
+              .then(({ data: clinics, error: clinicsError }) => {
+                if (clinicsError) {
+                  console.error("Error fetching user clinics:", clinicsError);
+                } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
+                  localStorage.setItem('allClinics', JSON.stringify(clinics));
+                  
+                  // If no clinic is selected, select the first one
+                  if (!localStorage.getItem('currentClinicId')) {
+                    const clinicData = clinics[0];
+                    if (clinicData) {
+                      localStorage.setItem('currentClinicId', clinicData.id);
+                      localStorage.setItem('clinicData', JSON.stringify(clinicData));
                     }
                   }
+                  
+                  // Redirect the user after loading session if on the login page
+                  if (location.pathname === '/login') {
+                    console.log("Redirecting after getting session to", isMaster ? '/master' : '/dashboard');
+                    navigate(isMaster ? '/master' : '/dashboard');
+                  }
+                  
+                  setLoading(false);
                 }
-                
-                // Somente redirecionar se estiver na página de login e não em outras
-                if (location.pathname === '/login') {
-                  console.log("Redirecting after getting session to", isMaster ? '/master' : '/dashboard');
-                  navigate(isMaster ? '/master' : '/dashboard');
-                }
-              }
-            } catch (err) {
-              console.error("Error processing clinics data:", err);
-            } finally {
-              setLoading(false);
-              setAuthInitialized(true);
-            }
-          } catch (err) {
-            console.error("Error checking master admin status:", err);
-            setLoading(false);
-            setAuthInitialized(true);
-          }
-        };
-        
-        checkMasterAdminStatus();
+              });
+          });
       } else {
         setLoading(false);
-        setAuthInitialized(true);
       }
     });
 
@@ -221,52 +179,34 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         console.log("User signed in successfully:", data.user.email);
         
         // Fetch user clinics after login
-        try {
-          const { data: clinics, error: clinicsError } = await supabase
-            .from('clinics')
-            .select('*')
-            .eq('admin_id', data.user.id as any);
-            
-          if (clinicsError) {
-            console.error("Error fetching user clinics:", clinicsError);
-          } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
-            // Safely store clinic data
-            localStorage.setItem('allClinics', JSON.stringify(clinics));
-            
-            // If no clinic is selected, select the first one
-            if (clinics[0] && typeof clinics[0] === 'object') {
-              const clinic = clinics[0] as any;
-              // Add null check for clinic and safely access properties
-              if (clinic && typeof clinic === 'object' && clinic.id) {
-                localStorage.setItem('currentClinicId', String(clinic.id));
-                localStorage.setItem('clinicData', JSON.stringify(clinic));
-              }
-            }
-          }
-        } catch (err) {
-          console.error("Error processing clinics data:", err);
+        const { data: clinics, error: clinicsError } = await supabase
+          .from('clinics')
+          .select('*')
+          .eq('admin_id', data.user.id);
+          
+        if (clinicsError) {
+          console.error("Error fetching user clinics:", clinicsError);
+        } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
+          localStorage.setItem('allClinics', JSON.stringify(clinics));
+          localStorage.setItem('currentClinicId', clinics[0].id);
+          localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
         }
         
         // Check if user is master admin
-        try {
-          const { data: roleData, error: roleError } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', data.user.id as any)
-            .eq('role', 'master_admin' as any);
-            
-          if (!roleError && roleData && roleData.length > 0) {
-            setIsMasterAdmin(true);
-            localStorage.setItem('isMasterAdmin', 'true');
-            console.log("Redirecting master admin to /master");
-            navigate('/master');
-          } else {
-            console.log("Redirecting regular user to /dashboard");
-            navigate('/dashboard');
-          }
-        } catch (err) {
-          console.error("Error checking master admin role:", err);
-          navigate('/dashboard'); // Default to dashboard on error
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .eq('role', 'master_admin');
+          
+        if (!roleError && roleData && roleData.length > 0) {
+          setIsMasterAdmin(true);
+          localStorage.setItem('isMasterAdmin', 'true');
+          console.log("Redirecting master admin to /master");
+          navigate('/master');
+        } else {
+          console.log("Redirecting regular user to /dashboard");
+          navigate('/dashboard');
         }
         
         toast.success("Login realizado com sucesso!");

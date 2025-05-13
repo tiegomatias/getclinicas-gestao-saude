@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { DbRole, DbUUID, UserRole, asDbRole, asDbUUID, castDbInsert } from "@/lib/types";
+import { UserRole } from "@/lib/types";
 
 // Function to create a master admin user programmatically
 // This should only be used for development/testing purposes
@@ -27,16 +27,11 @@ export const setupMasterAdmin = async (email: string, password: string) => {
       if (error) throw error;
       
       if (data.user) {
-        // Prepare data for insertion with proper type casting
-        const userRoleData = {
+        // Set user as master_admin using type assertion
+        await supabase.from('user_roles').insert({
           user_id: data.user.id,
           role: 'master_admin'
-        };
-        
-        // Use castDbInsert to bypass TypeScript strict checking
-        await supabase.from('user_roles').insert(
-          castDbInsert<UserRole>(userRoleData)
-        );
+        } as unknown as UserRole);
       }
       
       console.log("Master admin created successfully");
@@ -46,20 +41,15 @@ export const setupMasterAdmin = async (email: string, password: string) => {
       const { data: roles } = await supabase
         .from('user_roles')
         .select()
-        .eq('user_id', user.id as any)
-        .eq('role', 'master_admin' as any);
+        .eq('user_id', user.id)
+        .eq('role', 'master_admin');
       
       // If not master_admin, set role
       if (!roles || roles.length === 0) {
-        const userRoleData = {
+        await supabase.from('user_roles').insert({
           user_id: user.id,
           role: 'master_admin'
-        };
-        
-        // Use castDbInsert to bypass TypeScript strict checking
-        await supabase.from('user_roles').insert(
-          castDbInsert<UserRole>(userRoleData)
-        );
+        } as unknown as UserRole);
         
         console.log("User promoted to master admin");
       } else {
