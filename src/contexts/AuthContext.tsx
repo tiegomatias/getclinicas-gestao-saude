@@ -4,7 +4,16 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { UserRole } from '@/lib/types';
+import { 
+  DbRole, 
+  DbUUID, 
+  asDbRole, 
+  asDbUUID,
+  isSupabaseError, 
+  safelyParseArray, 
+  safelyParseObject,
+  castDbInsert
+} from '@/lib/types';
 
 interface AuthContextProps {
   user: User | null;
@@ -41,12 +50,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           // Check if user is master admin - using setTimeout to avoid recursion
           setTimeout(async () => {
             try {
-              // Use type casting to fix the TypeScript errors
+              // Properly format query parameters with type casting
               const { data, error } = await supabase
                 .from('user_roles')
                 .select('role')
-                .eq('user_id', currentSession.user.id)
-                .eq('role', 'master_admin');
+                .eq('user_id', currentSession.user.id as any)
+                .eq('role', 'master_admin' as any);
               
               if (error) {
                 console.error("Error checking master admin status:", error);
@@ -63,31 +72,44 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               }
               
               // Also load user's clinics
-              const { data: clinics, error: clinicsError } = await supabase
-                .from('clinics')
-                .select('*')
-                .eq('admin_id', currentSession.user.id);
-                
-              if (clinicsError) {
-                console.error("Error fetching user clinics:", clinicsError);
-              } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
-                localStorage.setItem('allClinics', JSON.stringify(clinics));
-                
-                // If no clinic is selected, select the first one
-                if (!localStorage.getItem('currentClinicId')) {
-                  localStorage.setItem('currentClinicId', clinics[0].id);
-                  localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
+              try {
+                const { data: clinics, error: clinicsError } = await supabase
+                  .from('clinics')
+                  .select('*')
+                  .eq('admin_id', currentSession.user.id as any);
+                  
+                if (clinicsError) {
+                  console.error("Error fetching user clinics:", clinicsError);
+                } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
+                  // Safely parse and store clinic data
+                  localStorage.setItem('allClinics', JSON.stringify(clinics));
+                  
+                  // If no clinic is selected, select the first one
+                  if (!localStorage.getItem('currentClinicId')) {
+                    if (clinics[0] && typeof clinics[0] === 'object') {
+                      const clinic = clinics[0];
+                      // Add null check for clinic
+                      const clinicId = clinic?.id;
+                      if (clinicId) {
+                        localStorage.setItem('currentClinicId', String(clinicId));
+                        localStorage.setItem('clinicData', JSON.stringify(clinic));
+                      }
+                    }
+                  }
+                  
+                  // Redirect the user after authentication if on the login page
+                  if (location.pathname === '/login') {
+                    console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
+                    navigate(isMaster ? '/master' : '/dashboard');
+                  }
                 }
-                
-                // Redirect the user after authentication if on the login page
-                if (location.pathname === '/login') {
-                  console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
-                  navigate(isMaster ? '/master' : '/dashboard');
-                }
+              } catch (err) {
+                console.error("Error processing clinics data:", err);
+              } finally {
+                setLoading(false);
               }
             } catch (err) {
               console.error("Error in auth state change handler:", err);
-            } finally {
               setLoading(false);
             }
           }, 0);
@@ -111,14 +133,17 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       if (currentSession?.user) {
         // Check if user is master admin on initial load
-        supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', currentSession.user.id)
-          .eq('role', 'master_admin')
-          .then(({ data, error }) => {
+        const checkMasterAdminStatus = async () => {
+          try {
+            const { data, error } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', currentSession.user.id as any)
+              .eq('role', 'master_admin' as any);
+            
             if (error) {
               console.error("Error checking master admin status:", error);
+              return;
             }
             
             const isMaster = !!data && data.length > 0;
@@ -129,35 +154,49 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }
             
             // Also load user's clinics
-            supabase
-              .from('clinics')
-              .select('*')
-              .eq('admin_id', currentSession.user.id)
-              .then(({ data: clinics, error: clinicsError }) => {
-                if (clinicsError) {
-                  console.error("Error fetching user clinics:", clinicsError);
-                } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
-                  localStorage.setItem('allClinics', JSON.stringify(clinics));
-                  
-                  // If no clinic is selected, select the first one
-                  if (!localStorage.getItem('currentClinicId')) {
-                    const clinicData = clinics[0];
-                    if (clinicData) {
-                      localStorage.setItem('currentClinicId', clinicData.id);
-                      localStorage.setItem('clinicData', JSON.stringify(clinicData));
+            try {
+              const { data: clinics, error: clinicsError } = await supabase
+                .from('clinics')
+                .select('*')
+                .eq('admin_id', currentSession.user.id as any);
+                
+              if (clinicsError) {
+                console.error("Error fetching user clinics:", clinicsError);
+              } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
+                // Safely store clinic data
+                localStorage.setItem('allClinics', JSON.stringify(clinics));
+                
+                // If no clinic is selected, select the first one
+                if (!localStorage.getItem('currentClinicId')) {
+                  if (clinics[0] && typeof clinics[0] === 'object') {
+                    const clinic = clinics[0];
+                    // Add null check for clinic
+                    const clinicId = clinic?.id;
+                    if (clinicId) {
+                      localStorage.setItem('currentClinicId', String(clinicId));
+                      localStorage.setItem('clinicData', JSON.stringify(clinic));
                     }
                   }
-                  
-                  // Redirect the user after loading session if on the login page
-                  if (location.pathname === '/login') {
-                    console.log("Redirecting after getting session to", isMaster ? '/master' : '/dashboard');
-                    navigate(isMaster ? '/master' : '/dashboard');
-                  }
-                  
-                  setLoading(false);
                 }
-              });
-          });
+                
+                // Redirect the user after loading session if on the login page
+                if (location.pathname === '/login') {
+                  console.log("Redirecting after getting session to", isMaster ? '/master' : '/dashboard');
+                  navigate(isMaster ? '/master' : '/dashboard');
+                }
+              }
+            } catch (err) {
+              console.error("Error processing clinics data:", err);
+            } finally {
+              setLoading(false);
+            }
+          } catch (err) {
+            console.error("Error checking master admin status:", err);
+            setLoading(false);
+          }
+        };
+        
+        checkMasterAdminStatus();
       } else {
         setLoading(false);
       }
@@ -179,34 +218,53 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         console.log("User signed in successfully:", data.user.email);
         
         // Fetch user clinics after login
-        const { data: clinics, error: clinicsError } = await supabase
-          .from('clinics')
-          .select('*')
-          .eq('admin_id', data.user.id);
-          
-        if (clinicsError) {
-          console.error("Error fetching user clinics:", clinicsError);
-        } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
-          localStorage.setItem('allClinics', JSON.stringify(clinics));
-          localStorage.setItem('currentClinicId', clinics[0].id);
-          localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
+        try {
+          const { data: clinics, error: clinicsError } = await supabase
+            .from('clinics')
+            .select('*')
+            .eq('admin_id', data.user.id as any);
+            
+          if (clinicsError) {
+            console.error("Error fetching user clinics:", clinicsError);
+          } else if (clinics && Array.isArray(clinics) && clinics.length > 0) {
+            // Safely store clinic data
+            localStorage.setItem('allClinics', JSON.stringify(clinics));
+            
+            // If no clinic is selected, select the first one
+            if (clinics[0] && typeof clinics[0] === 'object') {
+              const clinic = clinics[0];
+              // Add null check for clinic
+              const clinicId = clinic?.id;
+              if (clinicId) {
+                localStorage.setItem('currentClinicId', String(clinicId));
+                localStorage.setItem('clinicData', JSON.stringify(clinic));
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error processing clinics data:", err);
         }
         
         // Check if user is master admin
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .eq('role', 'master_admin');
-          
-        if (!roleError && roleData && roleData.length > 0) {
-          setIsMasterAdmin(true);
-          localStorage.setItem('isMasterAdmin', 'true');
-          console.log("Redirecting master admin to /master");
-          navigate('/master');
-        } else {
-          console.log("Redirecting regular user to /dashboard");
-          navigate('/dashboard');
+        try {
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', data.user.id as any)
+            .eq('role', 'master_admin' as any);
+            
+          if (!roleError && roleData && roleData.length > 0) {
+            setIsMasterAdmin(true);
+            localStorage.setItem('isMasterAdmin', 'true');
+            console.log("Redirecting master admin to /master");
+            navigate('/master');
+          } else {
+            console.log("Redirecting regular user to /dashboard");
+            navigate('/dashboard');
+          }
+        } catch (err) {
+          console.error("Error checking master admin role:", err);
+          navigate('/dashboard'); // Default to dashboard on error
         }
         
         toast.success("Login realizado com sucesso!");
