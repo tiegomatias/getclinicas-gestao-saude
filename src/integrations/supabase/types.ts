@@ -1117,39 +1117,75 @@ export type Database = {
       }
       patients: {
         Row: {
+          address: string | null
           admission_date: string | null
           admission_type: string
+          birth_date: string | null
           clinic_id: string | null
+          cpf: string | null
           created_at: string | null
+          created_by: string | null
+          email: string | null
           emergency_contact: string | null
+          gender: string | null
+          health_insurance: string | null
           id: string
+          insurance_number: string | null
           medical_record: string | null
           name: string
+          observations: string | null
           phone: string | null
+          responsible_name: string | null
+          responsible_phone: string | null
+          rg: string | null
           status: string
         }
         Insert: {
+          address?: string | null
           admission_date?: string | null
           admission_type: string
+          birth_date?: string | null
           clinic_id?: string | null
+          cpf?: string | null
           created_at?: string | null
+          created_by?: string | null
+          email?: string | null
           emergency_contact?: string | null
+          gender?: string | null
+          health_insurance?: string | null
           id?: string
+          insurance_number?: string | null
           medical_record?: string | null
           name: string
+          observations?: string | null
           phone?: string | null
+          responsible_name?: string | null
+          responsible_phone?: string | null
+          rg?: string | null
           status?: string
         }
         Update: {
+          address?: string | null
           admission_date?: string | null
           admission_type?: string
+          birth_date?: string | null
           clinic_id?: string | null
+          cpf?: string | null
           created_at?: string | null
+          created_by?: string | null
+          email?: string | null
           emergency_contact?: string | null
+          gender?: string | null
+          health_insurance?: string | null
           id?: string
+          insurance_number?: string | null
           medical_record?: string | null
           name?: string
+          observations?: string | null
           phone?: string | null
+          responsible_name?: string | null
+          responsible_phone?: string | null
+          rg?: string | null
           status?: string
         }
         Relationships: [

@@ -41,6 +41,7 @@ const PatientForm = ({ onComplete }: PatientFormProps) => {
       // Validação básica
       if (!name || !birthDate || !gender) {
         toast.error("Por favor, preencha os campos obrigatórios.");
+        setLoading(false);
         return;
       }
       
@@ -48,6 +49,7 @@ const PatientForm = ({ onComplete }: PatientFormProps) => {
       const clinicDataStr = localStorage.getItem("clinicData");
       if (!clinicDataStr) {
         toast.error("Dados da clínica não encontrados.");
+        setLoading(false);
         return;
       }
       
@@ -70,41 +72,47 @@ const PatientForm = ({ onComplete }: PatientFormProps) => {
         observations,
         clinic_id: clinicData.id,
         created_by: user?.id,
-        created_at: new Date().toISOString()
+        admission_type: 'registration', // Required field
+        status: 'active' // Required field
       };
       
-      // Simular inserção no banco de dados
-      // Em uma implementação real, esta seria uma chamada à API ou Supabase
-      setTimeout(() => {
-        // Salvar na localStorage para persistência temporária
-        const patients = JSON.parse(localStorage.getItem("patients") || "[]");
-        patients.push(patientData);
-        localStorage.setItem("patients", JSON.stringify(patients));
-        
-        toast.success("Paciente cadastrado com sucesso!");
+      // Inserir no Supabase
+      const { data, error } = await supabase
+        .from('patients')
+        .insert([patientData])
+        .select();
+      
+      if (error) {
+        console.error('Erro ao cadastrar paciente:', error);
+        toast.error(`Erro ao cadastrar paciente: ${error.message}`);
         setLoading(false);
-        
-        // Limpar formulário
-        setName('');
-        setBirthDate('');
-        setGender('');
-        setCpf('');
-        setRg('');
-        setPhone('');
-        setEmail('');
-        setAddress('');
-        setResponsible('');
-        setResponsiblePhone('');
-        setHealthInsurance('');
-        setInsuranceNumber('');
-        setObservations('');
-        
-        // Chamar callback de conclusão se existir
-        if (onComplete) onComplete();
-      }, 1000);
+        return;
+      }
+      
+      toast.success("Paciente cadastrado com sucesso!");
+      
+      // Limpar formulário
+      setName('');
+      setBirthDate('');
+      setGender('');
+      setCpf('');
+      setRg('');
+      setPhone('');
+      setEmail('');
+      setAddress('');
+      setResponsible('');
+      setResponsiblePhone('');
+      setHealthInsurance('');
+      setInsuranceNumber('');
+      setObservations('');
+      
+      // Chamar callback de conclusão se existir
+      if (onComplete) onComplete();
       
     } catch (error: any) {
+      console.error('Erro ao cadastrar paciente:', error);
       toast.error(`Erro ao cadastrar paciente: ${error.message}`);
+    } finally {
       setLoading(false);
     }
   };

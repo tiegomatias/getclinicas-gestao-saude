@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Eye, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Patient {
+  id: string;
   name: string;
   birth_date: string;
   gender: string;
@@ -13,6 +15,7 @@ interface Patient {
   responsible_name: string;
   health_insurance: string;
   created_at: string;
+  clinic_id: string;
 }
 
 interface PatientListProps {
@@ -24,52 +27,38 @@ const PatientList = ({ searchQuery = "" }: PatientListProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Obter pacientes da localStorage
-    const fetchPatients = () => {
-      const savedPatients = localStorage.getItem("patients");
-      if (savedPatients) {
-        try {
-          const parsedPatients = JSON.parse(savedPatients);
-          setPatients(parsedPatients);
-        } catch (error) {
+    const fetchPatients = async () => {
+      try {
+        // Obter ID da clínica atual
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (!clinicDataStr) {
+          console.error("Dados da clínica não encontrados");
+          setPatients([]);
+          setLoading(false);
+          return;
+        }
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        
+        // Buscar pacientes no Supabase
+        const { data, error } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('clinic_id', clinicData.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
           console.error("Erro ao carregar pacientes:", error);
           setPatients([]);
+        } else {
+          setPatients(data || []);
         }
-      } else {
-        // Dados de exemplo
-        const samplePatients = [
-          {
-            name: "Maria Silva",
-            birth_date: "1985-05-15",
-            gender: "female",
-            phone: "(11) 98765-4321",
-            responsible_name: "João Silva",
-            health_insurance: "Amil",
-            created_at: "2025-04-20T14:30:00Z"
-          },
-          {
-            name: "Carlos Santos",
-            birth_date: "1990-10-23",
-            gender: "male",
-            phone: "(11) 91234-5678",
-            responsible_name: "Ana Santos",
-            health_insurance: "Unimed",
-            created_at: "2025-04-25T09:15:00Z"
-          },
-          {
-            name: "Luísa Oliveira",
-            birth_date: "1978-03-07",
-            gender: "female",
-            phone: "(11) 99876-5432",
-            responsible_name: "Pedro Oliveira",
-            health_insurance: "SulAmérica",
-            created_at: "2025-05-01T11:45:00Z"
-          }
-        ];
-        setPatients(samplePatients);
-        localStorage.setItem("patients", JSON.stringify(samplePatients));
+      } catch (error) {
+        console.error("Erro ao carregar pacientes:", error);
+        setPatients([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
     fetchPatients();
@@ -119,12 +108,27 @@ const PatientList = ({ searchQuery = "" }: PatientListProps) => {
     toast.info(`Editando dados de ${name}`);
   };
 
-  const handleDeletePatient = (name: string) => {
-    // Remover paciente da lista
-    const updatedPatients = patients.filter(patient => patient.name !== name);
-    setPatients(updatedPatients);
-    localStorage.setItem("patients", JSON.stringify(updatedPatients));
-    toast.success(`Paciente ${name} removido com sucesso`);
+  const handleDeletePatient = async (patientId: string, name: string) => {
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .delete()
+        .eq('id', patientId);
+      
+      if (error) {
+        console.error("Erro ao remover paciente:", error);
+        toast.error(`Erro ao remover paciente: ${error.message}`);
+        return;
+      }
+      
+      // Remover da lista local
+      const updatedPatients = patients.filter(patient => patient.id !== patientId);
+      setPatients(updatedPatients);
+      toast.success(`Paciente ${name} removido com sucesso`);
+    } catch (error: any) {
+      console.error("Erro ao remover paciente:", error);
+      toast.error(`Erro ao remover paciente: ${error.message}`);
+    }
   };
 
   if (loading) {
@@ -152,8 +156,8 @@ const PatientList = ({ searchQuery = "" }: PatientListProps) => {
             </TableCell>
           </TableRow>
         ) : (
-          filteredPatients.map((patient, index) => (
-            <TableRow key={index}>
+          filteredPatients.map((patient) => (
+            <TableRow key={patient.id}>
               <TableCell className="font-medium">{patient.name}</TableCell>
               <TableCell>{formatDate(patient.birth_date)}</TableCell>
               <TableCell>{translateGender(patient.gender)}</TableCell>
@@ -178,7 +182,7 @@ const PatientList = ({ searchQuery = "" }: PatientListProps) => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => handleDeletePatient(patient.name)}
+                  onClick={() => handleDeletePatient(patient.id, patient.name)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
