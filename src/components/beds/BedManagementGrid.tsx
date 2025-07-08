@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -17,109 +17,104 @@ import {
 } from "@/components/ui/tooltip";
 import { InfoIcon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
+import { bedService } from "@/services/bedService";
 
 interface BedManagementGridProps {
   filterStatus?: string;
   onViewDetails?: () => void;
+  onRefresh?: () => void;
 }
 
-const roomTypes = [
-  {
-    id: "a",
-    name: "Ala A - Masculino",
-    beds: [
-      {
-        id: "a1",
-        number: "A01",
-        status: "occupied",
-        patient: "Ricardo Santos",
-        admissionDate: "01/06/2025",
-        expectedDischarge: "01/07/2025",
-      },
-      {
-        id: "a2",
-        number: "A02",
-        status: "occupied",
-        patient: "João Ferreira",
-        admissionDate: "28/05/2025",
-        expectedDischarge: "25/06/2025",
-      },
-      {
-        id: "a3",
-        number: "A03",
-        status: "available",
-      },
-      {
-        id: "a4",
-        number: "A04",
-        status: "occupied",
-        patient: "Pedro Alves",
-        admissionDate: "15/05/2025",
-        expectedDischarge: "15/06/2025",
-      },
-      {
-        id: "a5",
-        number: "A05",
-        status: "maintenance",
-      },
-      {
-        id: "a6",
-        number: "A06",
-        status: "occupied",
-        patient: "Carlos Martins",
-        admissionDate: "10/05/2025",
-        expectedDischarge: "10/06/2025",
-      },
-    ],
-  },
-  {
-    id: "b",
-    name: "Ala B - Feminino",
-    beds: [
-      {
-        id: "b1",
-        number: "B01",
-        status: "occupied",
-        patient: "Márcia Oliveira",
-        admissionDate: "30/05/2025",
-        expectedDischarge: "30/06/2025",
-      },
-      {
-        id: "b2",
-        number: "B02",
-        status: "available",
-      },
-      {
-        id: "b3",
-        number: "B03",
-        status: "occupied",
-        patient: "Ana Carolina",
-        admissionDate: "20/05/2025",
-        expectedDischarge: "20/06/2025",
-      },
-      {
-        id: "b4",
-        number: "B04",
-        status: "available",
-      },
-      {
-        id: "b5",
-        number: "B05",
-        status: "occupied",
-        patient: "Juliana Costa",
-        admissionDate: "18/05/2025",
-        expectedDischarge: "18/06/2025",
-      },
-      {
-        id: "b6",
-        number: "B06",
-        status: "maintenance",
-      },
-    ],
-  },
-];
+interface Bed {
+  id: string;
+  clinic_id: string;
+  bed_number: string;
+  bed_type: string;
+  status: string;
+  patient_id?: string;
+  created_at: string;
+}
 
-export default function BedManagementGrid({ filterStatus = "all", onViewDetails }: BedManagementGridProps) {
+interface PatientInfo {
+  id: string;
+  name: string;
+  admission_date: string;
+}
+
+interface BedGroup {
+  id: string;
+  name: string;
+  beds: Array<{
+    id: string;
+    number: string;
+    status: string;
+    patient?: string;
+    admissionDate?: string;
+    expectedDischarge?: string;
+  }>;
+}
+
+export default function BedManagementGrid({ filterStatus = "all", onViewDetails, onRefresh }: BedManagementGridProps) {
+  const [beds, setBeds] = useState<Bed[]>([]);
+  const [patients, setPatients] = useState<Record<string, PatientInfo>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBeds();
+  }, []);
+
+  const fetchBeds = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setBeds([]);
+        setLoading(false);
+        return;
+      }
+
+      const clinicData = JSON.parse(clinicDataStr);
+      const bedsData = await bedService.getBedsByClinic(clinicData.id);
+      setBeds(bedsData);
+
+      // Fetch patient information for occupied beds
+      const occupiedBeds = bedsData.filter(bed => bed.status === 'occupied' && bed.patient_id);
+      if (occupiedBeds.length > 0) {
+        const patientIds = occupiedBeds.map(bed => bed.patient_id!);
+        const patientsData = await bedService.getPatientInfo(patientIds);
+        setPatients(patientsData);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar leitos:", error);
+      toast.error("Erro ao carregar leitos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const groupBedsByType = (beds: Bed[]): BedGroup[] => {
+    const groups: Record<string, BedGroup> = {};
+
+    beds.forEach(bed => {
+      if (!groups[bed.bed_type]) {
+        groups[bed.bed_type] = {
+          id: bed.bed_type.toLowerCase().replace(/\s+/g, '-'),
+          name: bed.bed_type,
+          beds: []
+        };
+      }
+
+      const patient = bed.patient_id && patients[bed.patient_id];
+      groups[bed.bed_type].beds.push({
+        id: bed.id,
+        number: bed.bed_number,
+        status: bed.status,
+        patient: patient?.name,
+        admissionDate: patient ? new Date(patient.admission_date).toLocaleDateString('pt-BR') : undefined,
+      });
+    });
+
+    return Object.values(groups);
+  };
   const getStatusColor = (status: string) => {
     switch (status) {
       case "occupied":
@@ -154,13 +149,26 @@ export default function BedManagementGrid({ filterStatus = "all", onViewDetails 
     toast.info("Gerenciando leito");
   };
 
-  // Filtrar leitos com base no status selecionado
-  const filteredRooms = roomTypes.map(room => ({
+  // Group beds by type and filter by status
+  const groupedBeds = groupBedsByType(beds);
+  const filteredRooms = groupedBeds.map(room => ({
     ...room,
     beds: filterStatus === "all" 
       ? room.beds 
       : room.beds.filter(bed => bed.status === filterStatus)
   }));
+
+  if (loading) {
+    return <div className="flex justify-center py-4">Carregando leitos...</div>;
+  }
+
+  if (beds.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Nenhum leito cadastrado ainda.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Bed, Plus } from "lucide-react";
 import BedManagementGrid from "@/components/beds/BedManagementGrid";
+import BedForm from "@/components/beds/BedForm";
 import EmptyState from "@/components/shared/EmptyState";
 import { clinicService } from "@/services/clinicService";
 import { bedService } from "@/services/bedService";
@@ -26,6 +27,7 @@ export default function Beds() {
   const [hasData, setHasData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showBedForm, setShowBedForm] = useState(false);
 
   useEffect(() => {
     const checkForData = async () => {
@@ -59,25 +61,17 @@ export default function Beds() {
   }, []);
 
   const handleAddBeds = () => {
-    // Simular adição de leitos
+    setShowBedForm(true);
+  };
+
+  const handleBedFormSuccess = () => {
     setHasData(true);
-    
-    // Atualizar os dados da clínica no localStorage
+    // Update localStorage to reflect that beds data exists
     const clinicDataStr = localStorage.getItem("clinicData");
     if (clinicDataStr) {
       const clinicData = JSON.parse(clinicDataStr);
       clinicData.has_beds_data = true;
       localStorage.setItem("clinicData", JSON.stringify(clinicData));
-      
-      // Simular chamada à API
-      toast.promise(
-        new Promise((resolve) => setTimeout(resolve, 1000)),
-        {
-          loading: "Configurando leitos...",
-          success: "Leitos configurados com sucesso!",
-          error: "Erro ao configurar leitos."
-        }
-      );
     }
   };
 
@@ -144,7 +138,7 @@ export default function Beds() {
                 <p>Carregando...</p>
               </div>
             ) : hasData ? (
-              <BedManagementGrid filterStatus={statusFilter} onViewDetails={handleViewDetails} />
+              <BedManagementGrid filterStatus={statusFilter} onViewDetails={handleViewDetails} onRefresh={() => {}} />
             ) : (
               <EmptyState
                 icon={<Bed className="h-10 w-10 text-muted-foreground" />}
@@ -157,6 +151,12 @@ export default function Beds() {
           </div>
         </CardContent>
       </Card>
+
+      <BedForm 
+        open={showBedForm} 
+        onOpenChange={setShowBedForm}
+        onSuccess={handleBedFormSuccess}
+      />
     </div>
   );
 }
