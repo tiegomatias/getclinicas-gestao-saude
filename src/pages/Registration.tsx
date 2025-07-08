@@ -69,13 +69,36 @@ const Registration = () => {
       
       if (signUpError) {
         console.error("Erro ao registrar usuário:", signUpError);
+        console.error("Erro detalhado:", {
+          message: signUpError.message,
+          status: signUpError.status,
+          code: signUpError.code || 'N/A'
+        });
+        
+        // Display user-friendly error messages
+        let errorMessage = signUpError.message;
+        
+        if (signUpError.message.includes("User already registered")) {
+          errorMessage = "Este email já está cadastrado. Faça login ou use outro email.";
+        } else if (signUpError.message.includes("Password should be at least")) {
+          errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+        } else if (signUpError.message.includes("Invalid email")) {
+          errorMessage = "Email inválido. Verifique o formato do email.";
+        } else if (signUpError.message.includes("signup is disabled")) {
+          errorMessage = "Cadastro desabilitado. Entre em contato com o suporte.";
+        }
+        
+        toast.error(`Erro ao registrar: ${errorMessage}`);
         throw signUpError;
       }
       
       console.log("Usuário criado com sucesso:", signUpData);
       
       if (!signUpData.user) {
-        throw new Error("Não foi possível criar o usuário");
+        const errorMsg = "Não foi possível criar o usuário";
+        console.error(errorMsg);
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
       }
       
       // 2. Create the clinic associated with the user
@@ -93,13 +116,23 @@ const Registration = () => {
       
       if (clinicError) {
         console.error("Erro ao criar clínica:", clinicError);
+        console.error("Erro detalhado da clínica:", {
+          message: clinicError.message,
+          details: clinicError.details,
+          hint: clinicError.hint,
+          code: clinicError.code
+        });
+        toast.error(`Erro ao criar clínica: ${clinicError.message}`);
         throw clinicError;
       }
       
       console.log("Clínica criada com sucesso:", clinic);
       
       if (!clinic || clinic.length === 0) {
-        throw new Error("Erro ao criar clínica");
+        const errorMsg = "Erro ao criar clínica";
+        console.error(errorMsg);
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
       }
       
       // 3. Add the user as an admin of the clinic in the clinic_users table
@@ -115,7 +148,14 @@ const Registration = () => {
       
       if (clinicUserError) {
         console.error("Erro ao associar usuário à clínica:", clinicUserError);
+        console.error("Erro detalhado da associação:", {
+          message: clinicUserError.message,
+          details: clinicUserError.details,
+          hint: clinicUserError.hint,
+          code: clinicUserError.code
+        });
         // We continue even with error, administrator will be able to fix manually
+        toast.warning("Usuário criado, mas houve um problema na associação à clínica");
       } else {
         console.log("Usuário associado à clínica com sucesso");
       }
@@ -139,7 +179,16 @@ const Registration = () => {
       
       if (loginError) {
         console.error("Erro ao fazer login automático:", loginError);
-        throw loginError;
+        console.error("Erro detalhado do login:", {
+          message: loginError.message,
+          status: loginError.status,
+          code: loginError.code || 'N/A'
+        });
+        
+        // Even if auto-login fails, user was created successfully
+        toast.success("Clínica registrada com sucesso! Faça login para continuar.");
+        navigate("/login");
+        return;
       }
       
       console.log("Login automático realizado com sucesso");
@@ -153,7 +202,19 @@ const Registration = () => {
       
     } catch (error: any) {
       console.error("Erro completo ao registrar:", error);
-      toast.error(`Erro ao registrar: ${error.message}`);
+      
+      // Log the full error object for debugging
+      if (error && typeof error === 'object') {
+        console.error("Propriedades do erro:", Object.keys(error));
+        console.error("Erro serializado:", JSON.stringify(error, null, 2));
+      }
+      
+      // Display error message if not already displayed
+      if (!error.message || error.message === "{}") {
+        toast.error("Erro desconhecido ao registrar. Tente novamente.");
+      } else if (!error.message.includes("Erro ao")) {
+        toast.error(`Erro ao registrar: ${error.message}`);
+      }
     } finally {
       setLoading(false);
     }
