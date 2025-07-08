@@ -18,6 +18,7 @@ import {
 import { InfoIcon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { bedService } from "@/services/bedService";
+import BedManagementModal from "./BedManagementModal";
 
 interface BedManagementGridProps {
   filterStatus?: string;
@@ -49,6 +50,8 @@ interface BedGroup {
     number: string;
     status: string;
     patient?: string;
+    patient_id?: string;
+    bed_type?: string;
     admissionDate?: string;
     expectedDischarge?: string;
   }>;
@@ -58,6 +61,8 @@ export default function BedManagementGrid({ filterStatus = "all", onViewDetails,
   const [beds, setBeds] = useState<Bed[]>([]);
   const [patients, setPatients] = useState<Record<string, PatientInfo>>({});
   const [loading, setLoading] = useState(true);
+  const [selectedBed, setSelectedBed] = useState<any>(null);
+  const [showBedModal, setShowBedModal] = useState(false);
 
   useEffect(() => {
     fetchBeds();
@@ -109,6 +114,8 @@ export default function BedManagementGrid({ filterStatus = "all", onViewDetails,
         number: bed.bed_number,
         status: bed.status,
         patient: patient?.name,
+        patient_id: bed.patient_id,
+        bed_type: bed.bed_type,
         admissionDate: patient ? new Date(patient.admission_date).toLocaleDateString('pt-BR') : undefined,
       });
     });
@@ -141,12 +148,14 @@ export default function BedManagementGrid({ filterStatus = "all", onViewDetails,
     }
   };
 
-  const handleViewPatientRecord = () => {
-    toast.info("Abrindo prontuário do paciente");
+  const handleBedClick = (bed: any) => {
+    setSelectedBed(bed);
+    setShowBedModal(true);
   };
 
-  const handleManageBed = () => {
-    toast.info("Gerenciando leito");
+  const handleBedUpdate = () => {
+    fetchBeds();
+    if (onRefresh) onRefresh();
   };
 
   // Group beds by type and filter by status
@@ -200,13 +209,7 @@ export default function BedManagementGrid({ filterStatus = "all", onViewDetails,
                             ? "border-getclinicas-primary/30 bg-getclinicas-primary/5"
                             : ""
                         }`}
-                        onClick={() => {
-                          if (bed.status === "occupied") {
-                            toast.info(`Detalhes do leito ${bed.number} - Paciente: ${bed.patient}`);
-                          } else {
-                            toast.info(`Detalhes do leito ${bed.number} - Status: ${getStatusText(bed.status)}`);
-                          }
-                        }}
+                        onClick={() => handleBedClick(bed)}
                       >
                         <div className="flex items-center justify-between">
                           <Badge
@@ -256,14 +259,20 @@ export default function BedManagementGrid({ filterStatus = "all", onViewDetails,
                               size="sm" 
                               variant="outline" 
                               className="h-7"
-                              onClick={handleViewPatientRecord}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toast.info("Prontuário do paciente");
+                              }}
                             >
                               Prontuário
                             </Button>
                             <Button 
                               size="sm" 
                               className="h-7"
-                              onClick={handleManageBed}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleBedClick(bed);
+                              }}
                             >
                               Gerenciar
                             </Button>
@@ -293,6 +302,13 @@ export default function BedManagementGrid({ filterStatus = "all", onViewDetails,
           <span className="text-sm">Manutenção</span>
         </div>
       </div>
+
+      <BedManagementModal
+        open={showBedModal}
+        onOpenChange={setShowBedModal}
+        bed={selectedBed}
+        onUpdate={handleBedUpdate}
+      />
     </div>
   );
 }
