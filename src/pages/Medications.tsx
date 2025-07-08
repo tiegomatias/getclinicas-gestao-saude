@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -137,7 +138,7 @@ export default function Medications() {
       const expiringData = await medicationService.getExpiringMedications(id, 30);
       const expiredData = await medicationService.getExpiredMedications(id);
 
-      // Type assertions with safety checks
+      // Safe type conversions with explicit casting
       if (medsData && Array.isArray(medsData)) {
         setMedications(medsData as unknown as Medication[]);
       }
@@ -219,7 +220,7 @@ export default function Medications() {
     setSelectedDate(value);
     try {
       const data = await medicationService.getAdministrations(clinicId, value);
-      setAdministrations(data as Administration[]);
+      setAdministrations(data as unknown as Administration[]);
     } catch (error) {
       console.error("Error fetching administrations:", error);
       toast.error("Erro ao carregar administrações");
@@ -231,19 +232,19 @@ export default function Medications() {
     try {
       const data = await medicationService.getMedications(clinicId);
       if (data && Array.isArray(data)) {
-        setMedications(data as Medication[]);
+        setMedications(data as unknown as Medication[]);
         setHasData(data.length > 0);
       }
       
       // Update expiring and expired medications
       const expiringData = await medicationService.getExpiringMedications(clinicId, 30);
       if (expiringData && Array.isArray(expiringData)) {
-        setExpiringMedications(expiringData as Medication[]);
+        setExpiringMedications(expiringData as unknown as Medication[]);
       }
       
       const expiredData = await medicationService.getExpiredMedications(clinicId);
       if (expiredData && Array.isArray(expiredData)) {
-        setExpiredMedications(expiredData as Medication[]);
+        setExpiredMedications(expiredData as unknown as Medication[]);
       }
     } catch (error) {
       console.error("Error refreshing medications:", error);
@@ -261,7 +262,7 @@ export default function Medications() {
       }
       
       if (data && Array.isArray(data)) {
-        setPrescriptions(data as MedicationPrescription[]);
+        setPrescriptions(data as unknown as MedicationPrescription[]);
       }
     } catch (error) {
       console.error("Error refreshing prescriptions:", error);
@@ -273,7 +274,7 @@ export default function Medications() {
     try {
       const data = await medicationService.getAdministrations(clinicId, selectedDate);
       if (data && Array.isArray(data)) {
-        setAdministrations(data as Administration[]);
+        setAdministrations(data as unknown as Administration[]);
       }
     } catch (error) {
       console.error("Error refreshing administrations:", error);

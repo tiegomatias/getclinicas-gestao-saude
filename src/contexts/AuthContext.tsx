@@ -86,14 +86,10 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   
                   // If no clinic is selected, select the first one
                   if (!localStorage.getItem('currentClinicId')) {
-                    if (clinics[0] && typeof clinics[0] === 'object') {
-                      const clinic = clinics[0];
-                      // Add null check for clinic
-                      const clinicId = clinic?.id;
-                      if (clinicId) {
-                        localStorage.setItem('currentClinicId', String(clinicId));
-                        localStorage.setItem('clinicData', JSON.stringify(clinic));
-                      }
+                    const clinic = clinics[0];
+                    if (clinic && clinic.id) {
+                      localStorage.setItem('currentClinicId', String(clinic.id));
+                      localStorage.setItem('clinicData', JSON.stringify(clinic));
                     }
                   }
                   
@@ -168,14 +164,10 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 
                 // If no clinic is selected, select the first one
                 if (!localStorage.getItem('currentClinicId')) {
-                  if (clinics[0] && typeof clinics[0] === 'object') {
-                    const clinic = clinics[0];
-                    // Add null check for clinic
-                    const clinicId = clinic?.id;
-                    if (clinicId) {
-                      localStorage.setItem('currentClinicId', String(clinicId));
-                      localStorage.setItem('clinicData', JSON.stringify(clinic));
-                    }
+                  const clinic = clinics[0];
+                  if (clinic && clinic.id) {
+                    localStorage.setItem('currentClinicId', String(clinic.id));
+                    localStorage.setItem('clinicData', JSON.stringify(clinic));
                   }
                 }
                 
@@ -231,14 +223,10 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             localStorage.setItem('allClinics', JSON.stringify(clinics));
             
             // If no clinic is selected, select the first one
-            if (clinics[0] && typeof clinics[0] === 'object') {
-              const clinic = clinics[0];
-              // Add null check for clinic
-              const clinicId = clinic?.id;
-              if (clinicId) {
-                localStorage.setItem('currentClinicId', String(clinicId));
-                localStorage.setItem('clinicData', JSON.stringify(clinic));
-              }
+            const clinic = clinics[0];
+            if (clinic && clinic.id) {
+              localStorage.setItem('currentClinicId', String(clinic.id));
+              localStorage.setItem('clinicData', JSON.stringify(clinic));
             }
           }
         } catch (err) {

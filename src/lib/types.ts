@@ -1,3 +1,4 @@
+
 import { Database } from '@/integrations/supabase/types';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -221,7 +222,7 @@ export function isSupabaseError(obj: any): boolean {
 
 // Function to check if a result is a PostgrestError
 export function isPostgrestError(result: any): result is PostgrestError {
-  return result && typeof obj === 'object' && 'code' in result && 'message' in result;
+  return result && typeof result === 'object' && 'code' in result && 'message' in result;
 }
 
 // Define specific types for Supabase data filtering
