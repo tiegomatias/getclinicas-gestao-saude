@@ -1035,6 +1035,10 @@ export type Database = {
         Args: { clinic_uuid: string }
         Returns: boolean
       }
+      is_master_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       recalculate_bed_counters: {
         Args: { clinic_uuid: string }
         Returns: undefined
