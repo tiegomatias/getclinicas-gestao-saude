@@ -85,10 +85,11 @@ const BedManagementModal = ({ open, onOpenChange, bed, onUpdate }: BedManagement
     
     setIsLoading(true);
     try {
-      const updates: any = { patient_id: selectedPatient || null };
+      const patientId = selectedPatient === "none" ? null : selectedPatient;
+      const updates: any = { patient_id: patientId };
       
       // If assigning a patient, set status to occupied
-      if (selectedPatient) {
+      if (patientId) {
         updates.status = "occupied";
       } else if (bed.status === "occupied") {
         // If removing patient and bed was occupied, set to available
@@ -218,7 +219,7 @@ const BedManagementModal = ({ open, onOpenChange, bed, onUpdate }: BedManagement
                     <SelectValue placeholder="Selecione um paciente" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum paciente</SelectItem>
+                    <SelectItem value="none">Nenhum paciente</SelectItem>
                     {patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id}>
                         {patient.name}
