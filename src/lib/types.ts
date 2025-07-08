@@ -1,4 +1,3 @@
-
 import { Database } from '@/integrations/supabase/types';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -166,7 +165,7 @@ export interface Medication {
   updated_at?: string;
 }
 
-// Define type for Prescription specifically for form use
+// Define type for Prescription specifically for form use - aligned with MedicationPrescription
 export interface Prescription {
   id: string;
   medication_id: string;
@@ -183,7 +182,7 @@ export interface Prescription {
   dosage: string;
   frequency: string;
   start_date: string;
-  end_date?: string | null;
+  end_date?: string | null; // Made optional to match MedicationPrescription
   status: string;
   observations?: string | null;
 }
@@ -198,10 +197,10 @@ export function parseDbResult<T>(data: unknown): T[] {
 }
 
 // Helper function to safely cast database objects to application types
-export function safelyParseObject<T>(obj: any): T | null {
-  if (!obj) return null;
-  if (typeof obj === 'object' && !Array.isArray(obj) && obj !== null && !('error' in obj)) {
-    return obj as T;
+export function safelyParseObject<T>(data: any): T | null {
+  if (!data) return null;
+  if (typeof data === 'object' && !Array.isArray(data) && data !== null && !('error' in data)) {
+    return data as T;
   }
   return null;
 }
@@ -216,8 +215,8 @@ export function safelyParseArray<T>(arr: any): T[] {
 }
 
 // Type guard to check if an object is a Supabase error
-export function isSupabaseError(obj: any): boolean {
-  return obj && typeof obj === 'object' && 'error' in obj;
+export function isSupabaseError(data: any): boolean {
+  return data && typeof data === 'object' && 'error' in data;
 }
 
 // Function to check if a result is a PostgrestError

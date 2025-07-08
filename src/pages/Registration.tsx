@@ -56,7 +56,7 @@ const Registration = () => {
     try {
       console.log("Registrando usuário e clínica...");
       
-      // 1. Register the user using Supabase auth
+      // 1. Register the user using Supabase auth with proper error handling
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: adminEmail,
         password,
@@ -69,23 +69,33 @@ const Registration = () => {
       
       if (signUpError) {
         console.error("Erro ao registrar usuário:", signUpError);
+        
+        // Log detailed error information for debugging
         console.error("Erro detalhado:", {
-          message: signUpError.message,
-          status: signUpError.status,
+          message: signUpError.message || 'Erro desconhecido',
+          status: signUpError.status || 'N/A',
           code: signUpError.code || 'N/A'
         });
         
-        // Display user-friendly error messages
-        let errorMessage = signUpError.message;
+        // Display user-friendly error messages based on the actual error
+        let errorMessage = signUpError.message || 'Erro desconhecido';
         
-        if (signUpError.message.includes("User already registered")) {
-          errorMessage = "Este email já está cadastrado. Faça login ou use outro email.";
-        } else if (signUpError.message.includes("Password should be at least")) {
-          errorMessage = "A senha deve ter pelo menos 6 caracteres.";
-        } else if (signUpError.message.includes("Invalid email")) {
-          errorMessage = "Email inválido. Verifique o formato do email.";
-        } else if (signUpError.message.includes("signup is disabled")) {
-          errorMessage = "Cadastro desabilitado. Entre em contato com o suporte.";
+        if (signUpError.message) {
+          if (signUpError.message.includes("User already registered") || 
+              signUpError.message.includes("already been registered")) {
+            errorMessage = "Este email já está cadastrado. Faça login ou use outro email.";
+          } else if (signUpError.message.includes("Password should be at least")) {
+            errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+          } else if (signUpError.message.includes("Invalid email") || 
+                     signUpError.message.includes("email")) {
+            errorMessage = "Email inválido. Verifique o formato do email.";
+          } else if (signUpError.message.includes("signup is disabled")) {
+            errorMessage = "Cadastro desabilitado. Entre em contato com o suporte.";
+          } else if (signUpError.message.includes("Password is too weak")) {
+            errorMessage = "Senha muito fraca. Use uma senha mais forte.";
+          } else if (signUpError.message.includes("rate limit")) {
+            errorMessage = "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+          }
         }
         
         toast.error(`Erro ao registrar: ${errorMessage}`);
@@ -117,12 +127,18 @@ const Registration = () => {
       if (clinicError) {
         console.error("Erro ao criar clínica:", clinicError);
         console.error("Erro detalhado da clínica:", {
-          message: clinicError.message,
-          details: clinicError.details,
-          hint: clinicError.hint,
-          code: clinicError.code
+          message: clinicError.message || 'Erro desconhecido',
+          details: clinicError.details || 'N/A',
+          hint: clinicError.hint || 'N/A',
+          code: clinicError.code || 'N/A'
         });
-        toast.error(`Erro ao criar clínica: ${clinicError.message}`);
+        
+        let clinicErrorMessage = clinicError.message || 'Erro desconhecido ao criar clínica';
+        if (clinicError.message && clinicError.message.includes('duplicate key')) {
+          clinicErrorMessage = 'Já existe uma clínica com este nome ou email.';
+        }
+        
+        toast.error(`Erro ao criar clínica: ${clinicErrorMessage}`);
         throw clinicError;
       }
       
@@ -149,10 +165,10 @@ const Registration = () => {
       if (clinicUserError) {
         console.error("Erro ao associar usuário à clínica:", clinicUserError);
         console.error("Erro detalhado da associação:", {
-          message: clinicUserError.message,
-          details: clinicUserError.details,
-          hint: clinicUserError.hint,
-          code: clinicUserError.code
+          message: clinicUserError.message || 'Erro desconhecido',
+          details: clinicUserError.details || 'N/A',
+          hint: clinicUserError.hint || 'N/A',
+          code: clinicUserError.code || 'N/A'
         });
         // We continue even with error, administrator will be able to fix manually
         toast.warning("Usuário criado, mas houve um problema na associação à clínica");
@@ -180,8 +196,8 @@ const Registration = () => {
       if (loginError) {
         console.error("Erro ao fazer login automático:", loginError);
         console.error("Erro detalhado do login:", {
-          message: loginError.message,
-          status: loginError.status,
+          message: loginError.message || 'Erro desconhecido',
+          status: loginError.status || 'N/A',
           code: loginError.code || 'N/A'
         });
         
@@ -203,17 +219,30 @@ const Registration = () => {
     } catch (error: any) {
       console.error("Erro completo ao registrar:", error);
       
-      // Log the full error object for debugging
+      // Enhanced error logging to capture all error details
       if (error && typeof error === 'object') {
         console.error("Propriedades do erro:", Object.keys(error));
-        console.error("Erro serializado:", JSON.stringify(error, null, 2));
+        console.error("Mensagem do erro:", error.message || 'N/A');
+        console.error("Status do erro:", error.status || 'N/A');
+        console.error("Código do erro:", error.code || 'N/A');
+        console.error("Detalhes do erro:", error.details || 'N/A');
+        console.error("Dica do erro:", error.hint || 'N/A');
+        
+        try {
+          console.error("Erro serializado:", JSON.stringify(error, null, 2));
+        } catch (serializeError) {
+          console.error("Não foi possível serializar o erro:", serializeError);
+        }
       }
       
-      // Display error message if not already displayed
-      if (!error.message || error.message === "{}") {
+      // Only display error message if it hasn't been displayed already
+      if (error && error.message && !error.message.includes("Erro ao")) {
+        const displayMessage = error.message === "{}" || error.message === "" 
+          ? "Erro desconhecido ao registrar. Verifique os dados e tente novamente."
+          : `Erro ao registrar: ${error.message}`;
+        toast.error(displayMessage);
+      } else if (!error || !error.message) {
         toast.error("Erro desconhecido ao registrar. Tente novamente.");
-      } else if (!error.message.includes("Erro ao")) {
-        toast.error(`Erro ao registrar: ${error.message}`);
       }
     } finally {
       setLoading(false);
