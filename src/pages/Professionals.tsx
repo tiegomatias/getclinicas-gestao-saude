@@ -16,6 +16,7 @@ import ProfessionalList from "@/components/professionals/ProfessionalList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import EmptyState from "@/components/shared/EmptyState";
 import { clinicService } from "@/services/clinicService";
+import ProfessionalPermissions from "@/components/professionals/ProfessionalPermissions";
 
 export default function Professionals() {
   const [activeTab, setActiveTab] = useState("list");
@@ -152,27 +153,7 @@ export default function Professionals() {
           </Card>
         </TabsContent>
         <TabsContent value="access">
-          <Card>
-            <CardHeader>
-              <CardTitle>Controle de Acesso</CardTitle>
-              <CardDescription>
-                Gerencie permissões e níveis de acesso para cada tipo de profissional
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <p className="text-muted-foreground">
-                    Defina quais funcionalidades cada tipo de profissional pode acessar no sistema.
-                    Configure regras específicas para médicos, psicólogos, enfermeiros e equipe administrativa.
-                  </p>
-                </div>
-                <p className="text-muted-foreground">
-                  O controle de permissões estará disponível quando houver profissionais cadastrados.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <ProfessionalPermissions />
         </TabsContent>
       </Tabs>
     </div>

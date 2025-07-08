@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { professionalService } from "@/services/professionalService";
 
 const ProfessionalForm = () => {
   const { user } = useAuth();
@@ -49,7 +50,7 @@ const ProfessionalForm = () => {
       // Criar objeto do profissional
       const professionalData = {
         name,
-        role,
+        profession: role,
         specialization,
         license_number: licenseNumber,
         email,
@@ -59,33 +60,32 @@ const ProfessionalForm = () => {
         observations,
         clinic_id: clinicData.id,
         created_by: user?.id,
-        created_at: new Date().toISOString()
       };
       
-      // Simular inserção no banco de dados
-      setTimeout(() => {
-        // Salvar na localStorage para persistência temporária
-        const professionals = JSON.parse(localStorage.getItem("professionals") || "[]");
-        professionals.push(professionalData);
-        localStorage.setItem("professionals", JSON.stringify(professionals));
-        
-        toast.success("Profissional cadastrado com sucesso!");
-        setLoading(false);
-        
-        // Limpar formulário
-        setName('');
-        setRole('');
-        setSpecialization('');
-        setLicenseNumber('');
-        setEmail('');
-        setPhone('');
-        setBirthDate('');
-        setHasSystemAccess(false);
-        setObservations('');
-      }, 1000);
+      // Salvar no Supabase
+      const newProfessional = await professionalService.createProfessional(professionalData);
+      
+      // Criar permissões padrão se tem acesso ao sistema
+      if (hasSystemAccess) {
+        await professionalService.createDefaultPermissions(clinicData.id, newProfessional.id);
+      }
+      
+      toast.success("Profissional cadastrado com sucesso!");
+      
+      // Limpar formulário
+      setName('');
+      setRole('');
+      setSpecialization('');
+      setLicenseNumber('');
+      setEmail('');
+      setPhone('');
+      setBirthDate('');
+      setHasSystemAccess(false);
+      setObservations('');
       
     } catch (error: any) {
       toast.error(`Erro ao cadastrar profissional: ${error.message}`);
+    } finally {
       setLoading(false);
     }
   };

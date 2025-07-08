@@ -2,113 +2,126 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Professional } from "@/lib/types";
 
+export interface ProfessionalData {
+  name: string;
+  profession: string;
+  specialization?: string;
+  license_number?: string;
+  email?: string;
+  phone?: string;
+  birth_date?: string;
+  has_system_access: boolean;
+  observations?: string;
+  clinic_id: string;
+  created_by?: string;
+}
+
+export interface ProfessionalPermission {
+  id?: string;
+  clinic_id: string;
+  professional_id: string;
+  module_name: string;
+  can_read: boolean;
+  can_write: boolean;
+  can_delete: boolean;
+}
+
 export const professionalService = {
-  // Buscar todos os profissionais de uma clínica
-  async getClinicProfessionals(clinicId: string): Promise<Professional[]> {
+  async createProfessional(data: ProfessionalData) {
+    const { data: professional, error } = await supabase
+      .from('professionals')
+      .insert(data)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return professional;
+  },
+
+  async getProfessionalsByClinic(clinicId: string) {
     const { data, error } = await supabase
       .from('professionals')
       .select('*')
       .eq('clinic_id', clinicId)
+      .eq('status', 'active')
       .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error(`Erro ao buscar profissionais da clínica ${clinicId}:`, error);
-      throw error;
-    }
-    
+
+    if (error) throw error;
     return data || [];
   },
-  
-  // Buscar um profissional específico
-  async getProfessionalById(id: string): Promise<Professional | null> {
+
+  async updateProfessional(id: string, data: Partial<ProfessionalData>) {
+    const { data: professional, error } = await supabase
+      .from('professionals')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return professional;
+  },
+
+  async deleteProfessional(id: string) {
+    const { error } = await supabase
+      .from('professionals')
+      .update({ status: 'inactive' })
+      .eq('id', id);
+
+    if (error) throw error;
+  },
+
+  async getProfessionalsWithSystemAccess(clinicId: string) {
     const { data, error } = await supabase
       .from('professionals')
       .select('*')
-      .eq('id', id)
-      .single();
-      
-    if (error) {
-      console.error(`Erro ao buscar profissional com ID ${id}:`, error);
-      throw error;
-    }
-    
-    return data;
+      .eq('clinic_id', clinicId)
+      .eq('has_system_access', true)
+      .eq('status', 'active')
+      .order('name');
+
+    if (error) throw error;
+    return data || [];
   },
-  
-  // Criar um novo profissional
-  async createProfessional(professionalData: Partial<Professional>): Promise<Professional> {
-    // Garantir que os campos obrigatórios estejam presentes
-    if (!professionalData.name) {
-      throw new Error("O nome do profissional é obrigatório");
-    }
-    
-    if (!professionalData.profession) {
-      throw new Error("A profissão é obrigatória");
-    }
-    
-    // Definir status padrão se não for fornecido
-    if (!professionalData.status) {
-      professionalData.status = 'active';
-    }
-    
-    // Criar um objeto que satisfaz os requisitos de tipo do Supabase
-    const professionalToInsert = {
-      name: professionalData.name,
-      profession: professionalData.profession,
-      clinic_id: professionalData.clinic_id,
-      license: professionalData.license,
-      email: professionalData.email,
-      phone: professionalData.phone,
-      status: professionalData.status
-    };
-    
+
+  async getPermissions(clinicId: string, professionalId: string) {
     const { data, error } = await supabase
-      .from('professionals')
-      .insert(professionalToInsert)
-      .select();
-      
-    if (error) {
-      console.error("Erro ao criar profissional:", error);
-      throw error;
-    }
-    
-    if (!data || data.length === 0) {
-      throw new Error("No data returned after creating professional");
-    }
-    
-    return data[0];
+      .from('professional_permissions')
+      .select('*')
+      .eq('clinic_id', clinicId)
+      .eq('professional_id', professionalId);
+
+    if (error) throw error;
+    return data || [];
   },
-  
-  // Atualizar um profissional existente
-  async updateProfessional(id: string, professionalData: Partial<Professional>): Promise<Professional> {
-    const { data, error } = await supabase
-      .from('professionals')
-      .update(professionalData)
-      .eq('id', id)
-      .select();
-      
-    if (error) {
-      console.error(`Erro ao atualizar profissional com ID ${id}:`, error);
-      throw error;
-    }
-    
-    if (!data || data.length === 0) {
-      throw new Error("No data returned after updating professional");
-    }
-    
-    return data[0];
-  },
-  
-  // Excluir um profissional
-  async deleteProfessional(id: string): Promise<void> {
+
+  async updatePermissions(permissions: ProfessionalPermission[]) {
     const { error } = await supabase
-      .from('professionals')
-      .delete()
-      .eq('id', id);
-      
-    if (error) {
-      console.error(`Erro ao excluir profissional com ID ${id}:`, error);
-      throw error;
-    }
+      .from('professional_permissions')
+      .upsert(permissions);
+
+    if (error) throw error;
+  },
+
+  async createDefaultPermissions(clinicId: string, professionalId: string) {
+    const modules = [
+      'patients', 'beds', 'calendar', 'medications', 
+      'documents', 'contracts', 'reports', 'settings'
+    ];
+
+    const defaultPermissions = modules.map(module => ({
+      clinic_id: clinicId,
+      professional_id: professionalId,
+      module_name: module,
+      can_read: true,
+      can_write: false,
+      can_delete: false
+    }));
+
+    const { error } = await supabase
+      .from('professional_permissions')
+      .insert(defaultPermissions);
+
+    if (error) throw error;
   }
 };

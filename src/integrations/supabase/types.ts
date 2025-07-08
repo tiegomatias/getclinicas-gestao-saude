@@ -1205,38 +1205,100 @@ export type Database = {
           },
         ]
       }
+      professional_permissions: {
+        Row: {
+          can_delete: boolean | null
+          can_read: boolean | null
+          can_write: boolean | null
+          clinic_id: string
+          created_at: string | null
+          id: string
+          module_name: string
+          professional_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          clinic_id: string
+          created_at?: string | null
+          id?: string
+          module_name: string
+          professional_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          clinic_id?: string
+          created_at?: string | null
+          id?: string
+          module_name?: string
+          professional_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_permissions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       professionals: {
         Row: {
+          birth_date: string | null
           clinic_id: string | null
           created_at: string | null
+          created_by: string | null
           email: string | null
+          has_system_access: boolean | null
           id: string
           license: string | null
+          license_number: string | null
           name: string
+          observations: string | null
           phone: string | null
           profession: string
+          specialization: string | null
           status: string
         }
         Insert: {
+          birth_date?: string | null
           clinic_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
+          has_system_access?: boolean | null
           id?: string
           license?: string | null
+          license_number?: string | null
           name: string
+          observations?: string | null
           phone?: string | null
           profession: string
+          specialization?: string | null
           status?: string
         }
         Update: {
+          birth_date?: string | null
           clinic_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
+          has_system_access?: boolean | null
           id?: string
           license?: string | null
+          license_number?: string | null
           name?: string
+          observations?: string | null
           phone?: string | null
           profession?: string
+          specialization?: string | null
           status?: string
         }
         Relationships: [

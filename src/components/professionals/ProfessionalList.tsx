@@ -5,15 +5,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Eye, Edit, Trash2, Key } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { professionalService } from "@/services/professionalService";
 
 interface Professional {
+  id: string;
   name: string;
-  role: string;
-  specialization: string;
-  license_number: string;
-  email: string;
-  phone: string;
+  profession: string;
+  specialization?: string;
+  license_number?: string;
+  email?: string;
+  phone?: string;
   has_system_access: boolean;
+  status: string;
 }
 
 const ProfessionalList = () => {
@@ -21,52 +24,23 @@ const ProfessionalList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Obter profissionais da localStorage
-    const fetchProfessionals = () => {
-      const savedProfessionals = localStorage.getItem("professionals");
-      if (savedProfessionals) {
-        try {
-          const parsedProfessionals = JSON.parse(savedProfessionals);
-          setProfessionals(parsedProfessionals);
-        } catch (error) {
-          console.error("Erro ao carregar profissionais:", error);
-          setProfessionals([]);
+    const fetchProfessionals = async () => {
+      try {
+        const clinicDataStr = localStorage.getItem("clinicData");
+        if (!clinicDataStr) {
+          setLoading(false);
+          return;
         }
-      } else {
-        // Dados de exemplo
-        const sampleProfessionals = [
-          {
-            name: "Dr. Rodrigo Almeida",
-            role: "doctor",
-            specialization: "Psiquiatria",
-            license_number: "CRM 54321/SP",
-            email: "dr.rodrigo@clinica.com",
-            phone: "(11) 98765-4321",
-            has_system_access: true
-          },
-          {
-            name: "Dra. Carla Rocha",
-            role: "psychologist",
-            specialization: "Terapia Cognitivo-Comportamental",
-            license_number: "CRP 12345/SP",
-            email: "carla.psi@clinica.com",
-            phone: "(11) 91234-5678",
-            has_system_access: true
-          },
-          {
-            name: "Enfermeira Lúcia Santos",
-            role: "nurse",
-            specialization: "Saúde Mental",
-            license_number: "COREN 98765/SP",
-            email: "lucia.enf@clinica.com",
-            phone: "(11) 99876-5432",
-            has_system_access: false
-          }
-        ];
-        setProfessionals(sampleProfessionals);
-        localStorage.setItem("professionals", JSON.stringify(sampleProfessionals));
+        
+        const clinicData = JSON.parse(clinicDataStr);
+        const data = await professionalService.getProfessionalsByClinic(clinicData.id);
+        setProfessionals(data);
+      } catch (error) {
+        console.error("Erro ao carregar profissionais:", error);
+        toast.error("Erro ao carregar profissionais");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
     fetchProfessionals();
@@ -94,26 +68,32 @@ const ProfessionalList = () => {
     toast.info(`Editando dados de ${name}`);
   };
 
-  const handleDeleteProfessional = (name: string) => {
-    // Remover profissional da lista
-    const updatedProfessionals = professionals.filter(prof => prof.name !== name);
-    setProfessionals(updatedProfessionals);
-    localStorage.setItem("professionals", JSON.stringify(updatedProfessionals));
-    toast.success(`Profissional ${name} removido com sucesso`);
+  const handleDeleteProfessional = async (professionalId: string, name: string) => {
+    try {
+      await professionalService.deleteProfessional(professionalId);
+      setProfessionals(professionals.filter(prof => prof.id !== professionalId));
+      toast.success(`Profissional ${name} removido com sucesso`);
+    } catch (error) {
+      toast.error("Erro ao remover profissional");
+    }
   };
 
-  const handleManageAccess = (name: string, hasAccess: boolean) => {
-    // Atualizar acesso do profissional
-    const updatedProfessionals = professionals.map(prof => {
-      if (prof.name === name) {
-        return { ...prof, has_system_access: !hasAccess };
-      }
-      return prof;
-    });
-    
-    setProfessionals(updatedProfessionals);
-    localStorage.setItem("professionals", JSON.stringify(updatedProfessionals));
-    toast.success(`Acesso ${!hasAccess ? "concedido" : "revogado"} para ${name}`);
+  const handleManageAccess = async (professionalId: string, name: string, hasAccess: boolean) => {
+    try {
+      await professionalService.updateProfessional(professionalId, { 
+        has_system_access: !hasAccess 
+      });
+      
+      setProfessionals(professionals.map(prof => 
+        prof.id === professionalId 
+          ? { ...prof, has_system_access: !hasAccess }
+          : prof
+      ));
+      
+      toast.success(`Acesso ${!hasAccess ? "concedido" : "revogado"} para ${name}`);
+    } catch (error) {
+      toast.error("Erro ao atualizar acesso");
+    }
   };
 
   if (loading) {
@@ -144,7 +124,7 @@ const ProfessionalList = () => {
           professionals.map((professional, index) => (
             <TableRow key={index}>
               <TableCell className="font-medium">{professional.name}</TableCell>
-              <TableCell>{translateRole(professional.role)}</TableCell>
+              <TableCell>{translateRole(professional.profession)}</TableCell>
               <TableCell>{professional.specialization || "-"}</TableCell>
               <TableCell>{professional.license_number || "-"}</TableCell>
               <TableCell>
@@ -174,14 +154,14 @@ const ProfessionalList = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => handleManageAccess(professional.name, professional.has_system_access)}
+                  onClick={() => handleManageAccess(professional.id, professional.name, professional.has_system_access)}
                 >
                   <Key className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => handleDeleteProfessional(professional.name)}
+                  onClick={() => handleDeleteProfessional(professional.id, professional.name)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
