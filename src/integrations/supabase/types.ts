@@ -176,6 +176,75 @@ export type Database = {
           },
         ]
       }
+      appointments: {
+        Row: {
+          appointment_type: string
+          clinic_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_time: string
+          id: string
+          location: string | null
+          notes: string | null
+          patient_id: string | null
+          professional_id: string | null
+          start_time: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_type: string
+          clinic_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          professional_id?: string | null
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_type?: string
+          clinic_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          professional_id?: string | null
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beds: {
         Row: {
           bed_number: string
@@ -227,6 +296,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      clinic_settings: {
+        Row: {
+          business_hours: Json | null
+          clinic_id: string
+          created_at: string
+          general_settings: Json | null
+          id: string
+          medication_settings: Json | null
+          notification_settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          business_hours?: Json | null
+          clinic_id: string
+          created_at?: string
+          general_settings?: Json | null
+          id?: string
+          medication_settings?: Json | null
+          notification_settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          business_hours?: Json | null
+          clinic_id?: string
+          created_at?: string
+          general_settings?: Json | null
+          id?: string
+          medication_settings?: Json | null
+          notification_settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       clinic_users: {
         Row: {
@@ -494,6 +596,179 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_bed_occupation"
             referencedColumns: ["clinic_id"]
+          },
+        ]
+      }
+      food_consumption: {
+        Row: {
+          clinic_id: string
+          consumption_date: string
+          consumption_time: string
+          created_at: string
+          food_items: Json
+          id: string
+          meal_type: string
+          notes: string | null
+          patient_id: string
+          recorded_by: string | null
+        }
+        Insert: {
+          clinic_id: string
+          consumption_date?: string
+          consumption_time?: string
+          created_at?: string
+          food_items: Json
+          id?: string
+          meal_type: string
+          notes?: string | null
+          patient_id: string
+          recorded_by?: string | null
+        }
+        Update: {
+          clinic_id?: string
+          consumption_date?: string
+          consumption_time?: string
+          created_at?: string
+          food_items?: Json
+          id?: string
+          meal_type?: string
+          notes?: string | null
+          patient_id?: string
+          recorded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_consumption_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_inventory: {
+        Row: {
+          category: string
+          clinic_id: string
+          cost_per_unit: number | null
+          created_at: string
+          created_by: string | null
+          expiration_date: string | null
+          id: string
+          minimum_stock: number | null
+          name: string
+          notes: string | null
+          status: string
+          stock: number
+          supplier: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          clinic_id: string
+          cost_per_unit?: number | null
+          created_at?: string
+          created_by?: string | null
+          expiration_date?: string | null
+          id?: string
+          minimum_stock?: number | null
+          name: string
+          notes?: string | null
+          status?: string
+          stock?: number
+          supplier?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          clinic_id?: string
+          cost_per_unit?: number | null
+          created_at?: string
+          created_by?: string | null
+          expiration_date?: string | null
+          id?: string
+          minimum_stock?: number | null
+          name?: string
+          notes?: string | null
+          status?: string
+          stock?: number
+          supplier?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      medical_records: {
+        Row: {
+          attachments: string[] | null
+          clinic_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          diagnosis: string | null
+          id: string
+          is_confidential: boolean | null
+          patient_id: string
+          professional_id: string | null
+          record_date: string
+          record_type: string
+          title: string
+          treatment_plan: string | null
+          updated_at: string
+          vital_signs: Json | null
+        }
+        Insert: {
+          attachments?: string[] | null
+          clinic_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          diagnosis?: string | null
+          id?: string
+          is_confidential?: boolean | null
+          patient_id: string
+          professional_id?: string | null
+          record_date?: string
+          record_type: string
+          title: string
+          treatment_plan?: string | null
+          updated_at?: string
+          vital_signs?: Json | null
+        }
+        Update: {
+          attachments?: string[] | null
+          clinic_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          diagnosis?: string | null
+          id?: string
+          is_confidential?: boolean | null
+          patient_id?: string
+          professional_id?: string | null
+          record_date?: string
+          record_type?: string
+          title?: string
+          treatment_plan?: string | null
+          updated_at?: string
+          vital_signs?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_records_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -966,6 +1241,89 @@ export type Database = {
           is_admin?: boolean | null
           name?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      shopping_list_items: {
+        Row: {
+          actual_cost: number | null
+          created_at: string
+          estimated_cost: number | null
+          food_item_name: string
+          id: string
+          notes: string | null
+          purchased: boolean | null
+          quantity: number
+          shopping_list_id: string
+          unit: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          created_at?: string
+          estimated_cost?: number | null
+          food_item_name: string
+          id?: string
+          notes?: string | null
+          purchased?: boolean | null
+          quantity: number
+          shopping_list_id: string
+          unit: string
+        }
+        Update: {
+          actual_cost?: number | null
+          created_at?: string
+          estimated_cost?: number | null
+          food_item_name?: string
+          id?: string
+          notes?: string | null
+          purchased?: boolean | null
+          quantity?: number
+          shopping_list_id?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_list_items_shopping_list_id_fkey"
+            columns: ["shopping_list_id"]
+            isOneToOne: false
+            referencedRelation: "shopping_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopping_lists: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          purchase_date: string | null
+          status: string
+          total_amount: number | null
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          purchase_date?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          purchase_date?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
