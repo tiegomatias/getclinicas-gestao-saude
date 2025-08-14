@@ -22,7 +22,9 @@ const ProfessionalForm = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [startDate, setStartDate] = useState('');
   const [hasSystemAccess, setHasSystemAccess] = useState(false);
+  const [initialPassword, setInitialPassword] = useState('');
   const [observations, setObservations] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,8 +33,14 @@ const ProfessionalForm = () => {
     
     try {
       // Validação básica
-      if (!name || !role) {
+      if (!name || !role || !startDate) {
         toast.error("Por favor, preencha os campos obrigatórios.");
+        setLoading(false);
+        return;
+      }
+      
+      if (hasSystemAccess && !initialPassword) {
+        toast.error("Por favor, defina uma senha inicial para o acesso ao sistema.");
         setLoading(false);
         return;
       }
@@ -56,7 +64,9 @@ const ProfessionalForm = () => {
         email,
         phone,
         birth_date: birthDate,
+        start_date: startDate,
         has_system_access: hasSystemAccess,
+        initial_password: hasSystemAccess && initialPassword ? initialPassword : undefined,
         observations,
         clinic_id: clinicData.id,
         created_by: user?.id,
@@ -80,7 +90,9 @@ const ProfessionalForm = () => {
       setEmail('');
       setPhone('');
       setBirthDate('');
+      setStartDate('');
       setHasSystemAccess(false);
+      setInitialPassword('');
       setObservations('');
       
     } catch (error: any) {
@@ -173,6 +185,17 @@ const ProfessionalForm = () => {
           />
         </div>
         
+        <div className="space-y-2">
+          <Label htmlFor="startDate">Data de Início *</Label>
+          <Input 
+            id="startDate" 
+            type="date" 
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            required
+          />
+        </div>
+        
         <div className="flex items-center justify-between space-y-0 pt-4">
           <div className="space-y-0.5">
             <Label htmlFor="systemAccess">Acesso ao Sistema</Label>
@@ -186,6 +209,23 @@ const ProfessionalForm = () => {
             onCheckedChange={setHasSystemAccess}
           />
         </div>
+        
+        {hasSystemAccess && (
+          <div className="space-y-2 col-span-full">
+            <Label htmlFor="initialPassword">Senha Inicial *</Label>
+            <Input 
+              id="initialPassword" 
+              type="password" 
+              placeholder="Senha temporária para primeiro acesso"
+              value={initialPassword}
+              onChange={(e) => setInitialPassword(e.target.value)}
+              required={hasSystemAccess}
+            />
+            <p className="text-sm text-muted-foreground">
+              O profissional será obrigado a alterar esta senha no primeiro login.
+            </p>
+          </div>
+        )}
       </div>
       
       <div className="space-y-2">

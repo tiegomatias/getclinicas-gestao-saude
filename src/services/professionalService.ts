@@ -10,7 +10,9 @@ export interface ProfessionalData {
   email?: string;
   phone?: string;
   birth_date?: string;
+  start_date?: string;
   has_system_access: boolean;
+  initial_password?: string;
   observations?: string;
   clinic_id: string;
   created_by?: string;
