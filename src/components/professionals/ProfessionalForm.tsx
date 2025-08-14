@@ -19,13 +19,36 @@ const ProfessionalForm = () => {
   const [role, setRole] = useState('');
   const [specialization, setSpecialization] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
-  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [startDate, setStartDate] = useState('');
   const [hasSystemAccess, setHasSystemAccess] = useState(false);
-  const [initialPassword, setInitialPassword] = useState('');
   const [observations, setObservations] = useState('');
+
+  // Função para gerar email automático
+  const generateEmail = (name: string, clinicName: string) => {
+    const cleanName = name.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/\s+/g, '.'); // Substitui espaços por pontos
+    
+    const cleanClinicName = clinicName.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '');
+    
+    return `${cleanName}@${cleanClinicName}.com`;
+  };
+
+  // Função para gerar senha inicial
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,12 +58,6 @@ const ProfessionalForm = () => {
       // Validação básica
       if (!name || !role || !startDate) {
         toast.error("Por favor, preencha os campos obrigatórios.");
-        setLoading(false);
-        return;
-      }
-      
-      if (hasSystemAccess && !initialPassword) {
-        toast.error("Por favor, defina uma senha inicial para o acesso ao sistema.");
         setLoading(false);
         return;
       }
@@ -55,18 +72,22 @@ const ProfessionalForm = () => {
       
       const clinicData = JSON.parse(clinicDataStr);
       
+      // Gerar email e senha automaticamente
+      const generatedEmail = generateEmail(name, clinicData.name);
+      const generatedPassword = hasSystemAccess ? generatePassword() : undefined;
+      
       // Criar objeto do profissional
       const professionalData = {
         name,
         profession: role,
         specialization,
         license_number: licenseNumber,
-        email,
+        email: generatedEmail,
         phone,
         birth_date: birthDate,
         start_date: startDate,
         has_system_access: hasSystemAccess,
-        initial_password: hasSystemAccess && initialPassword ? initialPassword : undefined,
+        initial_password: generatedPassword,
         observations,
         clinic_id: clinicData.id,
         created_by: user?.id,
@@ -87,13 +108,22 @@ const ProfessionalForm = () => {
       setRole('');
       setSpecialization('');
       setLicenseNumber('');
-      setEmail('');
       setPhone('');
       setBirthDate('');
       setStartDate('');
       setHasSystemAccess(false);
-      setInitialPassword('');
       setObservations('');
+      
+      // Mostrar email e senha gerados
+      if (hasSystemAccess && generatedPassword) {
+        toast.success(`Email: ${generatedEmail}\nSenha inicial: ${generatedPassword}`, {
+          duration: 10000,
+        });
+      } else {
+        toast.success(`Email gerado: ${generatedEmail}`, {
+          duration: 5000,
+        });
+      }
       
     } catch (error: any) {
       toast.error(`Erro ao cadastrar profissional: ${error.message}`);
@@ -156,13 +186,11 @@ const ProfessionalForm = () => {
         
         <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="exemplo@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <div className="p-3 bg-muted rounded-md">
+            <p className="text-sm text-muted-foreground">
+              O e-mail será gerado automaticamente após o cadastro
+            </p>
+          </div>
         </div>
         
         <div className="space-y-2">
@@ -212,18 +240,12 @@ const ProfessionalForm = () => {
         
         {hasSystemAccess && (
           <div className="space-y-2 col-span-full">
-            <Label htmlFor="initialPassword">Senha Inicial *</Label>
-            <Input 
-              id="initialPassword" 
-              type="password" 
-              placeholder="Senha temporária para primeiro acesso"
-              value={initialPassword}
-              onChange={(e) => setInitialPassword(e.target.value)}
-              required={hasSystemAccess}
-            />
-            <p className="text-sm text-muted-foreground">
-              O profissional será obrigado a alterar esta senha no primeiro login.
-            </p>
+            <Label htmlFor="initialPassword">Senha Inicial</Label>
+            <div className="p-3 bg-muted rounded-md">
+              <p className="text-sm text-muted-foreground">
+                A senha inicial será gerada automaticamente após o cadastro. O profissional será obrigado a alterar esta senha no primeiro login.
+              </p>
+            </div>
           </div>
         )}
       </div>
