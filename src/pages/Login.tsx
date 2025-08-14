@@ -48,11 +48,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { signIn, isAuthenticated, loading: authLoading } = useAuth();
   
-  // Se o usuário já está autenticado, redirecione
+  // Se o usuário já está autenticado, redirecione DIRETAMENTE para dashboard
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      console.log("User already authenticated, redirecting from login page");
-      navigate("/");
+      console.log("User already authenticated, redirecting to dashboard");
+      // Redirecionar diretamente para evitar loop
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate, authLoading]);
   

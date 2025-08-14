@@ -44,8 +44,9 @@ const Index = () => {
             navigate("/login");
           }
         } else {
-          console.log("No clinic data found, redirecting to /home");
-          navigate("/home");
+          console.log("No clinic data found, user authenticated but no clinic - staying on home");
+          // Se está autenticado mas sem clínica, vai para home mas SEM redirecionamento
+          navigate("/home", { replace: true });
         }
       }
     } else {

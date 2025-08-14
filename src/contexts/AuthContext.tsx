@@ -93,11 +93,11 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                     }
                   }
                   
-                  // Redirect the user after authentication if on the login page
-                  if (location.pathname === '/login') {
-                    console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
-                    navigate(isMaster ? '/master' : '/dashboard');
-                  }
+                // Redirect the user after authentication if on the login page
+                if (location.pathname === '/login') {
+                  console.log("Redirecting after auth state change to", isMaster ? '/master' : '/dashboard');
+                  navigate(isMaster ? '/master' : '/dashboard', { replace: true });
+                }
                 }
               } catch (err) {
                 console.error("Error processing clinics data:", err);
@@ -174,7 +174,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 // Redirect the user after loading session if on the login page
                 if (location.pathname === '/login') {
                   console.log("Redirecting after getting session to", isMaster ? '/master' : '/dashboard');
-                  navigate(isMaster ? '/master' : '/dashboard');
+                  navigate(isMaster ? '/master' : '/dashboard', { replace: true });
                 }
               }
             } catch (err) {
@@ -245,10 +245,10 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             setIsMasterAdmin(true);
             localStorage.setItem('isMasterAdmin', 'true');
             console.log("Redirecting master admin to /master");
-            navigate('/master');
+            navigate('/master', { replace: true });
           } else {
             console.log("Redirecting regular user to /dashboard");
-            navigate('/dashboard');
+            navigate('/dashboard', { replace: true });
           }
         } catch (err) {
           console.error("Error checking master admin role:", err);
