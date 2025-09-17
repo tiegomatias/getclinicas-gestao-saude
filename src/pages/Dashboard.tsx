@@ -86,7 +86,7 @@ export default function Dashboard() {
               <SelectItem value="year">Este ano</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => handleNavigate("/relatorios")}>
             <CalendarIcon className="mr-2 h-4 w-4" />
             Exportar relatório
           </Button>
