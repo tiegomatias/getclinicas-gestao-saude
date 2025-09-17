@@ -46,32 +46,52 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, isAuthenticated, loading: authLoading } = useAuth();
+  const { signIn, isAuthenticated, loading: authLoading, isMasterAdmin } = useAuth();
   
-  // Se o usuário já está autenticado, redirecione DIRETAMENTE para dashboard
+  // Redirect authenticated users
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      console.log("User already authenticated, redirecting to dashboard");
-      // Redirecionar diretamente para evitar loop
-      navigate("/dashboard", { replace: true });
+      console.log("User already authenticated, redirecting");
+      const isProfessional = localStorage.getItem('isProfessional') === 'true';
+      
+      if (isMasterAdmin) {
+        navigate("/master", { replace: true });
+      } else if (isProfessional) {
+        navigate("/professional-dashboard", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate, authLoading]);
+  }, [isAuthenticated, navigate, authLoading, isMasterAdmin]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (loading || authLoading) return;
+    
     setLoading(true);
     
     try {
       console.log("Attempting login with:", email);
       await signIn(email, password);
-      // A navegação é manipulada na função signIn
     } catch (error) {
       console.error("Login error:", error);
-      // O tratamento de erro é feito na função signIn
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-getclinicas-primary mx-auto mb-4"></div>
+          <p>Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white flex flex-col items-center pt-4 md:pt-0 md:justify-center p-4">

@@ -127,18 +127,6 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                       localStorage.setItem('clinicData', JSON.stringify(clinic));
                     }
                   }
-                  
-                  // Redirect the user after authentication if on the login page
-                  if (location.pathname === '/login') {
-                    let redirectPath = '/dashboard';
-                    if (isMaster) {
-                      redirectPath = '/master';
-                    } else if (isProfessional) {
-                      redirectPath = '/professional-dashboard';
-                    }
-                    console.log("Redirecting after auth state change to", redirectPath);
-                    navigate(redirectPath, { replace: true });
-                  }
                 }
               } catch (err) {
                 console.error("Error processing clinics data:", err);
@@ -157,6 +145,9 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           localStorage.removeItem('currentClinicId');
           localStorage.removeItem('clinicData');
           localStorage.removeItem('allClinics');
+          localStorage.removeItem('isProfessional');
+          localStorage.removeItem('professionalData');
+          setIsMasterAdmin(false);
           setLoading(false);
         }
       }
@@ -165,113 +156,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       console.log("Got existing session:", currentSession ? "yes" : "no");
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
       
-      if (currentSession?.user) {
-        // Check if user is master admin on initial load
-        const checkMasterAdminStatus = async () => {
-          try {
-            const { data, error } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', currentSession.user.id as any)
-              .eq('role', 'master_admin' as any);
-            
-            if (error) {
-              console.error("Error checking master admin status:", error);
-              return;
-            }
-            
-            const isMaster = !!data && data.length > 0;
-            setIsMasterAdmin(isMaster);
-            
-            if (isMaster) {
-              localStorage.setItem('isMasterAdmin', 'true');
-            }
-            
-            // Load user's clinics and professional data (session check)
-            try {
-              let clinics = [];
-              let isProfessional = false;
-              let professionalData = null;
-              
-              // First, check if user is clinic admin
-              const { data: adminClinics, error: clinicsError } = await supabase
-                .from('clinics')
-                .select('*')
-                .eq('admin_id', currentSession.user.id as any);
-                
-              if (clinicsError) {
-                console.error("Error fetching admin clinics:", clinicsError);
-              } else if (adminClinics && Array.isArray(adminClinics) && adminClinics.length > 0) {
-                clinics = adminClinics;
-              } else {
-                // If not admin, check if user is a professional
-                const { data: professionalClinics, error: profError } = await supabase
-                  .from('clinic_users')
-                  .select('clinic:clinics(*), role')
-                  .eq('user_id', currentSession.user.id as any);
-                  
-                if (profError) {
-                  console.error("Error fetching professional clinics:", profError);
-                } else if (professionalClinics && Array.isArray(professionalClinics) && professionalClinics.length > 0) {
-                  isProfessional = true;
-                  clinics = professionalClinics.map(pc => pc.clinic).filter(Boolean);
-                  
-                  // Get professional data
-                  const { data: professional, error: professionalError } = await supabase
-                    .from('professionals')
-                    .select('*')
-                    .eq('email', currentSession.user.email)
-                    .single();
-                    
-                  if (!professionalError && professional) {
-                    professionalData = professional;
-                    localStorage.setItem('professionalData', JSON.stringify(professional));
-                  }
-                }
-              }
-              
-              if (clinics.length > 0) {
-                // Safely store clinic data
-                localStorage.setItem('allClinics', JSON.stringify(clinics));
-                localStorage.setItem('isProfessional', String(isProfessional));
-                
-                // If no clinic is selected, select the first one
-                if (!localStorage.getItem('currentClinicId')) {
-                  const clinic = clinics[0];
-                  if (clinic && clinic.id) {
-                    localStorage.setItem('currentClinicId', String(clinic.id));
-                    localStorage.setItem('clinicData', JSON.stringify(clinic));
-                  }
-                }
-                
-                // Redirect the user after loading session if on the login page
-                if (location.pathname === '/login') {
-                  let redirectPath = '/dashboard';
-                  if (isMaster) {
-                    redirectPath = '/master';
-                  } else if (isProfessional) {
-                    redirectPath = '/professional-dashboard';
-                  }
-                  console.log("Redirecting after getting session to", redirectPath);
-                  navigate(redirectPath, { replace: true });
-                }
-              }
-            } catch (err) {
-              console.error("Error processing clinics data:", err);
-            } finally {
-              setLoading(false);
-            }
-          } catch (err) {
-            console.error("Error checking master admin status:", err);
-            setLoading(false);
-          }
-        };
-        
-        checkMasterAdminStatus();
-      } else {
+      if (!currentSession) {
         setLoading(false);
       }
     });
@@ -279,11 +165,13 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, location.pathname]);
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log("Starting sign in process");
+      
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
@@ -350,7 +238,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           console.error("Error processing clinics data:", err);
         }
         
-        // Check if user is master admin
+        // Check if user is master admin and redirect accordingly
         try {
           const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
@@ -372,13 +260,14 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           }
         } catch (err) {
           console.error("Error checking master admin role:", err);
-          navigate(isProfessional ? '/professional-dashboard' : '/dashboard');
+          navigate(isProfessional ? '/professional-dashboard' : '/dashboard', { replace: true });
         }
         
         toast.success("Login realizado com sucesso!");
       }
     } catch (error: any) {
-      toast.error(`Erro ao fazer login: ${error.message || 'Tente novamente'}`);
+      console.error("Login error:", error);
+      toast.error(`Erro ao fazer login: ${error.message || 'Credenciais inválidas'}`);
     } finally {
       setLoading(false);
     }
@@ -413,12 +302,14 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       localStorage.removeItem('currentClinicId');
       localStorage.removeItem('clinicData');
       localStorage.removeItem('allClinics');
+      localStorage.removeItem('isProfessional');
+      localStorage.removeItem('professionalData');
       
       setUser(null);
       setSession(null);
       setIsMasterAdmin(false);
       
-      navigate('/login');
+      navigate('/login', { replace: true });
       toast.success("Logout realizado com sucesso!");
     } catch (error: any) {
       toast.error(`Erro ao fazer logout: ${error.message}`);
