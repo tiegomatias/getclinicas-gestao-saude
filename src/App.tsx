@@ -37,7 +37,6 @@ import { Toaster } from "sonner";
 import Alimentacao from "./pages/Alimentacao";
 import Dispensa from "./pages/Alimentacao/Dispensa";
 import Supermercado from "./pages/Alimentacao/Supermercado";
-import DemoPage from "./pages/DemoPage";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 
 const queryClient = new QueryClient();
