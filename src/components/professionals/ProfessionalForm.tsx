@@ -10,7 +10,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { professionalService } from "@/services/professionalService";
 
-const ProfessionalForm = () => {
+interface ProfessionalFormProps {
+  onComplete?: () => void;
+}
+
+const ProfessionalForm = ({ onComplete }: ProfessionalFormProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   
@@ -122,6 +126,11 @@ const ProfessionalForm = () => {
       setHasSystemAccess(false);
       setInitialPassword('');
       setObservations('');
+      
+      // Notify parent component
+      if (onComplete) {
+        onComplete();
+      }
       
     } catch (error: any) {
       toast.error(`Erro ao cadastrar profissional: ${error.message}`);

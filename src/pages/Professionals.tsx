@@ -149,8 +149,7 @@ export default function Professionals() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Removed the onComplete prop that was causing the TypeScript error */}
-              <ProfessionalForm />
+              <ProfessionalForm onComplete={handleFormComplete} />
             </CardContent>
           </Card>
         </TabsContent>

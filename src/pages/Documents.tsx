@@ -122,8 +122,7 @@ export default function Documents() {
               <CardTitle>Enviar Novo Documento</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Removed the onComplete prop that was causing the TypeScript error */}
-              <DocumentUpload />
+              <DocumentUpload onComplete={handleUploadComplete} />
             </CardContent>
           </Card>
         </TabsContent>

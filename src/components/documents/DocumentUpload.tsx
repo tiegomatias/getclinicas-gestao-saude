@@ -23,7 +23,11 @@ import { Upload, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
-export default function DocumentUpload() {
+interface DocumentUploadProps {
+  onComplete?: () => void;
+}
+
+export default function DocumentUpload({ onComplete }: DocumentUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -57,6 +61,11 @@ export default function DocumentUpload() {
       toast.success("Documento enviado com sucesso!");
       form.reset();
       setSelectedFile(null);
+      
+      // Notify parent component
+      if (onComplete) {
+        onComplete();
+      }
     }, 2000);
   };
 
