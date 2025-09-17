@@ -68,15 +68,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
           {clinicData ? 
             `Bem-vindo à ${clinicData.clinicName || (clinicData as any).clinic_name || 'sua clínica'}` : 
             "Bem-vindo ao GetClinicas"}
         </h1>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Select defaultValue="current">
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
@@ -86,66 +86,67 @@ export default function Dashboard() {
               <SelectItem value="year">Este ano</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={() => handleNavigate("/relatorios")}>
+          <Button variant="outline" onClick={() => handleNavigate("/relatorios")} className="whitespace-nowrap">
             <CalendarIcon className="mr-2 h-4 w-4" />
-            Exportar relatório
+            <span className="hidden sm:inline">Exportar relatório</span>
+            <span className="sm:hidden">Relatório</span>
           </Button>
         </div>
       </div>
 
       {clinicData && (
-        <div className="mb-6 bg-blue-50 p-4 rounded-lg">
-          <div className="flex items-center gap-2">
+        <div className="mb-6 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2 mb-3">
             <Building className="h-5 w-5 text-blue-500" />
-            <h2 className="font-medium text-blue-700">Informações da clínica</h2>
+            <h2 className="font-medium text-blue-700 dark:text-blue-300">Informações da clínica</h2>
           </div>
-          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <p className="text-sm text-blue-600">Plano</p>
-              <p className="font-medium">{clinicData.plan}</p>
+              <p className="text-sm text-blue-600 dark:text-blue-400">Plano</p>
+              <p className="font-medium text-blue-900 dark:text-blue-100">{clinicData.plan}</p>
             </div>
             <div>
-              <p className="text-sm text-blue-600">Data de registro</p>
-              <p className="font-medium">{formatDate(clinicData.createdAt)}</p>
+              <p className="text-sm text-blue-600 dark:text-blue-400">Data de registro</p>
+              <p className="font-medium text-blue-900 dark:text-blue-100">{formatDate(clinicData.createdAt)}</p>
             </div>
-            <div>
-              <p className="text-sm text-blue-600">ID da Clínica</p>
-              <p className="font-medium text-xs">{clinicData.id}</p>
+            <div className="sm:col-span-2 lg:col-span-1">
+              <p className="text-sm text-blue-600 dark:text-blue-400">ID da Clínica</p>
+              <p className="font-medium text-xs text-blue-900 dark:text-blue-100 break-all">{clinicData.id}</p>
             </div>
           </div>
         </div>
       )}
 
       {isNewClinic && (
-        <div className="mb-6 bg-green-50 p-4 rounded-lg border border-green-200">
-          <h2 className="font-medium text-green-700 mb-2">Parabéns pelo cadastro!</h2>
-          <p className="text-green-600 mb-3">
+        <div className="mb-6 bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+          <h2 className="font-medium text-green-700 dark:text-green-300 mb-2">Parabéns pelo cadastro!</h2>
+          <p className="text-green-600 dark:text-green-400 mb-4">
             Sua clínica está pronta para começar a usar o sistema. Para começar:
           </p>
-          <div className="grid md:grid-cols-3 gap-4 mt-2">
-            <Card className="bg-white cursor-pointer hover:bg-green-50/50 transition-colors" onClick={() => handleNavigate("/pacientes")}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card className="bg-white dark:bg-gray-900 cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/30 transition-colors" onClick={() => handleNavigate("/pacientes")}>
               <CardContent className="p-4 flex items-center gap-3">
-                <UserIcon className="h-5 w-5 text-green-600" />
+                <UserIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
                 <div>
-                  <h3 className="font-medium">Adicionar pacientes</h3>
+                  <h3 className="font-medium text-sm">Adicionar pacientes</h3>
                   <p className="text-xs text-muted-foreground">Cadastre os pacientes da clínica</p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white cursor-pointer hover:bg-green-50/50 transition-colors" onClick={() => handleNavigate("/leitos")}>
+            <Card className="bg-white dark:bg-gray-900 cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/30 transition-colors" onClick={() => handleNavigate("/leitos")}>
               <CardContent className="p-4 flex items-center gap-3">
-                <Bed className="h-5 w-5 text-green-600" />
+                <Bed className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
                 <div>
-                  <h3 className="font-medium">Configurar leitos</h3>
+                  <h3 className="font-medium text-sm">Configurar leitos</h3>
                   <p className="text-xs text-muted-foreground">Organize os leitos disponíveis</p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white cursor-pointer hover:bg-green-50/50 transition-colors" onClick={() => handleNavigate("/medicamentos")}>
+            <Card className="bg-white dark:bg-gray-900 cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/30 transition-colors sm:col-span-2 lg:col-span-1" onClick={() => handleNavigate("/medicamentos")}>
               <CardContent className="p-4 flex items-center gap-3">
-                <Users className="h-5 w-5 text-green-600" />
+                <Users className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
                 <div>
-                  <h3 className="font-medium">Cadastrar medicamentos</h3>
+                  <h3 className="font-medium text-sm">Cadastrar medicamentos</h3>
                   <p className="text-xs text-muted-foreground">Adicione medicamentos ao estoque</p>
                 </div>
               </CardContent>
@@ -241,9 +242,11 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <WeeklyActivities />
-        <div className="lg:col-span-2">
+      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="lg:col-span-1 xl:col-span-1">
+          <WeeklyActivities />
+        </div>
+        <div className="lg:col-span-1 xl:col-span-2">
           <RecentAdmissions />
         </div>
       </div>

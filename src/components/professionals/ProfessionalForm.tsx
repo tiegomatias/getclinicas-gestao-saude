@@ -132,7 +132,7 @@ const ProfessionalForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nome Completo *</Label>
           <Input 
@@ -230,22 +230,24 @@ const ProfessionalForm = () => {
           />
         </div>
         
-        <div className="flex items-center justify-between space-y-0 pt-4">
-          <div className="space-y-0.5">
-            <Label htmlFor="systemAccess">Acesso ao Sistema</Label>
-            <p className="text-sm text-muted-foreground">
-              Permitir que este profissional acesse o sistema
-            </p>
+        <div className="lg:col-span-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 p-4 border rounded-lg">
+            <div className="space-y-0.5">
+              <Label htmlFor="systemAccess">Acesso ao Sistema</Label>
+              <p className="text-sm text-muted-foreground">
+                Permitir que este profissional acesse o sistema
+              </p>
+            </div>
+            <Switch 
+              id="systemAccess" 
+              checked={hasSystemAccess}
+              onCheckedChange={setHasSystemAccess}
+            />
           </div>
-          <Switch 
-            id="systemAccess" 
-            checked={hasSystemAccess}
-            onCheckedChange={setHasSystemAccess}
-          />
         </div>
         
         {hasSystemAccess && (
-          <div className="space-y-2 col-span-full">
+          <div className="space-y-2 lg:col-span-2">
             <Label htmlFor="initialPassword">Senha Inicial *</Label>
             <Input 
               id="initialPassword" 
@@ -255,12 +257,17 @@ const ProfessionalForm = () => {
               onChange={(e) => setInitialPassword(e.target.value)}
               required={hasSystemAccess}
             />
-            <p className="text-sm text-muted-foreground">
-              O profissional receberá as credenciais: <strong>Email:</strong> {email || 'não informado'} | <strong>Senha:</strong> {initialPassword || 'não informada'}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Uma conta será criada automaticamente no sistema para este profissional.
-            </p>
+            <div className="bg-muted/50 p-3 rounded-md space-y-1">
+              <p className="text-sm text-muted-foreground">
+                <strong>Credenciais que serão criadas:</strong>
+              </p>
+              <p className="text-sm">
+                <strong>Email:</strong> {email || 'não informado'} | <strong>Senha:</strong> {initialPassword || 'não informada'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Uma conta será criada automaticamente no sistema para este profissional.
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -273,16 +280,17 @@ const ProfessionalForm = () => {
           value={observations}
           onChange={(e) => setObservations(e.target.value)}
           rows={4}
+          className="resize-none"
         />
       </div>
       
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" type="button" onClick={() => {
+      <div className="flex flex-col sm:flex-row justify-end gap-2">
+        <Button variant="outline" type="button" className="w-full sm:w-auto" onClick={() => {
           toast.info("Operação cancelada");
         }}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
           {loading ? "Salvando..." : "Salvar Profissional"}
         </Button>
       </div>

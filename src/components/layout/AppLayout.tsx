@@ -34,7 +34,7 @@ export default function AppLayout() {
         <AppSidebar />
         <div className="flex-1">
           <AppHeader title={getTitle()} />
-          <main className="container mx-auto p-4 lg:p-6">
+          <main className="container mx-auto p-3 sm:p-4 lg:p-6 max-w-full">
             <Outlet />
           </main>
         </div>

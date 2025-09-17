@@ -65,44 +65,46 @@ export default function Professionals() {
             <Users />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Profissionais</h1>
+            <h1 className="text-xl md:text-2xl font-semibold tracking-tight">Profissionais</h1>
             <p className="text-sm text-muted-foreground">
               Gerenciamento de equipe e controle de acesso
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Buscar profissionais..."
-              className="w-full pl-8 md:w-[200px] lg:w-[300px]"
+              className="w-full pl-8 sm:w-[200px] lg:w-[300px]"
             />
           </div>
-          <Button onClick={handleNewProfessional}>
-            <Plus className="mr-2 h-4 w-4" /> Novo Profissional
+          <Button onClick={handleNewProfessional} className="whitespace-nowrap">
+            <Plus className="mr-2 h-4 w-4" /> 
+            <span className="hidden sm:inline">Novo Profissional</span>
+            <span className="sm:hidden">Novo</span>
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
-          <TabsTrigger value="list">Listagem</TabsTrigger>
-          <TabsTrigger value="register">Cadastro</TabsTrigger>
-          <TabsTrigger value="access">Permissões</TabsTrigger>
+          <TabsTrigger value="list" className="text-xs sm:text-sm">Listagem</TabsTrigger>
+          <TabsTrigger value="register" className="text-xs sm:text-sm">Cadastro</TabsTrigger>
+          <TabsTrigger value="access" className="text-xs sm:text-sm">Permissões</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <CardTitle>Lista de Profissionais</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Lista de Profissionais</CardTitle>
                 <CardDescription>Gerenciamento da equipe multidisciplinar</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Select defaultValue="all">
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-full sm:w-[150px]">
                     <SelectValue placeholder="Filtrar por cargo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -114,7 +116,7 @@ export default function Professionals() {
                     <SelectItem value="admin">Administrativo</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" className="sm:w-auto">
                   <Filter className="h-4 w-4" />
                 </Button>
               </div>

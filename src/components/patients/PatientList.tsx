@@ -136,62 +136,135 @@ const PatientList = ({ searchQuery = "" }: PatientListProps) => {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Nome</TableHead>
-          <TableHead>Data Nasc.</TableHead>
-          <TableHead>Gênero</TableHead>
-          <TableHead>Telefone</TableHead>
-          <TableHead>Responsável</TableHead>
-          <TableHead>Convênio</TableHead>
-          <TableHead className="text-right">Ações</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <div className="space-y-4">
+      {/* Mobile Cards View */}
+      <div className="block lg:hidden space-y-4">
         {filteredPatients.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={7} className="text-center py-4">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
               {searchQuery ? "Nenhum paciente encontrado para esta pesquisa." : "Nenhum paciente cadastrado."}
-            </TableCell>
-          </TableRow>
+            </p>
+          </div>
         ) : (
           filteredPatients.map((patient) => (
-            <TableRow key={patient.id}>
-              <TableCell className="font-medium">{patient.name}</TableCell>
-              <TableCell>{formatDate(patient.birth_date)}</TableCell>
-              <TableCell>{translateGender(patient.gender)}</TableCell>
-              <TableCell>{patient.phone || "-"}</TableCell>
-              <TableCell>{patient.responsible_name || "-"}</TableCell>
-              <TableCell>{patient.health_insurance || "-"}</TableCell>
-              <TableCell className="text-right space-x-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => handleViewPatient(patient.name)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => handleEditPatient(patient.name)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => handleDeletePatient(patient.id, patient.name)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
+            <div key={patient.id} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-lg">{patient.name}</h3>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleViewPatient(patient.name)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleEditPatient(patient.name)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleDeletePatient(patient.id, patient.name)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Data Nasc.</p>
+                  <p className="font-medium">{formatDate(patient.birth_date)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Gênero</p>
+                  <p className="font-medium">{translateGender(patient.gender)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Telefone</p>
+                  <p className="font-medium">{patient.phone || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Convênio</p>
+                  <p className="font-medium">{patient.health_insurance || "-"}</p>
+                </div>
+              </div>
+              
+              {patient.responsible_name && (
+                <div className="text-sm">
+                  <p className="text-muted-foreground">Responsável</p>
+                  <p className="font-medium">{patient.responsible_name}</p>
+                </div>
+              )}
+            </div>
           ))
         )}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden lg:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Data Nasc.</TableHead>
+              <TableHead>Gênero</TableHead>
+              <TableHead>Telefone</TableHead>
+              <TableHead>Responsável</TableHead>
+              <TableHead>Convênio</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredPatients.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  {searchQuery ? "Nenhum paciente encontrado para esta pesquisa." : "Nenhum paciente cadastrado."}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredPatients.map((patient) => (
+                <TableRow key={patient.id}>
+                  <TableCell className="font-medium">{patient.name}</TableCell>
+                  <TableCell>{formatDate(patient.birth_date)}</TableCell>
+                  <TableCell>{translateGender(patient.gender)}</TableCell>
+                  <TableCell>{patient.phone || "-"}</TableCell>
+                  <TableCell>{patient.responsible_name || "-"}</TableCell>
+                  <TableCell>{patient.health_insurance || "-"}</TableCell>
+                  <TableCell className="text-right space-x-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleViewPatient(patient.name)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleEditPatient(patient.name)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleDeletePatient(patient.id, patient.name)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 };
 
