@@ -69,12 +69,6 @@ function App() {
             <Route element={<AuthGuard />}>
               <Route element={<ProfessionalLayout />}>
                 <Route path="/professional-dashboard" element={<ProfessionalDashboard />} />
-                <Route path="/pacientes" element={<Patients />} />
-                <Route path="/agenda" element={<Calendar />} />
-                <Route path="/medicamentos" element={<Medications />} />
-                <Route path="/documentos" element={<Documents />} />
-                <Route path="/leitos" element={<Beds />} />
-                <Route path="/relatorios" element={<Relatorios />} />
               </Route>
             </Route>
 
@@ -82,12 +76,18 @@ function App() {
             <Route element={<AuthGuard />}>
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/pacientes" element={<Patients />} />
                 <Route path="/profissionais" element={<Professionals />} />
+                <Route path="/agenda" element={<Calendar />} />
+                <Route path="/leitos" element={<Beds />} />
+                <Route path="/medicamentos" element={<Medications />} />
+                <Route path="/documentos" element={<Documents />} />
+                <Route path="/contratos" element={<Contracts />} />
+                <Route path="/financeiro" element={<Financeiro />} />
+                <Route path="/relatorios" element={<Relatorios />} />
                 <Route path="/alimentacao" element={<Alimentacao />} />
                 <Route path="/alimentacao/dispensa" element={<Dispensa />} />
                 <Route path="/alimentacao/supermercado" element={<Supermercado />} />
-                <Route path="/contratos" element={<Contracts />} />
-                <Route path="/financeiro" element={<Financeiro />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
               </Route>
             </Route>
