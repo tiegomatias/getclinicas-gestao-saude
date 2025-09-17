@@ -15,65 +15,16 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import EmptyState from "@/components/shared/EmptyState";
 import { clinicService } from "@/services/clinicService";
 
-// Dados para o gráfico de atendimentos mensais
-const monthlyAppointments = [
-  { name: "Jan", value: 65 },
-  { name: "Fev", value: 59 },
-  { name: "Mar", value: 80 },
-  { name: "Abr", value: 81 },
-  { name: "Mai", value: 95 },
-  { name: "Jun", value: 87 },
-  { name: "Jul", value: 90 },
-  { name: "Ago", value: 105 },
-  { name: "Set", value: 95 },
-  { name: "Out", value: 110 },
-  { name: "Nov", value: 102 },
-  { name: "Dez", value: 98 },
-];
+// No demo data - charts will be empty until real data is available
+const monthlyAppointments: any[] = [];
 
-// Dados para o gráfico de tipos de atendimento
-const appointmentTypes = [
-  { name: "Consultas", value: 55 },
-  { name: "Exames", value: 25 },
-  { name: "Procedimentos", value: 15 },
-  { name: "Retornos", value: 5 },
-];
+// No demo data - pie chart will be empty
+const appointmentTypes: any[] = [];
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042"];
 
-// Lista de relatórios disponíveis
-const availableReports = [
-  { 
-    id: 1, 
-    title: "Relatório Financeiro Mensal", 
-    description: "Resumo de receitas, despesas e lucro", 
-    lastGenerated: "2025-04-28" 
-  },
-  { 
-    id: 2, 
-    title: "Ocupação de Leitos", 
-    description: "Taxa de ocupação e tempo médio de internação", 
-    lastGenerated: "2025-04-30" 
-  },
-  { 
-    id: 3, 
-    title: "Produtividade de Profissionais", 
-    description: "Quantidade de atendimentos por profissional", 
-    lastGenerated: "2025-04-25" 
-  },
-  { 
-    id: 4, 
-    title: "Perfil de Pacientes", 
-    description: "Dados demográficos e frequência de atendimentos", 
-    lastGenerated: "2025-04-22" 
-  },
-  { 
-    id: 5, 
-    title: "Estoque de Medicamentos", 
-    description: "Medicamentos com estoque baixo e consumo mensal", 
-    lastGenerated: "2025-04-29" 
-  },
-];
+// No demo data - reports list will be empty
+const availableReports: any[] = [];
 
 export default function Relatorios() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -168,23 +119,8 @@ export default function Relatorios() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={monthlyAppointments}
-                        margin={{
-                          top: 5,
-                          right: 30,
-                          left: 20,
-                          bottom: 5,
-                        }}
-                      >
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="value" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="h-[300px] flex items-center justify-center">
+                    <p className="text-muted-foreground">Sem dados de atendimentos para exibir</p>
                   </div>
                 </CardContent>
               </Card>
@@ -197,26 +133,8 @@ export default function Relatorios() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={appointmentTypes}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {appointmentTypes.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <div className="h-[300px] flex items-center justify-center">
+                    <p className="text-muted-foreground">Sem dados de tipos de atendimento para exibir</p>
                   </div>
                 </CardContent>
               </Card>
@@ -233,26 +151,26 @@ export default function Relatorios() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <div className="rounded-lg border border-gray-200 bg-card p-4 shadow-sm">
                     <p className="text-sm font-medium text-muted-foreground">Taxa de Ocupação de Leitos</p>
-                    <p className="mt-1 text-2xl font-bold text-card-foreground">78%</p>
-                    <p className="mt-1 text-xs text-emerald-600">↑ 5% vs. mês anterior</p>
+                    <p className="mt-1 text-2xl font-bold text-card-foreground">0%</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Sem dados disponíveis</p>
                   </div>
                   
                   <div className="rounded-lg border border-gray-200 bg-card p-4 shadow-sm">
                     <p className="text-sm font-medium text-muted-foreground">Tempo Médio de Espera</p>
-                    <p className="mt-1 text-2xl font-bold text-card-foreground">18 min</p>
-                    <p className="mt-1 text-xs text-emerald-600">↓ 3 min vs. mês anterior</p>
+                    <p className="mt-1 text-2xl font-bold text-card-foreground">0 min</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Sem dados disponíveis</p>
                   </div>
                   
                   <div className="rounded-lg border border-gray-200 bg-card p-4 shadow-sm">
                     <p className="text-sm font-medium text-muted-foreground">Satisfação do Paciente</p>
-                    <p className="mt-1 text-2xl font-bold text-card-foreground">4.8/5</p>
-                    <p className="mt-1 text-xs text-emerald-600">↑ 0.2 vs. mês anterior</p>
+                    <p className="mt-1 text-2xl font-bold text-card-foreground">0/5</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Sem dados disponíveis</p>
                   </div>
                   
                   <div className="rounded-lg border border-gray-200 bg-card p-4 shadow-sm">
                     <p className="text-sm font-medium text-muted-foreground">Taxa de Retorno</p>
-                    <p className="mt-1 text-2xl font-bold text-card-foreground">82%</p>
-                    <p className="mt-1 text-xs text-emerald-600">Estável vs. mês anterior</p>
+                    <p className="mt-1 text-2xl font-bold text-card-foreground">0%</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Sem dados disponíveis</p>
                   </div>
                 </div>
               </CardContent>
@@ -269,28 +187,12 @@ export default function Relatorios() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {availableReports.map((report) => (
-                    <div 
-                      key={report.id} 
-                      className="flex flex-col justify-between gap-2 rounded-lg border p-4 sm:flex-row sm:items-center"
-                    >
-                      <div>
-                        <h3 className="text-lg font-medium">{report.title}</h3>
-                        <p className="text-sm text-muted-foreground">{report.description}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Última geração: {report.lastGenerated}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <FileText className="mr-1 h-4 w-4" /> Visualizar
-                        </Button>
-                        <Button size="sm">
-                          <Download className="mr-1 h-4 w-4" /> Baixar
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Nenhum relatório disponível ainda.</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Os relatórios serão gerados automaticamente quando houver dados suficientes.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
