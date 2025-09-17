@@ -214,7 +214,7 @@ export function PrescriptionForm({
                 </SelectTrigger>
                 <SelectContent>
                   {patients.length === 0 ? (
-                    <SelectItem value="" disabled>Nenhum paciente encontrado</SelectItem>
+                    <SelectItem value="no-patients" disabled>Nenhum paciente encontrado</SelectItem>
                   ) : (
                     patients.map(patient => (
                       <SelectItem key={patient.id} value={patient.id}>
@@ -241,7 +241,7 @@ export function PrescriptionForm({
                 </SelectTrigger>
                 <SelectContent>
                   {medications.length === 0 ? (
-                    <SelectItem value="" disabled>Nenhum medicamento encontrado</SelectItem>
+                    <SelectItem value="no-medications" disabled>Nenhum medicamento encontrado</SelectItem>
                   ) : (
                     medications.map(med => (
                       <SelectItem key={med.id} value={med.id}>

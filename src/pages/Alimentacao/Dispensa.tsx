@@ -302,9 +302,9 @@ export default function Dispensa() {
 
           <div className="flex gap-2">
             <Select
-              value={categoryFilter || ""}
+              value={categoryFilter || "all"}
               onValueChange={(value) =>
-                setCategoryFilter(value === "" ? null : value)
+                setCategoryFilter(value === "all" ? null : value)
               }
             >
               <SelectTrigger className="w-[160px]">
@@ -314,7 +314,7 @@ export default function Dispensa() {
                 </span>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas categorias</SelectItem>
+                <SelectItem value="all">Todas categorias</SelectItem>
                 {uniqueCategories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -324,9 +324,9 @@ export default function Dispensa() {
             </Select>
 
             <Select
-              value={statusFilter || ""}
+              value={statusFilter || "all"}
               onValueChange={(value) =>
-                setStatusFilter(value === "" ? null : value)
+                setStatusFilter(value === "all" ? null : value)
               }
             >
               <SelectTrigger className="w-[160px]">
@@ -336,7 +336,7 @@ export default function Dispensa() {
                 </span>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos status</SelectItem>
+                <SelectItem value="all">Todos status</SelectItem>
                 <SelectItem value="normal">Normal</SelectItem>
                 <SelectItem value="expiring">Expirando</SelectItem>
                 <SelectItem value="expired">Expirado</SelectItem>

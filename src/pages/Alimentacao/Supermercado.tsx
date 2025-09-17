@@ -254,24 +254,24 @@ export default function Supermercado() {
               />
             </div>
             
-            <Select value={filterCategoria || ""} onValueChange={(value) => setFilterCategoria(value || null)}>
+            <Select value={filterCategoria || "all"} onValueChange={(value) => setFilterCategoria(value === "all" ? null : value)}>
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {categorias.map(categoria => (
                   <SelectItem key={categoria} value={categoria}>{categoria}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <Select value={filterPrioridade || ""} onValueChange={(value) => setFilterPrioridade(value || null)}>
+            <Select value={filterPrioridade || "all"} onValueChange={(value) => setFilterPrioridade(value === "all" ? null : value)}>
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Prioridade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="baixa">Baixa</SelectItem>
                 <SelectItem value="media">Média</SelectItem>
                 <SelectItem value="alta">Alta</SelectItem>

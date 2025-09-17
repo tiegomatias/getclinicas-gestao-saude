@@ -248,7 +248,7 @@ export function AdministrationForm({
                 </SelectTrigger>
                 <SelectContent>
                   {prescriptions.length === 0 ? (
-                    <SelectItem value="" disabled>Nenhuma prescrição ativa encontrada</SelectItem>
+                    <SelectItem value="no-prescriptions" disabled>Nenhuma prescrição ativa encontrada</SelectItem>
                   ) : (
                     prescriptions.map(prescription => (
                       <SelectItem key={prescription.id} value={prescription.id}>
