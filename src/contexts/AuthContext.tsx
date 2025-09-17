@@ -42,11 +42,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log("Auth state changed:", event);
+        console.log("Auth state changed:", event, currentSession?.user?.email);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
+          console.log("User found in session, loading data...");
           // Check if user is master admin - using setTimeout to avoid recursion
           setTimeout(async () => {
             try {
@@ -62,6 +63,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               }
               
               const isMaster = !!data && data.length > 0;
+              console.log("Is master admin:", isMaster);
               setIsMasterAdmin(isMaster);
               
               // Save auth state to localStorage for persistence
@@ -86,6 +88,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 if (clinicsError) {
                   console.error("Error fetching admin clinics:", clinicsError);
                 } else if (adminClinics && Array.isArray(adminClinics) && adminClinics.length > 0) {
+                  console.log("Found admin clinics:", adminClinics.length);
                   clinics = adminClinics;
                 } else {
                   // If not admin, check if user is a professional
@@ -97,6 +100,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   if (profError) {
                     console.error("Error fetching professional clinics:", profError);
                   } else if (professionalClinics && Array.isArray(professionalClinics) && professionalClinics.length > 0) {
+                    console.log("Found professional clinics:", professionalClinics.length);
                     isProfessional = true;
                     clinics = professionalClinics.map(pc => pc.clinic).filter(Boolean);
                     
@@ -114,6 +118,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   }
                 }
                 
+                console.log("Clinics found:", clinics.length, "Is professional:", isProfessional);
+                
                 if (clinics.length > 0) {
                   // Safely parse and store clinic data
                   localStorage.setItem('allClinics', JSON.stringify(clinics));
@@ -123,14 +129,18 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   if (!localStorage.getItem('currentClinicId')) {
                     const clinic = clinics[0];
                     if (clinic && clinic.id) {
+                      console.log("Setting current clinic:", clinic.id);
                       localStorage.setItem('currentClinicId', String(clinic.id));
                       localStorage.setItem('clinicData', JSON.stringify(clinic));
                     }
                   }
+                } else {
+                  console.log("No clinics found for user");
                 }
               } catch (err) {
                 console.error("Error processing clinics data:", err);
               } finally {
+                console.log("Auth state change processing complete");
                 setLoading(false);
               }
             } catch (err) {
@@ -139,6 +149,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }
           }, 0);
         } else {
+          console.log("No user in session, clearing data");
           // Clear local storage on logout
           localStorage.removeItem('isAuthenticated');
           localStorage.removeItem('isMasterAdmin');

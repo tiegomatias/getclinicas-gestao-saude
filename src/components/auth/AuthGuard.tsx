@@ -13,20 +13,23 @@ const PUBLIC_ROUTES = ["/", "/login", "/registro", "/checkout", "/home", "/demo"
 
 const AuthGuard = ({ role }: AuthGuardProps) => {
   const { isAuthenticated, isMasterAdmin, loading } = useAuth();
-  const currentClinicId = localStorage.getItem("currentClinicId");
   const location = useLocation();
 
   // For debugging
   useEffect(() => {
+    const currentClinicId = localStorage.getItem("currentClinicId");
+    const isProfessional = localStorage.getItem("isProfessional") === 'true';
+    
     console.log("AuthGuard rendering with:", { 
       isAuthenticated, 
       isMasterAdmin, 
       currentClinicId,
+      isProfessional,
       path: location.pathname,
       loading,
       isPublicRoute: PUBLIC_ROUTES.includes(location.pathname)
     });
-  }, [isAuthenticated, isMasterAdmin, currentClinicId, location.pathname, loading]);
+  }, [isAuthenticated, isMasterAdmin, location.pathname, loading]);
   
   // Master admin paths don't require clinic ID
   const isMasterAdminPath = location.pathname === "/master" || location.pathname.startsWith("/master/");
@@ -34,8 +37,10 @@ const AuthGuard = ({ role }: AuthGuardProps) => {
   // For master admin paths, we only need isAuthenticated and isMasterAdmin
   const canAccessMasterAdmin = isAuthenticated && isMasterAdmin && (role === "master" || isMasterAdminPath);
   
-  // For clinic paths, we need both authentication and clinic ID
-  const isFullyAuthenticated = isAuthenticated && currentClinicId;
+  // For clinic paths, we need authentication and either clinic ID or professional status
+  const currentClinicId = localStorage.getItem("currentClinicId");
+  const isProfessional = localStorage.getItem("isProfessional") === 'true';
+  const isFullyAuthenticated = isAuthenticated && (currentClinicId || isProfessional || isMasterAdmin);
 
   // Show loading state while checking authentication
   if (loading) {
@@ -57,7 +62,12 @@ const AuthGuard = ({ role }: AuthGuardProps) => {
 
   // If not authenticated, redirect to login
   if (!isFullyAuthenticated && !canAccessMasterAdmin) {
-    console.log("Not fully authenticated, redirecting to login");
+    console.log("Not fully authenticated, redirecting to login. Details:", {
+      isAuthenticated,
+      currentClinicId,
+      isProfessional,
+      isMasterAdmin
+    });
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
