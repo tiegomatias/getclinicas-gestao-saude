@@ -39,8 +39,8 @@ const ProfessionalForm = () => {
         return;
       }
       
-      if (hasSystemAccess && !initialPassword) {
-        toast.error("Por favor, defina uma senha inicial para o acesso ao sistema.");
+      if (hasSystemAccess && (!email || !initialPassword)) {
+        toast.error("Para criar acesso ao sistema, é necessário informar email e senha inicial.");
         setLoading(false);
         return;
       }
@@ -78,9 +78,37 @@ const ProfessionalForm = () => {
       // Criar permissões padrão se tem acesso ao sistema
       if (hasSystemAccess) {
         await professionalService.createDefaultPermissions(clinicData.id, newProfessional.id);
+        
+        // Criar conta de usuário automaticamente se tem email e senha
+        if (email && initialPassword) {
+          try {
+            const { supabase } = await import("@/integrations/supabase/client");
+            
+            const { data, error } = await supabase.functions.invoke('create-professional-account', {
+              body: {
+                email: email,
+                password: initialPassword,
+                professionalName: name,
+                clinicId: clinicData.id
+              }
+            });
+
+            if (error) {
+              console.error('Erro ao criar conta do profissional:', error);
+              toast.warning(`Profissional cadastrado, mas houve erro ao criar a conta de acesso: ${error.message}`);
+            } else {
+              toast.success(`Profissional cadastrado e conta de acesso criada com sucesso! Email: ${email}`);
+            }
+          } catch (accountError: any) {
+            console.error('Erro ao criar conta do profissional:', accountError);
+            toast.warning(`Profissional cadastrado, mas houve erro ao criar a conta de acesso: ${accountError.message}`);
+          }
+        } else {
+          toast.success("Profissional cadastrado com sucesso!");
+        }
+      } else {
+        toast.success("Profissional cadastrado com sucesso!");
       }
-      
-      toast.success("Profissional cadastrado com sucesso!");
       
       // Limpar formulário
       setName('');
@@ -155,14 +183,20 @@ const ProfessionalForm = () => {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="email">E-mail</Label>
+          <Label htmlFor="email">E-mail {hasSystemAccess && '*'}</Label>
           <Input 
             id="email" 
             type="email" 
             placeholder="exemplo@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required={hasSystemAccess}
           />
+          {hasSystemAccess && (
+            <p className="text-sm text-muted-foreground">
+              Obrigatório para criar acesso ao sistema
+            </p>
+          )}
         </div>
         
         <div className="space-y-2">
@@ -222,7 +256,10 @@ const ProfessionalForm = () => {
               required={hasSystemAccess}
             />
             <p className="text-sm text-muted-foreground">
-              O profissional será obrigado a alterar esta senha no primeiro login.
+              O profissional receberá as credenciais: <strong>Email:</strong> {email || 'não informado'} | <strong>Senha:</strong> {initialPassword || 'não informada'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Uma conta será criada automaticamente no sistema para este profissional.
             </p>
           </div>
         )}
