@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import ClinicDebug from "@/components/debug/ClinicDebug";
 
 interface ClinicData {
   clinicName: string;
@@ -24,6 +25,7 @@ interface ClinicData {
 export default function Dashboard() {
   const [clinicData, setClinicData] = useState<ClinicData | null>(null);
   const [isNewClinic, setIsNewClinic] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -68,6 +70,18 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Debug Section - Temporary */}
+      <div className="mb-4">
+        <Button 
+          variant="outline" 
+          onClick={() => setShowDebug(!showDebug)}
+          className="text-xs"
+        >
+          {showDebug ? 'Ocultar' : 'Mostrar'} Debug
+        </Button>
+        {showDebug && <ClinicDebug />}
+      </div>
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
           {clinicData ? 
