@@ -52,14 +52,31 @@ const Login = () => {
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       console.log("User already authenticated, redirecting");
-      const isProfessional = localStorage.getItem('isProfessional') === 'true';
+      
+      // Check localStorage to determine user type more reliably
+      const isProfessionalFlag = localStorage.getItem('isProfessional') === 'true';
+      const currentClinicId = localStorage.getItem('currentClinicId');
+      const allClinics = localStorage.getItem('allClinics');
+      
+      console.log("Redirect check:", { 
+        isMasterAdmin, 
+        isProfessionalFlag, 
+        currentClinicId, 
+        hasAllClinics: !!allClinics 
+      });
       
       if (isMasterAdmin) {
+        console.log("Redirecting master admin to /master");
         navigate("/master", { replace: true });
-      } else if (isProfessional) {
+      } else if (isProfessionalFlag) {
+        console.log("Redirecting professional to /professional-dashboard");
         navigate("/professional-dashboard", { replace: true });
-      } else {
+      } else if (currentClinicId || allClinics) {
+        console.log("Redirecting clinic admin to /dashboard");
         navigate("/dashboard", { replace: true });
+      } else {
+        console.log("No clinic data found, staying on login");
+        // Don't redirect if no clinic data is found
       }
     }
   }, [isAuthenticated, navigate, authLoading, isMasterAdmin]);

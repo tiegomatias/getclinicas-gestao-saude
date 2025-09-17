@@ -83,19 +83,24 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 const { data: adminClinics, error: clinicsError } = await supabase
                   .from('clinics')
                   .select('*')
-                  .eq('admin_id', currentSession.user.id as any);
+                  .eq('admin_id', currentSession.user.id);
                   
+                console.log("Admin clinics query result:", { adminClinics, clinicsError, userId: currentSession.user.id });
+                
                 if (clinicsError) {
                   console.error("Error fetching admin clinics:", clinicsError);
                 } else if (adminClinics && Array.isArray(adminClinics) && adminClinics.length > 0) {
                   console.log("Found admin clinics:", adminClinics.length);
                   clinics = adminClinics;
                 } else {
+                  console.log("No admin clinics found, checking professional clinics...");
                   // If not admin, check if user is a professional
                   const { data: professionalClinics, error: profError } = await supabase
                     .from('clinic_users')
                     .select('clinic:clinics(*), role')
-                    .eq('user_id', currentSession.user.id as any);
+                    .eq('user_id', currentSession.user.id);
+                    
+                  console.log("Professional clinics query result:", { professionalClinics, profError });
                     
                   if (profError) {
                     console.error("Error fetching professional clinics:", profError);
@@ -115,6 +120,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                       professionalData = professional;
                       localStorage.setItem('professionalData', JSON.stringify(professional));
                     }
+                  } else {
+                    console.log("No professional clinics found either");
                   }
                 }
                 
@@ -200,22 +207,29 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           const { data: adminClinics, error: clinicsError } = await supabase
             .from('clinics')
             .select('*')
-            .eq('admin_id', data.user.id as any);
+            .eq('admin_id', data.user.id);
+            
+          console.log("SignIn - Admin clinics query:", { adminClinics, clinicsError, userId: data.user.id });
             
           if (clinicsError) {
             console.error("Error fetching admin clinics:", clinicsError);
           } else if (adminClinics && Array.isArray(adminClinics) && adminClinics.length > 0) {
+            console.log("SignIn - Found admin clinics:", adminClinics.length);
             clinics = adminClinics;
           } else {
+            console.log("SignIn - No admin clinics, checking professional...");
             // If not admin, check if user is a professional
             const { data: professionalClinics, error: profError } = await supabase
               .from('clinic_users')
               .select('clinic:clinics(*), role')
-              .eq('user_id', data.user.id as any);
+              .eq('user_id', data.user.id);
+              
+            console.log("SignIn - Professional clinics query:", { professionalClinics, profError });
               
             if (profError) {
               console.error("Error fetching professional clinics:", profError);
             } else if (professionalClinics && Array.isArray(professionalClinics) && professionalClinics.length > 0) {
+              console.log("SignIn - Found professional clinics:", professionalClinics.length);
               isProfessional = true;
               clinics = professionalClinics.map(pc => pc.clinic).filter(Boolean);
               
@@ -230,6 +244,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 professionalData = professional;
                 localStorage.setItem('professionalData', JSON.stringify(professional));
               }
+            } else {
+              console.log("SignIn - No professional clinics found either");
             }
           }
           
@@ -238,12 +254,24 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             localStorage.setItem('allClinics', JSON.stringify(clinics));
             localStorage.setItem('isProfessional', String(isProfessional));
             
+            console.log("SignIn - Storing clinic data:", { 
+              clinicsCount: clinics.length, 
+              isProfessional,
+              firstClinic: clinics[0]
+            });
+            
             // If no clinic is selected, select the first one
             const clinic = clinics[0];
             if (clinic && clinic.id) {
+              console.log("SignIn - Setting current clinic:", clinic.id, clinic.name);
               localStorage.setItem('currentClinicId', String(clinic.id));
               localStorage.setItem('clinicData', JSON.stringify(clinic));
             }
+          } else {
+            console.log("SignIn - Clearing clinic data since none found");
+            localStorage.removeItem('isProfessional');
+            localStorage.removeItem('currentClinicId');
+            localStorage.removeItem('clinicData');
           }
         } catch (err) {
           console.error("Error processing clinics data:", err);
@@ -254,24 +282,35 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
             .select('role')
-            .eq('user_id', data.user.id as any)
-            .eq('role', 'master_admin' as any);
+            .eq('user_id', data.user.id)
+            .eq('role', 'master_admin');
+            
+          console.log("Role check result:", { roleData, roleError });
             
           if (!roleError && roleData && roleData.length > 0) {
             setIsMasterAdmin(true);
             localStorage.setItem('isMasterAdmin', 'true');
             console.log("Redirecting master admin to /master");
             navigate('/master', { replace: true });
-          } else if (isProfessional) {
+          } else if (isProfessional && clinics.length > 0) {
             console.log("Redirecting professional to /professional-dashboard");
             navigate('/professional-dashboard', { replace: true });
-          } else {
-            console.log("Redirecting regular user to /dashboard");
+          } else if (clinics.length > 0) {
+            console.log("Redirecting clinic admin to /dashboard");
             navigate('/dashboard', { replace: true });
+          } else {  
+            console.log("No clinics found, redirecting to registration");
+            navigate('/registro', { replace: true });
+            toast.error("Nenhuma clínica encontrada para este usuário. Por favor, registre uma clínica.");
           }
         } catch (err) {
           console.error("Error checking master admin role:", err);
-          navigate(isProfessional ? '/professional-dashboard' : '/dashboard', { replace: true });
+          if (clinics.length > 0) {
+            navigate(isProfessional ? '/professional-dashboard' : '/dashboard', { replace: true });
+          } else {
+            navigate('/registro', { replace: true });
+            toast.error("Erro ao verificar permissões. Redirecionando para registro.");
+          }
         }
         
         toast.success("Login realizado com sucesso!");
