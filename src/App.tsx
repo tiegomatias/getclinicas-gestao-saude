@@ -53,7 +53,6 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registration />} />
             <Route path="/checkout" element={<Checkout />} />
-            <Route path="/demo" element={<DemoPage />} />
 
             {/* Master Admin Routes with MasterLayout */}
             <Route element={<AuthGuard role="master" />}>

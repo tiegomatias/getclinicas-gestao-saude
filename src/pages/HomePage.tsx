@@ -115,7 +115,8 @@ const HomePage = () => {
   };
 
   const handleViewDemo = () => {
-    navigate("/demo");
+    // Demo removed - redirect to registration
+    navigate("/registro");
   };
 
   const scrollToPlans = () => {
@@ -246,7 +247,7 @@ const HomePage = () => {
                 onClick={handleViewDemo}
                 className="text-base md:text-lg"
               >
-                Ver Demonstração
+                Começar Gratuitamente
               </Button>
             </div>
             

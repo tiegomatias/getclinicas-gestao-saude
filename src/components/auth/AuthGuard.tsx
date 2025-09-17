@@ -9,7 +9,7 @@ interface AuthGuardProps {
 }
 
 // Public routes that don't require authentication
-const PUBLIC_ROUTES = ["/", "/login", "/registro", "/checkout", "/home", "/demo"];
+const PUBLIC_ROUTES = ["/", "/login", "/registro", "/checkout", "/home"];
 
 const AuthGuard = ({ role }: AuthGuardProps) => {
   const { isAuthenticated, isMasterAdmin, loading } = useAuth();

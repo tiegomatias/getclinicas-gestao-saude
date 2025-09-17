@@ -24,74 +24,11 @@ import EmptyState from "@/components/shared/EmptyState";
 import { clinicService } from "@/services/clinicService";
 import { toast } from "sonner";
 
-// Mock data for transactions
-const initialTransactionData = [
-  {
-    id: "T1",
-    date: "2025-05-01",
-    description: "Consulta - Dr. João",
-    pacient: "Maria Silva",
-    value: 150.00,
-    status: "Pago",
-  },
-  {
-    id: "T2",
-    date: "2025-05-01",
-    description: "Exame de Sangue",
-    pacient: "Carlos Santos",
-    value: 80.00,
-    status: "Pendente",
-  },
-  {
-    id: "T3",
-    date: "2025-04-30",
-    description: "Consulta - Dra. Ana",
-    pacient: "Pedro Oliveira",
-    value: 150.00,
-    status: "Pago",
-  },
-  {
-    id: "T4",
-    date: "2025-04-30",
-    description: "Raio-X",
-    pacient: "Luísa Mendes",
-    value: 120.00,
-    status: "Pago",
-  },
-  {
-    id: "T5",
-    date: "2025-04-29",
-    description: "Fisioterapia",
-    pacient: "Antônio Ferreira",
-    value: 90.00,
-    status: "Cancelado",
-  },
-];
+// No demo data - transactions will come from real database
+const initialTransactionData: any[] = [];
 
-// Mock data for unpaid bills
-const initialBillsData = [
-  {
-    id: "B1",
-    dueDate: "2025-05-10",
-    description: "Aluguel Clínica",
-    value: 3000.00,
-    category: "Infraestrutura",
-  },
-  {
-    id: "B2",
-    dueDate: "2025-05-15",
-    description: "Energia Elétrica",
-    value: 850.00,
-    category: "Utilidades",
-  },
-  {
-    id: "B3",
-    dueDate: "2025-05-20",
-    description: "Suprimentos Médicos",
-    value: 1250.00,
-    category: "Materiais",
-  },
-];
+// No demo data - bills will come from real database
+const initialBillsData: any[] = [];
 
 export default function Financeiro() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -114,7 +51,7 @@ export default function Financeiro() {
         const clinicData = JSON.parse(clinicDataStr);
         // Check if the clinic has financial data
         const hasFinancialData = await clinicService.hasClinicData(clinicData.id, "finances");
-        setHasData(hasFinancialData || transactionData.length > 0);
+        setHasData(hasFinancialData);
       } catch (error) {
         console.error("Erro ao verificar dados financeiros:", error);
         setHasData(false);
@@ -126,11 +63,11 @@ export default function Financeiro() {
     checkForData();
   }, []);
 
-  // Stats data
-  const totalMonthlyIncome = "R$ 15.800,00";
-  const totalMonthlyExpense = "R$ 9.250,00";
-  const monthlyBalance = "R$ 6.550,00";
-  const pendingReceivables = "R$ 3.450,00";
+  // Stats data - empty for new clinic
+  const totalMonthlyIncome = "R$ 0,00";
+  const totalMonthlyExpense = "R$ 0,00";
+  const monthlyBalance = "R$ 0,00";
+  const pendingReceivables = "R$ 0,00";
 
   // Função para adicionar uma nova transação
   const handleNewTransaction = () => {
@@ -228,22 +165,19 @@ export default function Financeiro() {
           title="Receita Mensal"
           value={totalMonthlyIncome}
           icon={DollarSign}
-          trend="up"
-          trendValue="+8.5% vs. mês anterior"
+          description="Ainda sem receitas registradas"
         />
         <StatCard
           title="Despesas Mensais"
           value={totalMonthlyExpense}
           icon={CreditCard}
-          trend="down"
-          trendValue="-2.3% vs. mês anterior"
+          description="Ainda sem despesas registradas"
         />
         <StatCard
           title="Saldo Mensal"
           value={monthlyBalance}
           icon={DollarSign}
-          trend="up"
-          trendValue="+12.7% vs. mês anterior"
+          description="Ainda sem movimentação"
         />
         <StatCard
           title="A Receber"
@@ -278,38 +212,11 @@ export default function Financeiro() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactionData
-                    .filter((transaction) =>
-                      transaction.description
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase()) ||
-                      transaction.pacient
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase())
-                    )
-                    .map((transaction) => (
-                      <TableRow key={transaction.id}>
-                        <TableCell>{transaction.date}</TableCell>
-                        <TableCell>{transaction.description}</TableCell>
-                        <TableCell>{transaction.pacient}</TableCell>
-                        <TableCell className="text-right">
-                          {transaction.value.toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              transaction.status === "Pago"
-                                ? "bg-green-100 text-green-800"
-                                : transaction.status === "Pendente"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {transaction.status}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      Nenhuma transação encontrada. Adicione uma transação para começar.
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
@@ -335,29 +242,11 @@ export default function Financeiro() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {billsData.map((bill) => (
-                    <TableRow key={bill.id}>
-                      <TableCell>{bill.dueDate}</TableCell>
-                      <TableCell>{bill.description}</TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                          {bill.category}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {bill.value.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handlePayBill(bill.id)}
-                        >
-                          Pagar
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      Nenhuma conta pendente. Adicione despesas para gerenciar.
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
