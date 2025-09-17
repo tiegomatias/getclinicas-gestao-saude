@@ -31,12 +31,14 @@ import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 import MasterLayout from "./components/layout/MasterLayout";
 import AppLayout from "./components/layout/AppLayout";
+import ProfessionalLayout from "./components/layout/ProfessionalLayout";
 import AuthGuard from "./components/auth/AuthGuard";
 import { Toaster } from "sonner";
 import Alimentacao from "./pages/Alimentacao";
 import Dispensa from "./pages/Alimentacao/Dispensa";
 import Supermercado from "./pages/Alimentacao/Supermercado";
 import DemoPage from "./pages/DemoPage";
+import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 
 const queryClient = new QueryClient();
 
@@ -63,22 +65,29 @@ function App() {
               </Route>
             </Route>
 
-            {/* Clinic Routes with AppLayout */}
+            {/* Professional Routes with ProfessionalLayout */}
+            <Route element={<AuthGuard />}>
+              <Route element={<ProfessionalLayout />}>
+                <Route path="/professional-dashboard" element={<ProfessionalDashboard />} />
+                <Route path="/pacientes" element={<Patients />} />
+                <Route path="/agenda" element={<Calendar />} />
+                <Route path="/medicamentos" element={<Medications />} />
+                <Route path="/documentos" element={<Documents />} />
+                <Route path="/leitos" element={<Beds />} />
+                <Route path="/relatorios" element={<Relatorios />} />
+              </Route>
+            </Route>
+
+            {/* Admin Clinic Routes with AppLayout */}
             <Route element={<AuthGuard />}>
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/pacientes" element={<Patients />} />
                 <Route path="/profissionais" element={<Professionals />} />
-                <Route path="/agenda" element={<Calendar />} />
-                <Route path="/leitos" element={<Beds />} />
-                <Route path="/medicamentos" element={<Medications />} />
-                <Route path="/documentos" element={<Documents />} />
                 <Route path="/alimentacao" element={<Alimentacao />} />
                 <Route path="/alimentacao/dispensa" element={<Dispensa />} />
                 <Route path="/alimentacao/supermercado" element={<Supermercado />} />
                 <Route path="/contratos" element={<Contracts />} />
                 <Route path="/financeiro" element={<Financeiro />} />
-                <Route path="/relatorios" element={<Relatorios />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
               </Route>
             </Route>
