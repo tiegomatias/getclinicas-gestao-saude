@@ -17,7 +17,7 @@ export default function ProfessionalLayout() {
     if (path.includes("documentos")) return "Documentos";
     if (path.includes("leitos")) return "Gestão de Leitos";
     if (path.includes("relatorios")) return "Relatórios e Indicadores";
-    return "GetClinics - Profissional";
+    return "GetClinicas - Profissional";
   };
 
   return (

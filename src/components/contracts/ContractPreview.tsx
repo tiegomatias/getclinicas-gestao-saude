@@ -152,7 +152,7 @@ export default function ContractPreview({
               </div>
 
               <div className="mt-12 text-center">
-                <p className="text-xs text-gray-500">Este documento é gerado automaticamente pelo sistema GetClinics</p>
+                <p className="text-xs text-gray-500">Este documento é gerado automaticamente pelo sistema GetClinicas</p>
               </div>
             </div>
           </TabsContent>

@@ -8,7 +8,7 @@ import { CheckIcon, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 // Custom Logo SVG Component
-const GetClinicsLogo = () => (
+const GetClinicasLogo = () => (
   <svg
     width="48"
     height="48"
@@ -145,8 +145,8 @@ const Checkout = () => {
       <header className="container mx-auto py-6 px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <GetClinicsLogo />
-            <h1 className="text-2xl font-bold text-getclinicas-dark ml-2">GetClinics</h1>
+            <GetClinicasLogo />
+            <h1 className="text-2xl font-bold text-getclinicas-dark ml-2">GetClinicas</h1>
           </div>
         </div>
       </header>
@@ -242,11 +242,11 @@ const Checkout = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <GetClinicsLogo />
-              <span className="text-xl font-bold">GetClinics</span>
+              <GetClinicasLogo />
+              <span className="text-xl font-bold">GetClinicas</span>
             </div>
             <div className="text-gray-600">
-              &copy; {new Date().getFullYear()} GetClinics. Todos os direitos reservados.
+              &copy; {new Date().getFullYear()} GetClinicas. Todos os direitos reservados.
             </div>
           </div>
         </div>

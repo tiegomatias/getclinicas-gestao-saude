@@ -32,7 +32,7 @@ const HomePage = () => {
   };
 
   // Custom Logo SVG Component
-  const GetClinicsLogo = () => (
+  const GetClinicasLogo = () => (
     <svg
       width="28"
       height="28"
@@ -130,13 +130,13 @@ const HomePage = () => {
       name: "Dra. Carla Mendes",
       role: "Diretora Clínica",
       image: "/placeholder.svg",
-      comment: "GetClinics transformou completamente a gestão da nossa clínica. Economizamos 5 horas por semana em tarefas administrativas."
+      comment: "GetClinicas transformou completamente a gestão da nossa clínica. Economizamos 5 horas por semana em tarefas administrativas."
     },
     {
       name: "Dr. Roberto Alves",
       role: "Proprietário de Clínica",
       image: "/placeholder.svg",
-      comment: "Desde que implementamos o GetClinics, nossa ocupação de leitos aumentou em 30% e a satisfação dos pacientes melhorou significativamente."
+      comment: "Desde que implementamos o GetClinicas, nossa ocupação de leitos aumentou em 30% e a satisfação dos pacientes melhorou significativamente."
     },
     {
       name: "Camila Silveira",
@@ -186,8 +186,8 @@ const HomePage = () => {
       <header className="container mx-auto py-4 px-4 sticky top-0 bg-white/80 backdrop-blur-md z-50 shadow-sm">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <GetClinicsLogo />
-            <h1 className="text-xl font-bold text-getclinicas-dark ml-2">GetClinics</h1>
+            <GetClinicasLogo />
+            <h1 className="text-xl font-bold text-getclinicas-dark ml-2">GetClinicas</h1>
           </div>
           
           {isMobile ? (
@@ -603,7 +603,7 @@ const HomePage = () => {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-6">Pronto para Transformar sua Clínica?</h2>
             <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-              Junte-se a mais de 200 clínicas que já estão economizando tempo e melhorando seus resultados com o GetClinics.
+              Junte-se a mais de 200 clínicas que já estão economizando tempo e melhorando seus resultados com o GetClinicas.
             </p>
             <Button 
               size={isMobile ? "default" : "lg"}
@@ -621,11 +621,11 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <GetClinicsLogo />
-              <span className="text-base md:text-lg font-semibold ml-2">GetClinics</span>
+              <GetClinicasLogo />
+              <span className="text-base md:text-lg font-semibold ml-2">GetClinicas</span>
             </div>
             <div className="text-xs md:text-sm text-gray-600">
-              &copy; {new Date().getFullYear()} GetClinics. Todos os direitos reservados.
+              &copy; {new Date().getFullYear()} GetClinicas. Todos os direitos reservados.
             </div>
           </div>
         </div>

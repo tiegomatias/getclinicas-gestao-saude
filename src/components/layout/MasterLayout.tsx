@@ -14,7 +14,7 @@ export default function MasterLayout() {
     if (location.pathname === "/master/clinics") return "Gerenciamento de Clínicas";
     if (location.pathname === "/master/reports") return "Relatórios Gerais";
     if (location.pathname === "/master/settings") return "Configurações do Sistema";
-    return "GetClinics Master";
+    return "GetClinicas Master";
   };
 
   return (

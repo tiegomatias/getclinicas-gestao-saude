@@ -25,7 +25,7 @@ export default function AppLayout() {
     if (path.includes("financeiro")) return "Financeiro";
     if (path.includes("relatorios")) return "Relatórios e Indicadores";
     if (path.includes("configuracoes")) return "Configurações";
-    return "GetClinics";
+    return "GetClinicas";
   };
 
   return (

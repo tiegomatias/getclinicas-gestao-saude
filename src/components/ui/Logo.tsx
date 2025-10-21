@@ -46,7 +46,7 @@ export const Logo = ({ size = "md", showText = true, whiteShield = false }: Logo
           G
         </text>
       </svg>
-      {showText && <span className={`font-bold ${sizes[size].text}`}>GetClinics</span>}
+      {showText && <span className={`font-bold ${sizes[size].text}`}>GetClinicas</span>}
     </div>
   );
 };

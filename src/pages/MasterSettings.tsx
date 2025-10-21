@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 export default function MasterSettings() {
   const [adminEmail, setAdminEmail] = useState("tiegomatias@gmail.comm");
-  const [systemName, setSystemName] = useState("GetClinics");
+  const [systemName, setSystemName] = useState("GetClinicas");
   const [sendEmails, setSendEmails] = useState(true);
   const [allowRegistration, setAllowRegistration] = useState(true);
   const [securityLevel, setSecurityLevel] = useState("high");
@@ -75,7 +75,7 @@ export default function MasterSettings() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Configurações do Sistema</h1>
         <p className="text-muted-foreground">
-          Gerencie as configurações gerais do sistema GetClinics
+          Gerencie as configurações gerais do sistema GetClinicas
         </p>
       </div>
       

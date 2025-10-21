@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft } from "lucide-react";
 
 // Custom Logo SVG Component
-const GetClinicsLogo = () => (
+const GetClinicasLogo = () => (
   <svg
     width="48"
     height="48"
@@ -126,9 +126,9 @@ const Login = () => {
         
         <div className="text-center mb-6 md:mb-8">
           <div className="flex justify-center mb-2">
-            <GetClinicsLogo />
+            <GetClinicasLogo />
           </div>
-          <h1 className="text-2xl font-bold">GetClinics</h1>
+          <h1 className="text-2xl font-bold">GetClinicas</h1>
           <p className="text-gray-600">Acesse sua conta</p>
         </div>
 

@@ -183,7 +183,7 @@ const ProfessionalSidebar = () => {
         <div className="flex items-center gap-2">
           <Logo />
           <div className="flex flex-col">
-            <span className="font-semibold text-sm">GetClinics</span>
+            <span className="font-semibold text-sm">GetClinicas</span>
             <span className="text-xs text-gray-500">Profissional</span>
           </div>
         </div>

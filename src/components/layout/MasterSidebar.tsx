@@ -60,7 +60,7 @@ export default function MasterSidebar() {
     (user?.email ? user.email.split('@')[0] : 'Master Admin');
   
   // Obter o email do usuário
-  const userEmail = user?.email || 'admin@getclinics.com';
+  const userEmail = user?.email || 'admin@getclinicas.com';
   
   // Gerar iniciais para o avatar
   const userInitials = userDisplayName
@@ -75,7 +75,7 @@ export default function MasterSidebar() {
       <SidebarHeader className="flex items-center gap-2 px-4 py-2">
         <div className="flex items-center gap-2">
           <Logo size="sm" whiteShield={true} />
-          <span className="text-xl font-bold text-white">GetClinics Master</span>
+          <span className="text-xl font-bold text-white">GetClinicas Master</span>
         </div>
         <div className="ml-auto md:hidden">
           <SidebarTrigger />
