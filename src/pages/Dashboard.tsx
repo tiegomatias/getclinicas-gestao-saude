@@ -11,6 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import ClinicDebug from "@/components/debug/ClinicDebug";
+import { patientService } from "@/services/patientService";
+import { bedService } from "@/services/bedService";
+import { activityService } from "@/services/activityService";
+import { financeService } from "@/services/financeService";
 
 interface ClinicData {
   clinicName: string;
@@ -26,26 +30,86 @@ export default function Dashboard() {
   const [clinicData, setClinicData] = useState<ClinicData | null>(null);
   const [isNewClinic, setIsNewClinic] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
+  // Real data states
+  const [totalPatients, setTotalPatients] = useState(0);
+  const [occupationRate, setOccupationRate] = useState(0);
+  const [weeklyActivities, setWeeklyActivities] = useState(0);
+  const [monthlyRevenue, setMonthlyRevenue] = useState(0);
+  const [bedsCapacity, setBedsCapacity] = useState(0);
+  
   useEffect(() => {
-    // Fetch clinic data from localStorage
-    const clinicDataStr = localStorage.getItem("clinicData");
-    if (clinicDataStr) {
-      const clinic = JSON.parse(clinicDataStr);
-      setClinicData(clinic);
-      
-      // Check if the clinic was recently created or has no initial data
-      if (!clinic.hasInitialData) {
-        setIsNewClinic(true);
-        // Show a welcome toast
-        setTimeout(() => {
-          // Handle both property naming conventions, with fallback
-          const clinicName = clinic.clinicName || (clinic as any).clinic_name || 'sua clínica';
-          toast.success(`Bem-vindo à ${clinicName}! Seu espaço está pronto para uso.`);
-        }, 1000);
+    const loadDashboardData = async () => {
+      setLoading(true);
+      // Fetch clinic data from localStorage
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (clinicDataStr) {
+        const clinic = JSON.parse(clinicDataStr);
+        setClinicData(clinic);
+        
+        // Check if the clinic was recently created or has no initial data
+        if (!clinic.hasInitialData) {
+          setIsNewClinic(true);
+          setTimeout(() => {
+            const clinicName = clinic.clinicName || (clinic as any).clinic_name || 'sua clínica';
+            toast.success(`Bem-vindo à ${clinicName}! Seu espaço está pronto para uso.`);
+          }, 1000);
+        }
+        
+        // Load real data
+        try {
+          // Get patients
+          const patients = await patientService.getClinicPatients(clinic.id);
+          const activePatients = patients.filter(p => p.status === 'active');
+          setTotalPatients(activePatients.length);
+          
+          // Get beds data
+          const beds = await bedService.getBedsByClinic(clinic.id);
+          const occupiedBeds = beds.filter(b => b.status === 'occupied').length;
+          const totalBeds = beds.length;
+          setBedsCapacity(totalBeds);
+          setOccupationRate(totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0);
+          
+          // Get activities from current week
+          const today = new Date();
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - today.getDay());
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 7);
+          
+          const activities = await activityService.getActivitiesByDateRange(
+            clinic.id,
+            startOfWeek.toISOString(),
+            endOfWeek.toISOString()
+          );
+          setWeeklyActivities(activities.length);
+          
+          // Get monthly revenue
+          const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+          const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          
+          const finances = await financeService.getFinancesByDateRange(
+            clinic.id,
+            firstDayOfMonth.toISOString(),
+            lastDayOfMonth.toISOString()
+          );
+          
+          const revenue = finances
+            .filter(f => f.type === 'income')
+            .reduce((sum, f) => sum + Number(f.amount), 0);
+          setMonthlyRevenue(revenue);
+          
+        } catch (error) {
+          console.error('Error loading dashboard data:', error);
+          toast.error('Erro ao carregar dados do dashboard');
+        }
       }
-    }
+      setLoading(false);
+    };
+    
+    loadDashboardData();
   }, []);
 
   const handleNavigate = (path: string) => {
@@ -172,37 +236,31 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total de Pacientes"
-          value={isNewClinic ? "0" : "27"}
+          value={loading ? "..." : totalPatients.toString()}
           icon={UserIcon}
-          description={isNewClinic ? "Nenhum paciente cadastrado" : "Pacientes atualmente internados"}
-          trend={isNewClinic ? undefined : "up"}
-          trendValue={isNewClinic ? undefined : "+3 este mês"}
+          description={totalPatients === 0 ? "Nenhum paciente cadastrado" : "Pacientes ativos"}
         />
         <StatCard
           title="Taxa de Ocupação"
-          value={isNewClinic ? "0%" : "82%"}
+          value={loading ? "..." : `${occupationRate}%`}
           icon={Bed}
           description={
-            clinicData && isNewClinic && clinicData.bedsCapacity 
-              ? `Capacidade total: ${clinicData.bedsCapacity} leitos` 
-              : "Capacidade total: 33 leitos"
+            bedsCapacity > 0 
+              ? `Capacidade total: ${bedsCapacity} leitos` 
+              : "Nenhum leito cadastrado"
           }
-          trend={isNewClinic ? undefined : "up"}
-          trendValue={isNewClinic ? undefined : "+5% este mês"}
         />
         <StatCard
           title="Atividades Semanais"
-          value={isNewClinic ? "0" : "18"}
+          value={loading ? "..." : weeklyActivities.toString()}
           icon={CalendarIcon}
-          description={isNewClinic ? "Nenhuma atividade agendada" : "4 atividades hoje"}
+          description={weeklyActivities === 0 ? "Nenhuma atividade agendada" : "Atividades desta semana"}
         />
         <StatCard
           title="Faturamento Mensal"
-          value={isNewClinic ? "R$ 0" : "R$ 156.400"}
+          value={loading ? "..." : `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={DollarSign}
-          description={isNewClinic ? "Sem dados financeiros" : "Maio/2025"}
-          trend={isNewClinic ? undefined : "up"}
-          trendValue={isNewClinic ? undefined : "+12% vs. Abril"}
+          description={monthlyRevenue === 0 ? "Sem dados financeiros" : new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
         />
       </div>
 

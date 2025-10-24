@@ -5,33 +5,50 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Bed } from "lucide-react";
+import { bedService } from "@/services/bedService";
+import { toast } from "sonner";
 
 const OccupationChart = () => {
-  const [isNewClinic, setIsNewClinic] = useState(false);
+  const [data, setData] = useState<Array<{ name: string; value: number }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [isEmpty, setIsEmpty] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Check if clinic is newly registered
-    const clinicDataStr = localStorage.getItem("clinicData");
-    if (!clinicDataStr) return;
+    const loadBedData = async () => {
+      setLoading(true);
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) return;
+      
+      try {
+        const clinic = JSON.parse(clinicDataStr);
+        const beds = await bedService.getBedsByClinic(clinic.id);
+        
+        if (beds.length === 0) {
+          setIsEmpty(true);
+          setData([{ name: "Disponíveis", value: 0 }]);
+        } else {
+          const occupied = beds.filter(b => b.status === 'occupied').length;
+          const available = beds.filter(b => b.status === 'available').length;
+          const maintenance = beds.filter(b => b.status === 'maintenance').length;
+          
+          const chartData = [];
+          if (occupied > 0) chartData.push({ name: "Ocupados", value: occupied });
+          if (available > 0) chartData.push({ name: "Disponíveis", value: available });
+          if (maintenance > 0) chartData.push({ name: "Manutenção", value: maintenance });
+          
+          setData(chartData.length > 0 ? chartData : [{ name: "Sem dados", value: 1 }]);
+          setIsEmpty(false);
+        }
+      } catch (error) {
+        console.error('Error loading bed data:', error);
+        toast.error('Erro ao carregar dados de leitos');
+      }
+      setLoading(false);
+    };
     
-    const clinic = JSON.parse(clinicDataStr);
-    const createdAt = new Date(clinic.createdAt);
-    const now = new Date();
-    const timeDiff = now.getTime() - createdAt.getTime();
-    const minutesDiff = Math.floor(timeDiff / 60000);
-    
-    setIsNewClinic(minutesDiff < 10 || !clinic.hasBedsData);
+    loadBedData();
   }, []);
-
-  // Data will be different based on whether this is a new clinic
-  const data = isNewClinic 
-    ? [{ name: "Disponíveis", value: 27 }]  // All beds available for new clinics
-    : [
-        { name: "Ocupados", value: 18 },
-        { name: "Disponíveis", value: 7 },
-        { name: "Manutenção", value: 2 },
-      ];
 
   const COLORS = ["#2A6F97", "#40A850", "#E6AB49"];
 
@@ -48,7 +65,11 @@ const OccupationChart = () => {
         <CardTitle>Ocupação de Leitos</CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
-        {isNewClinic ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-[250px]">
+            <p className="text-muted-foreground">Carregando...</p>
+          </div>
+        ) : isEmpty ? (
           <div className="flex flex-col items-center justify-center h-[250px]">
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
