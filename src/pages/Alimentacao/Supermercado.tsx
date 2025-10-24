@@ -1,57 +1,137 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { ShoppingCart, Plus, Search, Calendar, Trash2, Check, Edit, Share } from "lucide-react";
+import { ShoppingCart, Plus, Search, Trash2, Share } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-
-interface ItemCompra {
-  id: string;
-  nome: string;
-  categoria: string;
-  quantidade: number;
-  unidade: string;
-  prioridade: "baixa" | "media" | "alta";
-  comprado: boolean;
-}
+import { shoppingListService, ShoppingListItem } from "@/services/shoppingListService";
 
 export default function Supermercado() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterCategoria, setFilterCategoria] = useState<string | null>(null);
-  const [filterPrioridade, setFilterPrioridade] = useState<string | null>(null);
   const [mostrarComprados, setMostrarComprados] = useState(false);
-  
-  // No demo data - shopping list items will come from real database
-  const mockItens: ItemCompra[] = [];
-
-  // Filtrar itens - empty array means no items to filter
-  const filteredItens = mockItens.filter(item => {
-    const matchesSearch = item.nome.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategoria = !filterCategoria || item.categoria === filterCategoria;
-    const matchesPrioridade = !filterPrioridade || item.prioridade === filterPrioridade;
-    const matchesComprado = mostrarComprados ? true : !item.comprado;
-    return matchesSearch && matchesCategoria && matchesPrioridade && matchesComprado;
+  const [items, setItems] = useState<ShoppingListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [clinicId, setClinicId] = useState<string>("");
+  const [shoppingListId, setShoppingListId] = useState<string>("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newItem, setNewItem] = useState({
+    food_item_name: "",
+    quantity: 1,
+    unit: "kg",
+    estimated_cost: 0,
+    notes: "",
   });
 
-  // Obter categorias únicas para o filtro - empty for new setup
-  const categorias: string[] = [];
-  
-  // Marcar item como comprado
-  const handleToggleComprado = (id: string) => {
-    // Na implementação real, aqui atualizaríamos o backend
-    toast.success("Status do item atualizado");
+  useEffect(() => {
+    loadShoppingList();
+  }, []);
+
+  const loadShoppingList = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setIsLoading(false);
+        return;
+      }
+
+      const clinicData = JSON.parse(clinicDataStr);
+      setClinicId(clinicData.id);
+
+      // Get or create active shopping list
+      let activeList = await shoppingListService.getActiveShoppingList(clinicData.id);
+      
+      if (!activeList) {
+        activeList = await shoppingListService.createShoppingList(
+          clinicData.id,
+          `Lista de Compras - ${new Date().toLocaleDateString()}`
+        );
+      }
+
+      setShoppingListId(activeList.id);
+
+      // Load items
+      const listItems = await shoppingListService.getShoppingListItems(activeList.id);
+      setItems(listItems);
+    } catch (error) {
+      console.error("Erro ao carregar lista de compras:", error);
+      toast.error("Erro ao carregar lista de compras");
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
-  // Compartilhar lista
+
+  const handleAddItem = async () => {
+    if (!newItem.food_item_name || !shoppingListId) {
+      toast.error("Preencha o nome do item");
+      return;
+    }
+
+    try {
+      await shoppingListService.addShoppingListItem(shoppingListId, newItem);
+      toast.success("Item adicionado com sucesso");
+      setNewItem({
+        food_item_name: "",
+        quantity: 1,
+        unit: "kg",
+        estimated_cost: 0,
+        notes: "",
+      });
+      setIsAddDialogOpen(false);
+      loadShoppingList();
+    } catch (error) {
+      console.error("Erro ao adicionar item:", error);
+      toast.error("Erro ao adicionar item");
+    }
+  };
+
+  const handleToggleComprado = async (itemId: string, currentStatus: boolean) => {
+    const success = await shoppingListService.toggleItemPurchased(itemId, !currentStatus);
+    if (success) {
+      toast.success("Status atualizado");
+      loadShoppingList();
+    } else {
+      toast.error("Erro ao atualizar status");
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (confirm("Deseja realmente remover este item?")) {
+      const success = await shoppingListService.deleteShoppingListItem(itemId);
+      if (success) {
+        toast.success("Item removido");
+        loadShoppingList();
+      } else {
+        toast.error("Erro ao remover item");
+      }
+    }
+  };
+
   const handleCompartilhar = () => {
-    toast.success("Lista compartilhada via WhatsApp");
+    const pendingItems = items.filter(item => !item.purchased);
+    const message = `📋 *Lista de Compras*\n\n${pendingItems.map(item => 
+      `• ${item.food_item_name} - ${item.quantity} ${item.unit}`
+    ).join('\n')}`;
+    
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
   };
+
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.food_item_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesComprado = mostrarComprados ? true : !item.purchased;
+    return matchesSearch && matchesComprado;
+  });
+
+  const totalItems = items.length;
+  const purchasedItems = items.filter(i => i.purchased).length;
+  const pendingItems = totalItems - purchasedItems;
+  const estimatedTotal = items.reduce((sum, item) => sum + (item.estimated_cost || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -75,19 +155,21 @@ export default function Supermercado() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-muted-foreground">Total de itens</p>
-                <p className="text-2xl font-bold">0</p>
+                <p className="text-2xl font-bold">{totalItems}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Comprados</p>
-                <p className="text-2xl font-bold">0</p>
+                <p className="text-2xl font-bold">{purchasedItems}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Pendentes</p>
-                <p className="text-2xl font-bold text-amber-500">0</p>
+                <p className="text-2xl font-bold text-amber-500">{pendingItems}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Alta Prioridade</p>
-                <p className="text-2xl font-bold text-red-500">0</p>
+                <p className="text-xs text-muted-foreground">Custo Estimado</p>
+                <p className="text-2xl font-bold text-green-500">
+                  R$ {estimatedTotal.toFixed(2)}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -96,19 +178,27 @@ export default function Supermercado() {
         <Card className="md:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Lista Rápida</CardTitle>
-              <Button size="sm" variant="outline" onClick={handleCompartilhar}>
+              <CardTitle>Ações Rápidas</CardTitle>
+              <Button size="sm" variant="outline" onClick={handleCompartilhar} disabled={pendingItems === 0}>
                 <Share className="mr-2 h-4 w-4" />
                 Compartilhar
               </Button>
             </div>
-            <CardDescription>Itens de alta prioridade para compra</CardDescription>
+            <CardDescription>Gerencie sua lista de compras</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className="flex items-center justify-center h-20">
-                <p className="text-muted-foreground">Nenhum item de alta prioridade. Adicione itens à lista de compras.</p>
-              </div>
+              {pendingItems === 0 ? (
+                <div className="flex items-center justify-center h-20">
+                  <p className="text-muted-foreground">Todos os itens foram comprados ou a lista está vazia.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Você tem <strong>{pendingItems}</strong> {pendingItems === 1 ? 'item pendente' : 'itens pendentes'} para comprar.
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -119,12 +209,80 @@ export default function Supermercado() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Lista de Compras</CardTitle>
             <div className="flex gap-2">
-              <Button className="w-full sm:w-auto" onClick={handleCompartilhar} variant="outline">
-                <Share className="mr-2 h-4 w-4" /> Compartilhar Lista
-              </Button>
-              <Button className="w-full sm:w-auto">
-                <Plus className="mr-2 h-4 w-4" /> Adicionar Item
-              </Button>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto">
+                    <Plus className="mr-2 h-4 w-4" /> Adicionar Item
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Adicionar Item</DialogTitle>
+                    <DialogDescription>Adicione um novo item à lista de compras</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="item-name">Nome do Item</Label>
+                      <Input
+                        id="item-name"
+                        value={newItem.food_item_name}
+                        onChange={(e) => setNewItem({ ...newItem, food_item_name: e.target.value })}
+                        placeholder="Ex: Arroz"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="quantity">Quantidade</Label>
+                        <Input
+                          id="quantity"
+                          type="number"
+                          min="1"
+                          value={newItem.quantity}
+                          onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="unit">Unidade</Label>
+                        <Select value={newItem.unit} onValueChange={(value) => setNewItem({ ...newItem, unit: value })}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="kg">kg</SelectItem>
+                            <SelectItem value="L">L</SelectItem>
+                            <SelectItem value="und">und</SelectItem>
+                            <SelectItem value="pct">pct</SelectItem>
+                            <SelectItem value="cx">cx</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="cost">Custo Estimado (R$)</Label>
+                      <Input
+                        id="cost"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={newItem.estimated_cost}
+                        onChange={(e) => setNewItem({ ...newItem, estimated_cost: parseFloat(e.target.value) || 0 })}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="notes">Observações</Label>
+                      <Input
+                        id="notes"
+                        value={newItem.notes}
+                        onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
+                        placeholder="Opcional"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleAddItem}>Adicionar</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
           <CardDescription>Gerencie os itens para comprar no supermercado</CardDescription>
@@ -141,30 +299,6 @@ export default function Supermercado() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
-            <Select value={filterCategoria || "all"} onValueChange={(value) => setFilterCategoria(value === "all" ? null : value)}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {categorias.map(categoria => (
-                  <SelectItem key={categoria} value={categoria}>{categoria}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filterPrioridade || "all"} onValueChange={(value) => setFilterPrioridade(value === "all" ? null : value)}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Prioridade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="baixa">Baixa</SelectItem>
-                <SelectItem value="media">Média</SelectItem>
-                <SelectItem value="alta">Alta</SelectItem>
-              </SelectContent>
-            </Select>
 
             <div className="flex items-center space-x-2">
               <Checkbox 
@@ -187,18 +321,58 @@ export default function Supermercado() {
                 <TableRow>
                   <TableHead className="w-12"></TableHead>
                   <TableHead>Item</TableHead>
-                  <TableHead>Categoria</TableHead>
                   <TableHead>Quantidade</TableHead>
-                  <TableHead>Prioridade</TableHead>
+                  <TableHead>Custo Est.</TableHead>
+                  <TableHead>Observações</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    Nenhum item na lista de compras. Adicione itens para começar.
-                  </TableCell>
-                </TableRow>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      Carregando...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      Nenhum item na lista de compras. Adicione itens para começar.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredItems.map((item) => (
+                    <TableRow key={item.id} className={item.purchased ? "opacity-50" : ""}>
+                      <TableCell>
+                        <Checkbox
+                          checked={item.purchased}
+                          onCheckedChange={() => handleToggleComprado(item.id, item.purchased)}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {item.purchased ? <s>{item.food_item_name}</s> : item.food_item_name}
+                      </TableCell>
+                      <TableCell>
+                        {item.quantity} {item.unit}
+                      </TableCell>
+                      <TableCell>
+                        {item.estimated_cost ? `R$ ${item.estimated_cost.toFixed(2)}` : "-"}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {item.notes || "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteItem(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
