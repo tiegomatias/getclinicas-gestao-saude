@@ -20,15 +20,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// No demo data - documents will come from real database
-
-interface DocumentsListProps {
+export interface DocumentsListProps {
+  documents: any[];
   searchQuery?: string;
+  onDelete: (documentId: string) => Promise<void>;
 }
 
-export default function DocumentsList({ searchQuery = "" }: DocumentsListProps) {
-  // No documents available - showing empty state
-  const filteredDocuments: any[] = [];
+export default function DocumentsList({ documents, searchQuery = "", onDelete }: DocumentsListProps) {
+  const filteredDocuments = documents.filter((doc) =>
+    doc.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-4">
@@ -60,19 +61,61 @@ export default function DocumentsList({ searchQuery = "" }: DocumentsListProps) 
             <TableHead>Documento</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead className="hidden md:table-cell">Data</TableHead>
-            <TableHead className="hidden lg:table-cell">Tamanho</TableHead>
-            <TableHead className="hidden xl:table-cell">Autor</TableHead>
-            <TableHead className="hidden xl:table-cell">Paciente</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
-            <TableCell colSpan={9} className="h-24 text-center">
-              Nenhum documento encontrado. Faça upload de documentos para começar.
-            </TableCell>
-          </TableRow>
+          {filteredDocuments.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="h-24 text-center">
+                Nenhum documento encontrado.
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredDocuments.map((doc) => (
+              <TableRow key={doc.id}>
+                <TableCell>
+                  <Checkbox />
+                </TableCell>
+                <TableCell className="font-medium">{doc.title}</TableCell>
+                <TableCell>{doc.document_type}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {new Date(doc.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">Ativo</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Visualizar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Download className="mr-2 h-4 w-4" />
+                        Baixar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => onDelete(doc.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

@@ -53,10 +53,12 @@ const formSchema = z.object({
 });
 
 type ContractFormProps = {
-  onSubmit: (formData: z.infer<typeof formSchema>) => void;
+  clinicId: string;
+  contract?: any;
+  onSuccess: () => void;
 };
 
-export default function ContractForm({ onSubmit }: ContractFormProps) {
+export default function ContractForm({ clinicId, contract, onSuccess }: ContractFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -80,8 +82,8 @@ export default function ContractForm({ onSubmit }: ContractFormProps) {
   });
 
   const handleFormSubmit = (data: z.infer<typeof formSchema>) => {
-    toast.success("Contrato gerado com sucesso!");
-    onSubmit(data);
+    toast.success("Contrato salvo com sucesso!");
+    onSuccess();
   };
 
   return (

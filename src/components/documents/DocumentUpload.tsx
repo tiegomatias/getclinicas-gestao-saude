@@ -24,10 +24,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 interface DocumentUploadProps {
+  clinicId: string;
   onComplete?: () => void;
 }
 
-export default function DocumentUpload({ onComplete }: DocumentUploadProps) {
+export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
