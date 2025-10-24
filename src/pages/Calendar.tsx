@@ -18,65 +18,94 @@ import {
 import { CalendarIcon, Plus, Filter, Clock, Users } from "lucide-react";
 import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
 import AppointmentsList from "@/components/calendar/AppointmentsList";
+import ActivityForm from "@/components/calendar/ActivityForm";
+import ActivityDetailModal from "@/components/calendar/ActivityDetailModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmptyState from "@/components/shared/EmptyState";
-import { clinicService } from "@/services/clinicService";
+import { activityService, Activity } from "@/services/activityService";
 import { toast } from "sonner";
 
 export default function Calendar() {
-  const [hasData, setHasData] = useState(false);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState("month");
   const [activityType, setActivityType] = useState("all");
+  const [showActivityForm, setShowActivityForm] = useState(false);
+  const [showActivityDetail, setShowActivityDetail] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [clinicId, setClinicId] = useState<string>("");
 
   useEffect(() => {
-    const checkForData = async () => {
-      try {
-        // Obter o ID da clínica do localStorage
-        const clinicDataStr = localStorage.getItem("clinicData");
-        if (!clinicDataStr) {
-          setHasData(false);
-          setIsLoading(false);
-          return;
-        }
-        
-        const clinicData = JSON.parse(clinicDataStr);
-        const hasActivitiesData = await clinicService.hasClinicData(clinicData.id, "activities");
-        setHasData(hasActivitiesData);
-      } catch (error) {
-        console.error("Erro ao verificar dados de atividades:", error);
-        setHasData(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkForData();
+    loadActivities();
   }, []);
 
+  const loadActivities = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const clinicData = JSON.parse(clinicDataStr);
+      setClinicId(clinicData.id);
+      
+      const data = await activityService.getActivities(clinicData.id);
+      setActivities(data);
+    } catch (error) {
+      console.error("Erro ao carregar atividades:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleAddActivity = () => {
-    // Simular adição de atividade
-    setHasData(true);
-    toast.success("Nova atividade agendada com sucesso!");
+    setEditingActivity(null);
+    setShowActivityForm(true);
   };
 
   const handleFilterChange = (value: string) => {
     setActivityType(value);
-    toast.info(`Filtro aplicado: ${value === "all" ? "Todas atividades" : value}`);
   };
 
   const handleViewChange = (value: string) => {
     setViewMode(value);
-    toast.info(`Visualização alterada para: ${value}`);
   };
 
-  const handleViewPatientRecord = () => {
-    toast.info("Abrindo prontuário do paciente");
+  const handleShowDetails = (activity: Activity) => {
+    setSelectedActivity(activity);
+    setShowActivityDetail(true);
   };
 
-  const handleShowDetails = () => {
-    toast.info("Visualizando detalhes da atividade");
+  const handleEditActivity = (activity: Activity) => {
+    setEditingActivity(activity);
+    setShowActivityDetail(false);
+    setShowActivityForm(true);
   };
+
+  const handleFormSuccess = () => {
+    loadActivities();
+  };
+
+  const handleDeleteSuccess = () => {
+    loadActivities();
+  };
+
+  const filteredActivities = activities.filter(activity => {
+    if (activityType === "all") return true;
+    return activity.activity_type === activityType;
+  });
+
+  const todayActivities = activities.filter(activity => {
+    const today = new Date();
+    const activityDate = new Date(activity.start_time);
+    return (
+      activityDate.getDate() === today.getDate() &&
+      activityDate.getMonth() === today.getMonth() &&
+      activityDate.getFullYear() === today.getFullYear()
+    );
+  }).slice(0, 2);
 
   return (
     <div className="space-y-6">
@@ -127,7 +156,7 @@ export default function Calendar() {
           <div className="flex justify-center py-8">
             <p>Carregando...</p>
           </div>
-        ) : hasData ? (
+        ) : activities.length > 0 ? (
           <>
             <TabsContent value="calendar" className="space-y-4">
               <Card className="bg-muted/40">
@@ -162,7 +191,10 @@ export default function Calendar() {
                 </CardHeader>
                 <CardContent>
                   <div className="rounded-md bg-background p-4">
-                    <AppointmentCalendar />
+                    <AppointmentCalendar 
+                      activities={filteredActivities}
+                      onActivityClick={handleShowDetails}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -176,49 +208,40 @@ export default function Calendar() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 rounded-md border p-3">
-                        <div className="rounded-md bg-blue-100 p-2 text-blue-700">
-                          <Clock className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">Consulta Médica - Dr. Carlos</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>14:00 - 14:30</span>
-                            <span>•</span>
-                            <span>Sala 03</span>
+                    {todayActivities.length > 0 ? (
+                      <div className="space-y-3">
+                        {todayActivities.map((activity) => (
+                          <div key={activity.id} className="flex items-center gap-2 rounded-md border p-3">
+                            <div className="rounded-md bg-blue-100 p-2 text-blue-700">
+                              <Clock className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium">{activity.title}</p>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <span>{new Date(activity.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {new Date(activity.end_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                {activity.location && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{activity.location}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleShowDetails(activity)}
+                            >
+                              Ver
+                            </Button>
                           </div>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={handleShowDetails}
-                        >
-                          Ver
-                        </Button>
+                        ))}
                       </div>
-
-                      <div className="flex items-center gap-2 rounded-md border p-3">
-                        <div className="rounded-md bg-green-100 p-2 text-green-700">
-                          <Users className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">Terapia em Grupo</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>15:00 - 16:30</span>
-                            <span>•</span>
-                            <span>Salão Principal</span>
-                          </div>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={handleShowDetails}
-                        >
-                          Ver
-                        </Button>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Nenhuma atividade programada para hoje
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -252,7 +275,10 @@ export default function Calendar() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <AppointmentsList />
+                  <AppointmentsList 
+                    activities={filteredActivities}
+                    onActivityClick={handleShowDetails}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -271,6 +297,22 @@ export default function Calendar() {
           </Card>
         )}
       </Tabs>
+
+      <ActivityForm
+        open={showActivityForm}
+        onOpenChange={setShowActivityForm}
+        clinicId={clinicId}
+        activity={editingActivity}
+        onSuccess={handleFormSuccess}
+      />
+
+      <ActivityDetailModal
+        open={showActivityDetail}
+        onOpenChange={setShowActivityDetail}
+        activity={selectedActivity}
+        onEdit={handleEditActivity}
+        onDelete={handleDeleteSuccess}
+      />
     </div>
   );
 }

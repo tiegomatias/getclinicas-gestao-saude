@@ -10,34 +10,35 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Edit, Trash2, CheckCircle, XCircle } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import { Eye } from "lucide-react";
+import { Activity } from "@/services/activityService";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-// No demo data - appointments will come from real database
+interface AppointmentsListProps {
+  activities: Activity[];
+  onActivityClick: (activity: Activity) => void;
+}
 
-export default function AppointmentsList() {
-  const handleEditAppointment = (id: number) => {
-    toast.info(`Editando atividade #${id}`);
-  };
-  
-  const handleCancelAppointment = (id: number) => {
-    toast.warning(`Atividade #${id} cancelada`);
-  };
-  
-  const handleMarkComplete = (id: number) => {
-    toast.success(`Atividade #${id} marcada como concluída`);
-  };
-  
-  const handleMarkAbsent = (id: number) => {
-    toast.error(`Registrada falta na atividade #${id}`);
-  };
+const activityTypeLabels: Record<string, string> = {
+  medical: "Consulta Médica",
+  therapy: "Terapia Individual",
+  group: "Terapia em Grupo",
+  workshop: "Workshop",
+  recreation: "Atividade Recreativa",
+  other: "Outro",
+};
+
+const activityTypeColors: Record<string, string> = {
+  medical: "bg-blue-100 text-blue-800",
+  therapy: "bg-purple-100 text-purple-800",
+  group: "bg-green-100 text-green-800",
+  workshop: "bg-amber-100 text-amber-800",
+  recreation: "bg-pink-100 text-pink-800",
+  other: "bg-gray-100 text-gray-800",
+};
+
+export default function AppointmentsList({ activities, onActivityClick }: AppointmentsListProps) {
 
   return (
     <div>
@@ -55,11 +56,48 @@ export default function AppointmentsList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
-            <TableCell colSpan={8} className="h-24 text-center">
-              Nenhuma atividade agendada. Adicione compromissos através da agenda.
-            </TableCell>
-          </TableRow>
+          {activities.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} className="h-24 text-center">
+                Nenhuma atividade agendada. Adicione compromissos através da agenda.
+              </TableCell>
+            </TableRow>
+          ) : (
+            activities.map((activity) => (
+              <TableRow key={activity.id}>
+                <TableCell className="font-medium">{activity.title}</TableCell>
+                <TableCell>
+                  <Badge className={activityTypeColors[activity.activity_type] || activityTypeColors.other}>
+                    {activityTypeLabels[activity.activity_type] || activity.activity_type}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(activity.start_time), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {activity.location || "-"}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  {activity.professional?.name || "-"}
+                </TableCell>
+                <TableCell className="hidden xl:table-cell">
+                  {activity.participants?.length || 0} participante(s)
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">Agendado</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onActivityClick(activity)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
