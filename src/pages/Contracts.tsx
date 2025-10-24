@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,78 +7,80 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus, Search, FileIcon } from "lucide-react";
+import { FileText, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ContractForm from "@/components/contracts/ContractForm";
 import ContractPreview from "@/components/contracts/ContractPreview";
+import ContractListView from "@/components/contracts/ContractListView";
 import EmptyState from "@/components/shared/EmptyState";
-import { clinicService } from "@/services/clinicService";
-
-interface ContractData {
-  responsavelNome: string;
-  responsavelRg: string;
-  responsavelCpf: string;
-  responsavelEndereco: string;
-  responsavelCidade: string;
-  responsavelEstado: string;
-  responsavelCep: string;
-  pacienteNome: string;
-  pacienteIdade: string;
-  pacienteDataNascimento: string;
-  dataEntrada: string;
-  tempoInternacao: string;
-  valorTratamento: string;
-  formaPagamento: string;
-  clinicaNome: string;
-  dataAssinatura: string;
-}
+import { contractService, Contract } from "@/services/contractService";
 
 export default function Contracts() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [clinicId, setClinicId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("list");
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [contractData, setContractData] = useState<ContractData | null>(null);
-  const [hasData, setHasData] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [editingContract, setEditingContract] = useState<Contract | null>(null);
 
   useEffect(() => {
-    const checkForData = async () => {
-      try {
-        // Obter o ID da clínica do localStorage
-        const clinicDataStr = localStorage.getItem("clinicData");
-        if (!clinicDataStr) {
-          setHasData(false);
-          setIsLoading(false);
-          return;
-        }
-        
-        const clinicData = JSON.parse(clinicDataStr);
-        const hasContractsData = await clinicService.hasClinicData(clinicData.id, "contracts");
-        setHasData(hasContractsData);
-      } catch (error) {
-        console.error("Erro ao verificar dados de contratos:", error);
-        setHasData(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkForData();
+    loadContracts();
   }, []);
 
+  const loadContracts = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const clinicData = JSON.parse(clinicDataStr);
+      setClinicId(clinicData.id);
+      
+      const data = await contractService.getContracts(clinicData.id);
+      setContracts(data);
+    } catch (error) {
+      console.error("Erro ao carregar contratos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleNewContract = () => {
+    setEditingContract(null);
     setActiveTab("new");
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+  const handleViewContract = (contract: Contract) => {
+    setSelectedContract(contract);
+    setPreviewOpen(true);
   };
 
-  const handleContractSubmit = (data: ContractData) => {
-    setContractData(data);
-    setPreviewOpen(true);
-    setHasData(true); // Atualiza o estado para mostrar a lista após o cadastro
+  const handleEditContract = (contract: Contract) => {
+    setEditingContract(contract);
+    setActiveTab("new");
   };
+
+  const handleDeleteContract = async (contractId: string) => {
+    if (confirm("Tem certeza que deseja excluir este contrato?")) {
+      const success = await contractService.deleteContract(contractId);
+      if (success) {
+        loadContracts();
+      }
+    }
+  };
+
+  const handleContractSaved = () => {
+    loadContracts();
+    setActiveTab("list");
+  };
+
+  const filteredContracts = contracts.filter((contract) =>
+    contract.responsible_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -104,7 +105,7 @@ export default function Contracts() {
               placeholder="Buscar contratos..."
               className="w-full pl-8 md:w-[200px] lg:w-[300px]"
               value={searchQuery}
-              onChange={handleSearch}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <Button onClick={handleNewContract}>
@@ -113,105 +114,80 @@ export default function Contracts() {
         </div>
       </div>
 
-      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
-          <TabsTrigger value="list">Contratos Existentes</TabsTrigger>
+          <TabsTrigger value="list">Listagem</TabsTrigger>
           <TabsTrigger value="new">Novo Contrato</TabsTrigger>
         </TabsList>
-        
         <TabsContent value="list">
           <Card>
             <CardHeader>
-              <CardTitle>Lista de Contratos</CardTitle>
+              <CardTitle>Contratos Cadastrados</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="flex justify-center py-8">
                   <p>Carregando...</p>
                 </div>
-              ) : hasData ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="py-3 px-2 text-left">ID</th>
-                        <th className="py-3 px-2 text-left">Paciente</th>
-                        <th className="py-3 px-2 text-left">Responsável</th>
-                        <th className="py-3 px-2 text-left">Data</th>
-                        <th className="py-3 px-2 text-left">Status</th>
-                        <th className="py-3 px-2 text-left">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { id: 1, paciente: "João Silva", responsavel: "Maria Silva", data: "2023-05-10", status: "Ativo" },
-                        { id: 2, paciente: "Pedro Souza", responsavel: "Carlos Souza", data: "2023-04-22", status: "Ativo" },
-                        { id: 3, paciente: "Ana Oliveira", responsavel: "Roberto Oliveira", data: "2023-03-15", status: "Finalizado" },
-                      ].filter(contract =>
-                        contract.paciente.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        contract.responsavel.toLowerCase().includes(searchQuery.toLowerCase())
-                      ).map((contract) => (
-                        <tr key={contract.id} className="border-b hover:bg-muted/50">
-                          <td className="py-3 px-2">{contract.id}</td>
-                          <td className="py-3 px-2">{contract.paciente}</td>
-                          <td className="py-3 px-2">{contract.responsavel}</td>
-                          <td className="py-3 px-2">{new Date(contract.data).toLocaleDateString()}</td>
-                          <td className="py-3 px-2">
-                            <span
-                              className={`inline-block px-2 py-1 rounded-full text-xs ${
-                                contract.status === "Ativo"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {contract.status}
-                            </span>
-                          </td>
-                          <td className="py-3 px-2">
-                            <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm">
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm">
-                                <FileIcon className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              ) : contracts.length > 0 ? (
+                <ContractListView
+                  contracts={filteredContracts}
+                  onView={handleViewContract}
+                  onEdit={handleEditContract}
+                  onDelete={handleDeleteContract}
+                />
               ) : (
                 <EmptyState
                   icon={<FileText className="h-10 w-10 text-muted-foreground" />}
                   title="Nenhum contrato cadastrado"
-                  description="Crie seu primeiro contrato para começar a gerenciar os acordos com pacientes e responsáveis."
-                  actionText="Criar contrato"
+                  description="Crie seu primeiro contrato para começar a gerenciar."
+                  actionText="Novo contrato"
                   onAction={handleNewContract}
                 />
               )}
             </CardContent>
           </Card>
         </TabsContent>
-        
         <TabsContent value="new">
           <Card>
             <CardHeader>
-              <CardTitle>Geração de Contrato</CardTitle>
+              <CardTitle>
+                {editingContract ? "Editar Contrato" : "Novo Contrato"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <ContractForm onSubmit={handleContractSubmit} />
+              <ContractForm
+                clinicId={clinicId}
+                contract={editingContract}
+                onSuccess={handleContractSaved}
+              />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {contractData && (
+      {selectedContract && (
         <ContractPreview
           open={previewOpen}
           onOpenChange={setPreviewOpen}
-          contractData={contractData}
+          contractData={{
+            responsavelNome: selectedContract.responsible_name,
+            responsavelCpf: selectedContract.responsible_document,
+            valorTratamento: selectedContract.value.toString(),
+            dataAssinatura: selectedContract.start_date,
+            responsavelRg: "",
+            responsavelEndereco: "",
+            responsavelCidade: "",
+            responsavelEstado: "",
+            responsavelCep: "",
+            pacienteNome: "",
+            pacienteIdade: "",
+            pacienteDataNascimento: "",
+            dataEntrada: selectedContract.start_date,
+            tempoInternacao: "",
+            formaPagamento: "",
+            clinicaNome: "",
+          }}
         />
       )}
     </div>

@@ -13,46 +13,55 @@ import { Input } from "@/components/ui/input";
 import DocumentsList from "@/components/documents/DocumentsList";
 import DocumentUpload from "@/components/documents/DocumentUpload";
 import EmptyState from "@/components/shared/EmptyState";
-import { clinicService } from "@/services/clinicService";
+import { documentService } from "@/services/documentService";
 
 export default function Documents() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [hasData, setHasData] = useState(false);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("list");
+  const [clinicId, setClinicId] = useState<string>("");
 
   useEffect(() => {
-    const checkForData = async () => {
-      try {
-        // Obter o ID da clínica do localStorage
-        const clinicDataStr = localStorage.getItem("clinicData");
-        if (!clinicDataStr) {
-          setHasData(false);
-          setIsLoading(false);
-          return;
-        }
-        
-        const clinicData = JSON.parse(clinicDataStr);
-        const hasDocumentsData = await clinicService.hasClinicData(clinicData.id, "documents");
-        setHasData(hasDocumentsData);
-      } catch (error) {
-        console.error("Erro ao verificar dados de documentos:", error);
-        setHasData(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkForData();
+    loadDocuments();
   }, []);
+
+  const loadDocuments = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const clinicData = JSON.parse(clinicDataStr);
+      setClinicId(clinicData.id);
+      
+      const data = await documentService.getDocuments(clinicData.id);
+      setDocuments(data);
+    } catch (error) {
+      console.error("Erro ao carregar documentos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleNewDocument = () => {
     setActiveTab("upload");
   };
 
   const handleUploadComplete = () => {
+    loadDocuments();
     setActiveTab("list");
-    setHasData(true);
+  };
+
+  const handleDeleteDocument = async (documentId: string) => {
+    if (confirm("Tem certeza que deseja excluir este documento?")) {
+      const success = await documentService.deleteDocument(documentId);
+      if (success) {
+        loadDocuments();
+      }
+    }
   };
 
   return (
@@ -102,8 +111,12 @@ export default function Documents() {
                 <div className="flex justify-center py-8">
                   <p>Carregando...</p>
                 </div>
-              ) : hasData ? (
-                <DocumentsList searchQuery={searchQuery} />
+              ) : documents.length > 0 ? (
+                <DocumentsList 
+                  documents={documents}
+                  searchQuery={searchQuery} 
+                  onDelete={handleDeleteDocument}
+                />
               ) : (
                 <EmptyState
                   icon={<FileText className="h-10 w-10 text-muted-foreground" />}
@@ -122,7 +135,10 @@ export default function Documents() {
               <CardTitle>Enviar Novo Documento</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentUpload onComplete={handleUploadComplete} />
+              <DocumentUpload 
+                clinicId={clinicId}
+                onComplete={handleUploadComplete} 
+              />
             </CardContent>
           </Card>
         </TabsContent>
