@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,64 +8,74 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChartBarIcon, Download, FileText, Calendar } from "lucide-react";
+import { ChartBarIcon, Download, TrendingUp, DollarSign, Activity, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import EmptyState from "@/components/shared/EmptyState";
-import { clinicService } from "@/services/clinicService";
-
-// No demo data - charts will be empty until real data is available
-const monthlyAppointments: any[] = [];
-
-// No demo data - pie chart will be empty
-const appointmentTypes: any[] = [];
-
-const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042"];
-
-// No demo data - reports list will be empty
-const availableReports: any[] = [];
+import { reportService, OccupationReport, FinancialReport, ActivitiesReport, PatientsReport } from "@/services/reportService";
+import { toast } from "sonner";
 
 export default function Relatorios() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [hasData, setHasData] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [clinicId, setClinicId] = useState<string>("");
+  const [occupationReport, setOccupationReport] = useState<OccupationReport | null>(null);
+  const [financialReport, setFinancialReport] = useState<FinancialReport | null>(null);
+  const [activitiesReport, setActivitiesReport] = useState<ActivitiesReport | null>(null);
+  const [patientsReport, setPatientsReport] = useState<PatientsReport | null>(null);
+  const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
-    const checkForData = async () => {
-      try {
-        // Obter o ID da clínica do localStorage
-        const clinicDataStr = localStorage.getItem("clinicData");
-        if (!clinicDataStr) {
-          setHasData(false);
-          setIsLoading(false);
-          return;
-        }
-        
-        const clinicData = JSON.parse(clinicDataStr);
-        // Verificar se há dados suficientes para gerar relatórios
-        // Considera que há relatórios se houver pacientes, profissionais ou atividades
-        const hasAnyData = await Promise.all([
-          clinicService.hasClinicData(clinicData.id, "patients"),
-          clinicService.hasClinicData(clinicData.id, "professionals"),
-          clinicService.hasClinicData(clinicData.id, "activities")
-        ]);
-        
-        setHasData(hasAnyData.some(d => d));
-      } catch (error) {
-        console.error("Erro ao verificar dados para relatórios:", error);
-        setHasData(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkForData();
+    loadReports();
   }, []);
 
-  const handleGenerateReport = () => {
-    // Aqui você pode implementar a lógica para gerar um novo relatório
-    console.log("Gerar relatório");
+  const loadReports = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const clinicData = JSON.parse(clinicDataStr);
+      setClinicId(clinicData.id);
+      
+      const [occupation, financial, activities, patients] = await Promise.all([
+        reportService.getOccupationReport(clinicData.id),
+        reportService.getFinancialReport(clinicData.id, startDate, endDate),
+        reportService.getActivitiesReport(clinicData.id, startDate, endDate),
+        reportService.getPatientsReport(clinicData.id),
+      ]);
+      
+      setOccupationReport(occupation);
+      setFinancialReport(financial);
+      setActivitiesReport(activities);
+      setPatientsReport(patients);
+    } catch (error) {
+      console.error("Erro ao carregar relatórios:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleGenerateReport = () => {
+    loadReports();
+    toast.success("Relatórios atualizados!");
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Carregando relatórios...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -84,224 +93,225 @@ export default function Relatorios() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Input
-              type="month"
-              className="w-full md:w-[200px]"
-              defaultValue="2025-05"
-            />
-          </div>
-          <Button>
-            <Download className="mr-2 h-4 w-4" /> Exportar PDF
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-[150px]"
+          />
+          <span className="text-sm text-muted-foreground">até</span>
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-[150px]"
+          />
+          <Button onClick={handleGenerateReport}>
+            <TrendingUp className="mr-2 h-4 w-4" /> Atualizar
           </Button>
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <p>Carregando...</p>
-        </div>
-      ) : hasData ? (
-        <Tabs defaultValue="dashboard">
-          <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="reports">Relatórios</TabsTrigger>
-            <TabsTrigger value="custom">Personalizado</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="dashboard">
+      <Tabs defaultValue="dashboard">
+        <TabsList className="grid w-full grid-cols-2 md:w-[300px]">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="dashboard">
+          <div className="grid gap-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Taxa de Ocupação</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{occupationReport?.occupationRate}%</div>
+                  <p className="text-xs text-muted-foreground">
+                    {occupationReport?.occupiedBeds} de {occupationReport?.totalBeds} leitos
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Saldo do Período</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{formatCurrency(financialReport?.balance || 0)}</div>
+                  <p className="text-xs text-muted-foreground">Receitas - Despesas</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Atividades</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{activitiesReport?.totalActivities || 0}</div>
+                  <p className="text-xs text-muted-foreground">No período selecionado</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Pacientes Ativos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{patientsReport?.totalActive || 0}</div>
+                  <p className="text-xs text-muted-foreground">Em tratamento</p>
+                </CardContent>
+              </Card>
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Atendimentos Mensais</CardTitle>
-                  <CardDescription>
-                    Evolução do número de atendimentos ao longo do ano
-                  </CardDescription>
+                  <CardTitle>Resumo Financeiro</CardTitle>
+                  <CardDescription>Período: {startDate} até {endDate}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] flex items-center justify-center">
-                    <p className="text-muted-foreground">Sem dados de atendimentos para exibir</p>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Receitas:</span>
+                    <span className="font-bold text-green-600">{formatCurrency(financialReport?.totalIncome || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Despesas:</span>
+                    <span className="font-bold text-red-600">{formatCurrency(financialReport?.totalExpenses || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="text-sm font-medium">Saldo:</span>
+                    <span className="font-bold">{formatCurrency(financialReport?.balance || 0)}</span>
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
-                  <CardTitle>Tipos de Atendimento</CardTitle>
-                  <CardDescription>
-                    Distribuição por categoria de serviço
-                  </CardDescription>
+                  <CardTitle>Ocupação de Leitos</CardTitle>
+                  <CardDescription>Status atual da ocupação</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] flex items-center justify-center">
-                    <p className="text-muted-foreground">Sem dados de tipos de atendimento para exibir</p>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Ocupados:</span>
+                    <span className="font-medium">{occupationReport?.occupiedBeds}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Disponíveis:</span>
+                    <span className="font-medium">{occupationReport?.availableBeds}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Manutenção:</span>
+                    <span className="font-medium">{occupationReport?.maintenanceBeds}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="text-sm font-medium">Total:</span>
+                    <span className="font-bold">{occupationReport?.totalBeds}</span>
                   </div>
                 </CardContent>
               </Card>
             </div>
-            
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Indicadores Principais</CardTitle>
-                <CardDescription>
-                  Principais métricas de desempenho da clínica
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-lg border border-gray-200 bg-card p-4 shadow-sm">
-                    <p className="text-sm font-medium text-muted-foreground">Taxa de Ocupação de Leitos</p>
-                    <p className="mt-1 text-2xl font-bold text-card-foreground">0%</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Sem dados disponíveis</p>
-                  </div>
-                  
-                  <div className="rounded-lg border border-gray-200 bg-card p-4 shadow-sm">
-                    <p className="text-sm font-medium text-muted-foreground">Tempo Médio de Espera</p>
-                    <p className="mt-1 text-2xl font-bold text-card-foreground">0 min</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Sem dados disponíveis</p>
-                  </div>
-                  
-                  <div className="rounded-lg border border-gray-200 bg-card p-4 shadow-sm">
-                    <p className="text-sm font-medium text-muted-foreground">Satisfação do Paciente</p>
-                    <p className="mt-1 text-2xl font-bold text-card-foreground">0/5</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Sem dados disponíveis</p>
-                  </div>
-                  
-                  <div className="rounded-lg border border-gray-200 bg-card p-4 shadow-sm">
-                    <p className="text-sm font-medium text-muted-foreground">Taxa de Retorno</p>
-                    <p className="mt-1 text-2xl font-bold text-card-foreground">0%</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Sem dados disponíveis</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="reports">
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="detalhado">
+          <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Relatórios Disponíveis</CardTitle>
-                <CardDescription>
-                  Acesse e baixe os relatórios pré-configurados
-                </CardDescription>
+                <CardTitle>Atividades por Tipo</CardTitle>
+                <CardDescription>Distribuição das atividades no período</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Nenhum relatório disponível ainda.</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Os relatórios serão gerados automaticamente quando houver dados suficientes.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="custom">
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatório Personalizado</CardTitle>
-                <CardDescription>
-                  Configure um relatório com os dados e métricas de seu interesse
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium leading-none">Tipo de Relatório</label>
-                      <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                        <option>Financeiro</option>
-                        <option>Atendimentos</option>
-                        <option>Ocupação</option>
-                        <option>Medicamentos</option>
-                        <option>Profissionais</option>
-                      </select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium leading-none">Período</label>
-                      <div className="flex items-center gap-2">
-                        <Input type="date" className="w-full" />
-                        <span>até</span>
-                        <Input type="date" className="w-full" />
+                {activitiesReport && Object.keys(activitiesReport.activitiesByType).length > 0 ? (
+                  <div className="space-y-3">
+                    {Object.entries(activitiesReport.activitiesByType).map(([type, count]) => (
+                      <div key={type} className="flex justify-between items-center p-3 rounded-md border">
+                        <span className="text-sm capitalize font-medium">{type}</span>
+                        <span className="font-bold">{count}</span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                  
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Nenhuma atividade no período selecionado
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Receitas por Categoria</CardTitle>
+                  <CardDescription>Distribuição das receitas</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {financialReport && Object.keys(financialReport.incomeByCategory).length > 0 ? (
+                    <div className="space-y-2">
+                      {Object.entries(financialReport.incomeByCategory).map(([category, amount]) => (
+                        <div key={category} className="flex justify-between items-center">
+                          <span className="text-sm">{category}:</span>
+                          <span className="font-medium text-green-600">{formatCurrency(amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nenhuma receita no período
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Despesas por Categoria</CardTitle>
+                  <CardDescription>Distribuição das despesas</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {financialReport && Object.keys(financialReport.expensesByCategory).length > 0 ? (
+                    <div className="space-y-2">
+                      {Object.entries(financialReport.expensesByCategory).map(([category, amount]) => (
+                        <div key={category} className="flex justify-between items-center">
+                          <span className="text-sm">{category}:</span>
+                          <span className="font-medium text-red-600">{formatCurrency(amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nenhuma despesa no período
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Estatísticas de Pacientes</CardTitle>
+                <CardDescription>Dados sobre internações</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none">Métricas a incluir</label>
-                    <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-                        <span>Receita Total</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-                        <span>Despesas</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-                        <span>Lucro</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-                        <span>Atendimentos</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-                        <span>Taxa de Ocupação</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-                        <span>Tempo Médio</span>
-                      </label>
-                    </div>
+                    <p className="text-sm text-muted-foreground">Total de Internações</p>
+                    <p className="text-2xl font-bold">{patientsReport?.totalAdmissions}</p>
                   </div>
-                  
                   <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none">Formato de Saída</label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="format" className="h-4 w-4 border-gray-300" defaultChecked />
-                        <span>PDF</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="format" className="h-4 w-4 border-gray-300" />
-                        <span>Excel</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="format" className="h-4 w-4 border-gray-300" />
-                        <span>CSV</span>
-                      </label>
-                    </div>
+                    <p className="text-sm text-muted-foreground">Altas no Período</p>
+                    <p className="text-2xl font-bold">{patientsReport?.totalDischarges}</p>
                   </div>
-                  
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline">Limpar</Button>
-                    <Button>
-                      <Calendar className="mr-2 h-4 w-4" /> Gerar Relatório
-                    </Button>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Atualmente Ativos</p>
+                    <p className="text-2xl font-bold">{patientsReport?.totalActive}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
-      ) : (
-        <Card>
-          <CardContent className="pt-6">
-            <EmptyState
-              icon={<ChartBarIcon className="h-10 w-10 text-muted-foreground" />}
-              title="Nenhum dado disponível para relatórios"
-              description="Adicione pacientes, profissionais e registre atividades para começar a gerar relatórios e análises."
-              actionText="Começar a adicionar dados"
-              onAction={handleGenerateReport}
-            />
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
