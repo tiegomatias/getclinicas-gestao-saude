@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, Search, CreditCard, Receipt, Plus } from "lucide-react";
+import { DollarSign, Search, CreditCard, Receipt, Plus, Edit, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -19,96 +19,97 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import StatCard from "@/components/dashboard/StatCard";
 import EmptyState from "@/components/shared/EmptyState";
-import { clinicService } from "@/services/clinicService";
+import { financeService, Finance, FinanceSummary } from "@/services/financeService";
+import FinanceForm from "@/components/financeiro/FinanceForm";
 import { toast } from "sonner";
-
-// No demo data - transactions will come from real database
-const initialTransactionData: any[] = [];
-
-// No demo data - bills will come from real database
-const initialBillsData: any[] = [];
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function Financeiro() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [hasData, setHasData] = useState(false);
+  const [finances, setFinances] = useState<Finance[]>([]);
+  const [summary, setSummary] = useState<FinanceSummary>({
+    totalIncome: 0,
+    totalExpenses: 0,
+    balance: 0,
+    monthlyIncome: 0,
+    monthlyExpenses: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
-  const [transactionData, setTransactionData] = useState(initialTransactionData);
-  const [billsData, setBillsData] = useState(initialBillsData);
+  const [showFinanceForm, setShowFinanceForm] = useState(false);
+  const [editingFinance, setEditingFinance] = useState<Finance | null>(null);
+  const [clinicId, setClinicId] = useState<string>("");
 
   useEffect(() => {
-    const checkForData = async () => {
-      try {
-        // Obter o ID da clínica do localStorage
-        const clinicDataStr = localStorage.getItem("clinicData");
-        if (!clinicDataStr) {
-          setHasData(false);
-          setIsLoading(false);
-          return;
-        }
-        
-        const clinicData = JSON.parse(clinicDataStr);
-        // Check if the clinic has financial data
-        const hasFinancialData = await clinicService.hasClinicData(clinicData.id, "finances");
-        setHasData(hasFinancialData);
-      } catch (error) {
-        console.error("Erro ao verificar dados financeiros:", error);
-        setHasData(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkForData();
+    loadFinances();
   }, []);
 
-  // Stats data - empty for new clinic
-  const totalMonthlyIncome = "R$ 0,00";
-  const totalMonthlyExpense = "R$ 0,00";
-  const monthlyBalance = "R$ 0,00";
-  const pendingReceivables = "R$ 0,00";
-
-  // Função para adicionar uma nova transação
-  const handleNewTransaction = () => {
-    const newTransaction = {
-      id: `T${transactionData.length + 1}`,
-      date: new Date().toISOString().split('T')[0],
-      description: "Nova Transação",
-      pacient: "Novo Paciente",
-      value: 100.00,
-      status: "Pendente"
-    };
-    
-    setTransactionData([newTransaction, ...transactionData]);
-    setHasData(true);
-    toast.success("Nova transação adicionada com sucesso!");
-  };
-
-  // Função para pagar uma conta
-  const handlePayBill = (billId: string) => {
-    const updatedBills = billsData.filter(bill => bill.id !== billId);
-    setBillsData(updatedBills);
-    
-    // Adicionar esta conta como transação paga
-    const billToPay = billsData.find(bill => bill.id === billId);
-    if (billToPay) {
-      const newTransaction = {
-        id: `T${transactionData.length + 1}`,
-        date: new Date().toISOString().split('T')[0],
-        description: `Pagamento: ${billToPay.description}`,
-        pacient: "-",
-        value: billToPay.value,
-        status: "Pago"
-      };
+  const loadFinances = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setIsLoading(false);
+        return;
+      }
       
-      setTransactionData([newTransaction, ...transactionData]);
+      const clinicData = JSON.parse(clinicDataStr);
+      setClinicId(clinicData.id);
+      
+      const [financesData, summaryData] = await Promise.all([
+        financeService.getFinances(clinicData.id),
+        financeService.getFinanceSummary(clinicData.id),
+      ]);
+      
+      setFinances(financesData);
+      setSummary(summaryData);
+    } catch (error) {
+      console.error("Erro ao carregar dados financeiros:", error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    toast.success("Conta paga com sucesso!");
   };
 
-  if (isLoading) {
+  const handleNewTransaction = () => {
+    setEditingFinance(null);
+    setShowFinanceForm(true);
+  };
+
+  const handleEditFinance = (finance: Finance) => {
+    setEditingFinance(finance);
+    setShowFinanceForm(true);
+  };
+
+  const handleDeleteFinance = async (financeId: string) => {
+    if (confirm("Tem certeza que deseja excluir esta transação?")) {
+      const success = await financeService.deleteFinance(financeId);
+      if (success) {
+        loadFinances();
+      }
+    }
+  };
+
+  const handleFormSuccess = () => {
+    loadFinances();
+  };
+
+  const filteredFinances = finances.filter((finance) =>
+    finance.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const incomeTransactions = filteredFinances.filter(f => f.type === "income");
+  const expenseTransactions = filteredFinances.filter(f => f.type === "expense");
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
+  if (!clinicId || isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <p>Carregando...</p>
@@ -116,7 +117,7 @@ export default function Financeiro() {
     );
   }
 
-  if (!hasData) {
+  if (finances.length === 0) {
     return (
       <EmptyState
         title="Sem dados financeiros"
@@ -163,41 +164,41 @@ export default function Financeiro() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Receita Mensal"
-          value={totalMonthlyIncome}
+          value={formatCurrency(summary.monthlyIncome)}
           icon={DollarSign}
-          description="Ainda sem receitas registradas"
+          description="Total de receitas no mês"
         />
         <StatCard
           title="Despesas Mensais"
-          value={totalMonthlyExpense}
+          value={formatCurrency(summary.monthlyExpenses)}
           icon={CreditCard}
-          description="Ainda sem despesas registradas"
+          description="Total de despesas no mês"
         />
         <StatCard
           title="Saldo Mensal"
-          value={monthlyBalance}
+          value={formatCurrency(summary.monthlyIncome - summary.monthlyExpenses)}
           icon={DollarSign}
-          description="Ainda sem movimentação"
+          description="Receitas - Despesas"
         />
         <StatCard
-          title="A Receber"
-          value={pendingReceivables}
+          title="Saldo Total"
+          value={formatCurrency(summary.balance)}
           icon={Receipt}
-          description="Valores pendentes de recebimento"
+          description="Balanço geral"
         />
       </div>
 
       <Tabs defaultValue="transacoes">
         <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
-          <TabsTrigger value="transacoes">Transações</TabsTrigger>
-          <TabsTrigger value="contas">Contas a Pagar</TabsTrigger>
+          <TabsTrigger value="transacoes">Receitas</TabsTrigger>
+          <TabsTrigger value="despesas">Despesas</TabsTrigger>
         </TabsList>
         <TabsContent value="transacoes">
           <Card>
             <CardHeader>
-              <CardTitle>Histórico de Transações</CardTitle>
+              <CardTitle>Receitas</CardTitle>
               <CardDescription>
-                Visualize todas as transações financeiras da clínica
+                Visualize todas as receitas da clínica
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -206,53 +207,135 @@ export default function Financeiro() {
                   <TableRow>
                     <TableHead>Data</TableHead>
                     <TableHead>Descrição</TableHead>
-                    <TableHead>Paciente</TableHead>
-                    <TableHead className="text-right">Valor (R$)</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                      Nenhuma transação encontrada. Adicione uma transação para começar.
-                    </TableCell>
-                  </TableRow>
+                  {incomeTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        Nenhuma receita encontrada.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    incomeTransactions.map((finance) => (
+                      <TableRow key={finance.id}>
+                        <TableCell>
+                          {format(new Date(finance.date), "dd/MM/yyyy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell>{finance.description}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {finance.category || "Sem categoria"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-green-600">
+                          {formatCurrency(Number(finance.amount))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditFinance(finance)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteFinance(finance.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="contas">
+        <TabsContent value="despesas">
           <Card>
             <CardHeader>
-              <CardTitle>Contas a Pagar</CardTitle>
+              <CardTitle>Despesas</CardTitle>
               <CardDescription>
-                Gerencie as despesas e contas pendentes da clínica
+                Gerencie as despesas da clínica
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Data</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
-                    <TableHead className="text-right">Valor (R$)</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                      Nenhuma conta pendente. Adicione despesas para gerenciar.
-                    </TableCell>
-                  </TableRow>
+                  {expenseTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        Nenhuma despesa encontrada.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    expenseTransactions.map((finance) => (
+                      <TableRow key={finance.id}>
+                        <TableCell>
+                          {format(new Date(finance.date), "dd/MM/yyyy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell>{finance.description}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {finance.category || "Sem categoria"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-red-600">
+                          {formatCurrency(Number(finance.amount))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditFinance(finance)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteFinance(finance.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <FinanceForm
+        open={showFinanceForm}
+        onOpenChange={setShowFinanceForm}
+        clinicId={clinicId}
+        finance={editingFinance}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
