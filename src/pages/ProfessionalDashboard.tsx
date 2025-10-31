@@ -26,25 +26,89 @@ const ProfessionalDashboard = () => {
   const [clinicData, setClinicData] = useState<ClinicData | null>(null);
   const [permissions, setPermissions] = useState<{ [key: string]: boolean }>({});
 
+  const [stats, setStats] = useState({
+    activePatients: 0,
+    todayAppointments: 0,
+    prescriptions: 0,
+    documents: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    // Load professional and clinic data from localStorage
-    const storedProfessionalData = localStorage.getItem('professionalData');
-    const storedClinicData = localStorage.getItem('clinicData');
-
-    if (storedProfessionalData) {
-      setProfessionalData(JSON.parse(storedProfessionalData));
-    }
-
-    if (storedClinicData) {
-      setClinicData(JSON.parse(storedClinicData));
-    }
-
-    // Load permissions (for now, set default permissions based on profession)
-    if (storedProfessionalData) {
-      const professional = JSON.parse(storedProfessionalData);
-      setDefaultPermissions(professional.profession);
-    }
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const storedProfessionalData = localStorage.getItem('professionalData');
+      const storedClinicData = localStorage.getItem('clinicData');
+
+      if (storedProfessionalData) {
+        setProfessionalData(JSON.parse(storedProfessionalData));
+      }
+
+      if (storedClinicData) {
+        const clinic = JSON.parse(storedClinicData);
+        setClinicData(clinic);
+        
+        // Load real statistics
+        await loadStatistics(clinic.id);
+      }
+
+      if (storedProfessionalData) {
+        const professional = JSON.parse(storedProfessionalData);
+        setDefaultPermissions(professional.profession);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStatistics = async (clinicId: string) => {
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      // Count active patients
+      const { count: patientsCount } = await supabase
+        .from('patients')
+        .select('*', { count: 'exact', head: true })
+        .eq('clinic_id', clinicId)
+        .eq('status', 'active');
+      
+      // Count today's activities
+      const today = new Date().toISOString().split('T')[0];
+      const { count: activitiesCount } = await supabase
+        .from('activities')
+        .select('*', { count: 'exact', head: true })
+        .eq('clinic_id', clinicId)
+        .gte('date', today)
+        .lte('date', today + 'T23:59:59');
+      
+      // Count active prescriptions
+      const { count: prescriptionsCount } = await supabase
+        .from('medication_prescriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('clinic_id', clinicId)
+        .eq('status', 'active');
+      
+      // Count documents
+      const { count: documentsCount } = await supabase
+        .from('documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('clinic_id', clinicId);
+      
+      setStats({
+        activePatients: patientsCount || 0,
+        todayAppointments: activitiesCount || 0,
+        prescriptions: prescriptionsCount || 0,
+        documents: documentsCount || 0,
+      });
+    } catch (error) {
+      console.error("Erro ao carregar estatísticas:", error);
+    }
+  };
 
   const setDefaultPermissions = (profession: string) => {
     let defaultPerms: { [key: string]: boolean } = {};
@@ -279,7 +343,9 @@ const ProfessionalDashboard = () => {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">-</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {loading ? "..." : stats.activePatients}
+              </div>
               <p className="text-sm text-gray-600">Pacientes Ativos</p>
             </div>
           </CardContent>
@@ -287,23 +353,29 @@ const ProfessionalDashboard = () => {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">-</div>
-              <p className="text-sm text-gray-600">Consultas Hoje</p>
+              <div className="text-2xl font-bold text-green-600">
+                {loading ? "..." : stats.todayAppointments}
+              </div>
+              <p className="text-sm text-gray-600">Atividades Hoje</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">-</div>
-              <p className="text-sm text-gray-600">Prescrições</p>
+              <div className="text-2xl font-bold text-purple-600">
+                {loading ? "..." : stats.prescriptions}
+              </div>
+              <p className="text-sm text-gray-600">Prescrições Ativas</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">-</div>
+              <div className="text-2xl font-bold text-orange-600">
+                {loading ? "..." : stats.documents}
+              </div>
               <p className="text-sm text-gray-600">Documentos</p>
             </div>
           </CardContent>

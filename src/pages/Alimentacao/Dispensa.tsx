@@ -1,9 +1,7 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -11,8 +9,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Search, Plus, Calendar, Filter, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, Edit, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,15 +20,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -40,212 +28,104 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
-
-// Interface para os itens de alimentos
-interface FoodItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  expirationDate: Date;
-  status: "normal" | "expiring" | "expired";
-  addedDate: Date;
-}
-
-// Dados fictícios para a lista de alimentos
-const dummyFoodItems: FoodItem[] = [
-  {
-    id: "1",
-    name: "Arroz",
-    category: "Grãos",
-    quantity: 5,
-    unit: "kg",
-    expirationDate: new Date(2025, 11, 31),
-    status: "normal",
-    addedDate: new Date(2025, 1, 15),
-  },
-  {
-    id: "2",
-    name: "Feijão",
-    category: "Grãos",
-    quantity: 3,
-    unit: "kg",
-    expirationDate: new Date(2025, 5, 15),
-    status: "normal",
-    addedDate: new Date(2025, 1, 15),
-  },
-  {
-    id: "3",
-    name: "Leite",
-    category: "Laticínios",
-    quantity: 12,
-    unit: "L",
-    expirationDate: new Date(2025, 5, 10),
-    status: "normal",
-    addedDate: new Date(2025, 1, 20),
-  },
-  {
-    id: "4",
-    name: "Iogurte",
-    category: "Laticínios",
-    quantity: 6,
-    unit: "und",
-    expirationDate: new Date(2025, 5, 1),
-    status: "expiring",
-    addedDate: new Date(2025, 4, 10),
-  },
-  {
-    id: "5",
-    name: "Banana",
-    category: "Frutas",
-    quantity: 2,
-    unit: "kg",
-    expirationDate: new Date(2025, 4, 25),
-    status: "expiring",
-    addedDate: new Date(2025, 4, 15),
-  },
-  {
-    id: "6",
-    name: "Pão de forma",
-    category: "Padaria",
-    quantity: 1,
-    unit: "und",
-    expirationDate: new Date(2025, 4, 20),
-    status: "expired",
-    addedDate: new Date(2025, 4, 5),
-  },
-];
+import { foodInventoryService, FoodItem as FoodItemType } from "@/services/foodInventoryService";
+import FoodItemForm from "@/components/alimentacao/FoodItemForm";
 
 export default function Dispensa() {
-  // Estados
-  const [foodItems, setFoodItems] = useState<FoodItem[]>(dummyFoodItems);
+  const [foodItems, setFoodItems] = useState<FoodItemType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("todos");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newItem, setNewItem] = useState<Partial<FoodItem>>({
-    name: "",
-    category: "",
-    quantity: 1,
-    unit: "und",
-    expirationDate: new Date(),
-  });
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
+  const [editingItem, setEditingItem] = useState<FoodItemType | null>(null);
+  const [clinicId, setClinicId] = useState<string>("");
 
-  // Filtragem dos itens com base nos filtros ativos
+  useEffect(() => {
+    loadFoodItems();
+  }, []);
+
+  const loadFoodItems = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const clinicData = JSON.parse(clinicDataStr);
+      setClinicId(clinicData.id);
+      
+      const items = await foodInventoryService.getFoodItems(clinicData.id);
+      setFoodItems(items);
+    } catch (error) {
+      console.error("Erro ao carregar itens:", error);
+      toast.error("Erro ao carregar itens da dispensa");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getItemStatus = (item: FoodItemType): "normal" | "expiring" | "expired" => {
+    if (!item.expiration_date) return "normal";
+    
+    const now = new Date();
+    const expirationDate = new Date(item.expiration_date);
+    const daysUntilExpiration = Math.floor(
+      (expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    
+    if (daysUntilExpiration < 0) return "expired";
+    if (daysUntilExpiration < 7) return "expiring";
+    return "normal";
+  };
+
   const filteredItems = foodItems.filter((item) => {
-    // Filtro por termo de busca
+    const itemStatus = getItemStatus(item);
+    
     const matchesSearch =
       searchTerm === "" ||
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.category.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Filtro por categoria
     const matchesCategory =
       categoryFilter === null || item.category === categoryFilter;
 
-    // Filtro por status
-    const matchesStatus = statusFilter === null || item.status === statusFilter;
+    const matchesStatus = statusFilter === null || getItemStatus(item) === statusFilter;
 
-    // Filtro por tab
     const matchesTab =
       activeTab === "todos" ||
-      (activeTab === "expirando" && item.status === "expiring") ||
-      (activeTab === "expirados" && item.status === "expired");
+      (activeTab === "expirando" && itemStatus === "expiring") ||
+      (activeTab === "expirados" && itemStatus === "expired");
 
     return matchesSearch && matchesCategory && matchesStatus && matchesTab;
   });
 
-  // Categorias únicas para o filtro
   const uniqueCategories = Array.from(
     new Set(foodItems.map((item) => item.category))
   );
 
-  // Função para adicionar um novo item
-  const handleAddItem = () => {
-    if (!newItem.name || !newItem.category) {
-      toast.error("Preencha todos os campos obrigatórios");
-      return;
+  const handleDeleteItem = async (id: string, name: string) => {
+    if (!confirm(`Deseja realmente excluir "${name}"?`)) return;
+    
+    try {
+      await foodInventoryService.deleteFoodItem(id);
+      await loadFoodItems();
+      toast.success(`Item "${name}" removido com sucesso`);
+    } catch (error) {
+      console.error("Erro ao deletar item:", error);
+      toast.error("Erro ao deletar item");
     }
+  };
 
-    const now = new Date();
-    const daysUntilExpiration = Math.floor(
-      (new Date(newItem.expirationDate!).getTime() - now.getTime()) /
-        (1000 * 60 * 60 * 24)
-    );
-
-    let status: "normal" | "expiring" | "expired" = "normal";
-    if (daysUntilExpiration < 0) {
-      status = "expired";
-    } else if (daysUntilExpiration < 7) {
-      status = "expiring";
-    }
-
-    const newFoodItem: FoodItem = {
-      id: Date.now().toString(),
-      name: newItem.name!,
-      category: newItem.category!,
-      quantity: newItem.quantity || 1,
-      unit: newItem.unit || "und",
-      expirationDate: new Date(newItem.expirationDate!),
-      status,
-      addedDate: now,
-    };
-
-    setFoodItems([...foodItems, newFoodItem]);
-    setNewItem({
-      name: "",
-      category: "",
-      quantity: 1,
-      unit: "und",
-      expirationDate: new Date(),
-    });
+  const handleFormSuccess = () => {
+    loadFoodItems();
     setIsAddDialogOpen(false);
-    toast.success(`Item "${newItem.name}" adicionado com sucesso`);
+    setEditingItem(null);
   };
 
-  // Função para editar um item
-  const handleEditItem = () => {
-    if (!editingItem) return;
-
-    const now = new Date();
-    const daysUntilExpiration = Math.floor(
-      (new Date(editingItem.expirationDate).getTime() - now.getTime()) /
-        (1000 * 60 * 60 * 24)
-    );
-
-    let status: "normal" | "expiring" | "expired" = "normal";
-    if (daysUntilExpiration < 0) {
-      status = "expired";
-    } else if (daysUntilExpiration < 7) {
-      status = "expiring";
-    }
-
-    const updatedItem = {
-      ...editingItem,
-      status,
-    };
-
-    setFoodItems(
-      foodItems.map((item) =>
-        item.id === editingItem.id ? updatedItem : item
-      )
-    );
-    setIsEditDialogOpen(false);
-    toast.success(`Item "${editingItem.name}" atualizado com sucesso`);
-  };
-
-  // Função para deletar um item
-  const handleDeleteItem = (id: string, name: string) => {
-    setFoodItems(foodItems.filter((item) => item.id !== id));
-    toast.success(`Item "${name}" removido com sucesso`);
-  };
-
-  // Função para renderizar a badge de status
-  const renderStatusBadge = (status: string) => {
+  const renderStatusBadge = (status: "normal" | "expiring" | "expired") => {
     switch (status) {
       case "normal":
         return <Badge>Normal</Badge>;
@@ -253,10 +133,16 @@ export default function Dispensa() {
         return <Badge variant="outline">Expirando</Badge>;
       case "expired":
         return <Badge variant="destructive">Expirado</Badge>;
-      default:
-        return null;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Carregando itens da dispensa...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -279,7 +165,10 @@ export default function Dispensa() {
 
           <div className="flex items-center gap-2">
             <Button
-              onClick={() => setIsAddDialogOpen(true)}
+              onClick={() => {
+                setEditingItem(null);
+                setIsAddDialogOpen(true);
+              }}
               className="flex gap-1"
             >
               <Plus className="h-4 w-4" />
@@ -308,10 +197,7 @@ export default function Dispensa() {
               }
             >
               <SelectTrigger className="w-[160px]">
-                <span className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  {categoryFilter || "Categoria"}
-                </span>
+                <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas categorias</SelectItem>
@@ -330,10 +216,7 @@ export default function Dispensa() {
               }
             >
               <SelectTrigger className="w-[160px]">
-                <span className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  {statusFilter || "Status"}
-                </span>
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos status</SelectItem>
@@ -371,38 +254,43 @@ export default function Dispensa() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredItems.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell>{item.category}</TableCell>
-                          <TableCell className="text-center">
-                            {item.quantity} {item.unit}
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(item.expirationDate), "dd/MM/yyyy")}
-                          </TableCell>
-                          <TableCell>{renderStatusBadge(item.status)}</TableCell>
-                          <TableCell className="text-right space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setEditingItem(item);
-                                setIsEditDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteItem(item.id, item.name)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      filteredItems.map((item) => {
+                        const itemStatus = getItemStatus(item);
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell className="font-medium">{item.name}</TableCell>
+                            <TableCell>{item.category}</TableCell>
+                            <TableCell className="text-center">
+                              {item.stock} {item.unit}
+                            </TableCell>
+                            <TableCell>
+                              {item.expiration_date 
+                                ? format(new Date(item.expiration_date), "dd/MM/yyyy")
+                                : "Sem validade"}
+                            </TableCell>
+                            <TableCell>{renderStatusBadge(itemStatus)}</TableCell>
+                            <TableCell className="text-right space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingItem(item);
+                                  setIsAddDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteItem(item.id, item.name)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -417,266 +305,13 @@ export default function Dispensa() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog para adicionar novo item */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Adicionar alimento</DialogTitle>
-            <DialogDescription>
-              Adicione um novo item ao estoque da dispensa.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid grid-cols-1 gap-2">
-              <Label htmlFor="name">Nome*</Label>
-              <Input
-                id="name"
-                value={newItem.name || ""}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, name: e.target.value })
-                }
-                placeholder="Ex: Arroz"
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              <Label htmlFor="category">Categoria*</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="category"
-                  value={newItem.category || ""}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, category: e.target.value })
-                  }
-                  placeholder="Ex: Grãos"
-                  className="flex-1"
-                />
-                {uniqueCategories.length > 0 && (
-                  <Select
-                    value={newItem.category || ""}
-                    onValueChange={(value) =>
-                      setNewItem({ ...newItem, category: value })
-                    }
-                  >
-                    <SelectTrigger className="w-[160px]">
-                      <span>Categorias</span>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantidade</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  value={newItem.quantity || 1}
-                  onChange={(e) =>
-                    setNewItem({
-                      ...newItem,
-                      quantity: parseInt(e.target.value) || 1,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="unit">Unidade</Label>
-                <Select
-                  value={newItem.unit || "und"}
-                  onValueChange={(value) =>
-                    setNewItem({ ...newItem, unit: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Unidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="und">Unidade</SelectItem>
-                    <SelectItem value="kg">Quilograma (kg)</SelectItem>
-                    <SelectItem value="g">Grama (g)</SelectItem>
-                    <SelectItem value="L">Litro (L)</SelectItem>
-                    <SelectItem value="ml">Mililitro (ml)</SelectItem>
-                    <SelectItem value="cx">Caixa</SelectItem>
-                    <SelectItem value="pct">Pacote</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expirationDate">Data de validade</Label>
-              <div className="relative">
-                <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="expirationDate"
-                  type="date"
-                  className="pl-8"
-                  value={
-                    newItem.expirationDate
-                      ? format(
-                          new Date(newItem.expirationDate),
-                          "yyyy-MM-dd"
-                        )
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setNewItem({
-                      ...newItem,
-                      expirationDate: new Date(e.target.value),
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAddItem}>Adicionar item</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog para editar item */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Editar alimento</DialogTitle>
-            <DialogDescription>
-              Edite as informações do item selecionado.
-            </DialogDescription>
-          </DialogHeader>
-          {editingItem && (
-            <div className="grid gap-4">
-              <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="edit-name">Nome*</Label>
-                <Input
-                  id="edit-name"
-                  value={editingItem.name}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      name: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="edit-category">Categoria*</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="edit-category"
-                    value={editingItem.category}
-                    onChange={(e) =>
-                      setEditingItem({
-                        ...editingItem,
-                        category: e.target.value,
-                      })
-                    }
-                    className="flex-1"
-                  />
-                  {uniqueCategories.length > 0 && (
-                    <Select
-                      value={editingItem.category}
-                      onValueChange={(value) =>
-                        setEditingItem({ ...editingItem, category: value })
-                      }
-                    >
-                      <SelectTrigger className="w-[160px]">
-                        <span>Categorias</span>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {uniqueCategories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-quantity">Quantidade</Label>
-                  <Input
-                    id="edit-quantity"
-                    type="number"
-                    min="1"
-                    value={editingItem.quantity}
-                    onChange={(e) =>
-                      setEditingItem({
-                        ...editingItem,
-                        quantity: parseInt(e.target.value) || 1,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-unit">Unidade</Label>
-                  <Select
-                    value={editingItem.unit}
-                    onValueChange={(value) =>
-                      setEditingItem({ ...editingItem, unit: value })
-                    }
-                  >
-                    <SelectTrigger id="edit-unit">
-                      <SelectValue placeholder="Unidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="und">Unidade</SelectItem>
-                      <SelectItem value="kg">Quilograma (kg)</SelectItem>
-                      <SelectItem value="g">Grama (g)</SelectItem>
-                      <SelectItem value="L">Litro (L)</SelectItem>
-                      <SelectItem value="ml">Mililitro (ml)</SelectItem>
-                      <SelectItem value="cx">Caixa</SelectItem>
-                      <SelectItem value="pct">Pacote</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-expirationDate">Data de validade</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="edit-expirationDate"
-                    type="date"
-                    className="pl-8"
-                    value={format(
-                      new Date(editingItem.expirationDate),
-                      "yyyy-MM-dd"
-                    )}
-                    onChange={(e) =>
-                      setEditingItem({
-                        ...editingItem,
-                        expirationDate: new Date(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsEditDialogOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleEditItem}>Salvar alterações</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FoodItemForm
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        clinicId={clinicId}
+        item={editingItem}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }

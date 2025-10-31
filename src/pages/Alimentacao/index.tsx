@@ -1,11 +1,48 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Apple, ShoppingCart, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { foodInventoryService } from "@/services/foodInventoryService";
+import { shoppingListService } from "@/services/shoppingListService";
 
 export default function Alimentacao() {
   const navigate = useNavigate();
+  const [inventoryCount, setInventoryCount] = useState(0);
+  const [shoppingListCount, setShoppingListCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const clinicDataStr = localStorage.getItem("clinicData");
+      if (!clinicDataStr) {
+        setLoading(false);
+        return;
+      }
+      
+      const clinicData = JSON.parse(clinicDataStr);
+      
+      const [inventory, shoppingList] = await Promise.all([
+        foodInventoryService.getFoodItems(clinicData.id),
+        shoppingListService.getActiveShoppingList(clinicData.id)
+      ]);
+      
+      setInventoryCount(inventory.length);
+      
+      if (shoppingList) {
+        const items = await shoppingListService.getShoppingListItems(shoppingList.id);
+        setShoppingListCount(items.length);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar estatísticas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const modules = [
     {
@@ -66,7 +103,9 @@ export default function Alimentacao() {
                   <Package className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Itens em estoque</span>
                 </div>
-                <div className="mt-1 text-2xl font-bold">0</div>
+                <div className="mt-1 text-2xl font-bold">
+                  {loading ? "..." : inventoryCount}
+                </div>
               </div>
               
               <div className="rounded-lg border bg-card p-3">
@@ -74,7 +113,9 @@ export default function Alimentacao() {
                   <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Itens na lista de compras</span>
                 </div>
-                <div className="mt-1 text-2xl font-bold">0</div>
+                <div className="mt-1 text-2xl font-bold">
+                  {loading ? "..." : shoppingListCount}
+                </div>
               </div>
               
               <div className="rounded-lg border bg-card p-3">
