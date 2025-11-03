@@ -1115,6 +1115,66 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          category: string
+          clinic_id: string
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          metadata: Json | null
+          read: boolean | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          clinic_id: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          metadata?: Json | null
+          read?: boolean | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          metadata?: Json | null
+          read?: boolean | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string | null
@@ -1496,14 +1556,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_clinic_member: {
-        Args: { clinic_uuid: string }
-        Returns: boolean
-      }
-      is_master_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_clinic_member: { Args: { clinic_uuid: string }; Returns: boolean }
+      is_master_admin: { Args: never; Returns: boolean }
       recalculate_bed_counters: {
         Args: { clinic_uuid: string }
         Returns: undefined
