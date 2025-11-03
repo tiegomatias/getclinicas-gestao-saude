@@ -73,13 +73,6 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           // Check if user is master admin - using setTimeout to avoid recursion
           setTimeout(async () => {
             try {
-              // Check subscription status only if user has valid session
-              if (currentSession?.access_token) {
-                console.log('Checking subscription status for authenticated user');
-                checkSubscription();
-              } else {
-                console.log('Skipping subscription check - no access token');
-              }
               // Properly format query parameters with type casting
               const { data, error } = await supabase
                 .from('user_roles')
@@ -97,6 +90,14 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               
               // Save auth state to localStorage for persistence
               localStorage.setItem('isAuthenticated', 'true');
+              
+              // Check subscription status only if user has valid session and is not master admin
+              if (currentSession?.access_token && !isMaster) {
+                console.log('Checking subscription status for authenticated user');
+                checkSubscription();
+              } else {
+                console.log('Skipping subscription check - no access token or is master admin');
+              }
               
               if (isMaster) {
                 localStorage.setItem('isMasterAdmin', 'true');
@@ -251,6 +252,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return;
     }
 
+    // Master admins don't need subscription checks
+    if (isMasterAdmin) {
+      console.log('Skipping subscription check - user is master admin');
+      return;
+    }
+
     console.log('Setting up subscription check interval');
     const interval = setInterval(() => {
       console.log('Running periodic subscription check');
@@ -261,7 +268,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('Clearing subscription check interval');
       clearInterval(interval);
     };
-  }, [user, session]);
+  }, [user, session, isMasterAdmin]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -399,6 +406,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const checkSubscription = async (): Promise<void> => {
     try {
+      // Master admins don't need subscription checks
+      if (isMasterAdmin) {
+        console.log('Skipping subscription check - user is master admin');
+        return;
+      }
+
       // Verificar se há sessão válida antes de chamar a função
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
