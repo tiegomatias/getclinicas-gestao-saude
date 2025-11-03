@@ -22,6 +22,7 @@ import { MasterOccupationChart } from "@/components/master/MasterOccupationChart
 import { MasterFinanceCard } from "@/components/master/MasterFinanceCard";
 import { MasterFinancialDashboard } from "@/components/master/MasterFinancialDashboard";
 import { EditClinicDialog } from "@/components/master/EditClinicDialog";
+import { ClinicDetailsModal } from "@/components/master/ClinicDetailsModal";
 import { toast } from "sonner";
 import { masterService, type ClinicData } from "@/services/masterService";
 import { auditService } from "@/services/auditService";
@@ -39,6 +40,8 @@ export default function MasterDashboard() {
   const [filterPlan, setFilterPlan] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState<ClinicData | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [detailsClinic, setDetailsClinic] = useState<ClinicData | null>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -114,6 +117,17 @@ export default function MasterDashboard() {
   const handleEditClinic = (clinic: ClinicData) => {
     setSelectedClinic(clinic);
     setEditDialogOpen(true);
+  };
+
+  const handleViewDetails = (clinic: ClinicData) => {
+    setDetailsClinic(clinic);
+    setDetailsModalOpen(true);
+    
+    // Registrar log de auditoria
+    auditService.logAction('VIEW', 'clinic', clinic.id, {
+      clinicName: clinic.name,
+      action: 'view_details'
+    });
   };
 
   const handleSaveClinic = async (clinicId: string, updates: Partial<ClinicData>) => {
@@ -282,6 +296,7 @@ export default function MasterDashboard() {
             onViewClinic={handleNavigateToClinic}
             onEditClinic={handleEditClinic}
             onDeleteClinic={handleDeleteClinic}
+            onViewDetails={handleViewDetails}
           />
         </div>
         
@@ -300,6 +315,12 @@ export default function MasterDashboard() {
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         onSave={handleSaveClinic}
+      />
+
+      <ClinicDetailsModal
+        clinic={detailsClinic}
+        open={detailsModalOpen}
+        onOpenChange={setDetailsModalOpen}
       />
     </div>
   );

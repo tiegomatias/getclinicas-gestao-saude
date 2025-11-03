@@ -21,9 +21,10 @@ interface MasterClinicsTableProps {
   onViewClinic: (clinicId: string) => void;
   onEditClinic: (clinic: ClinicData) => void;
   onDeleteClinic: (clinicId: string) => void;
+  onViewDetails: (clinic: ClinicData) => void;
 }
 
-export const MasterClinicsTable = ({ clinics, onViewClinic, onEditClinic, onDeleteClinic }: MasterClinicsTableProps) => {
+export const MasterClinicsTable = ({ clinics, onViewClinic, onEditClinic, onDeleteClinic, onViewDetails }: MasterClinicsTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clinicToDelete, setClinicToDelete] = useState<ClinicData | null>(null);
@@ -109,10 +110,10 @@ export const MasterClinicsTable = ({ clinics, onViewClinic, onEditClinic, onDele
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => onViewClinic(clinic.id)}
+                            onClick={() => onViewDetails(clinic)}
                           >
                             <Eye className="h-4 w-4 mr-1" />
-                            Ver
+                            Detalhes
                           </Button>
                           <Button
                             size="sm"
