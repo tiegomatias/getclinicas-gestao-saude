@@ -24,10 +24,13 @@ import type { Clinic, Professional } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
+import { formatPrice } from "@/lib/subscriptionPlans";
 
 export default function Configuracoes() {
   const navigate = useNavigate();
-  const { subscriptionStatus, checkSubscription } = useAuth();
+  const { checkSubscription } = useAuth();
+  const subscription = useSubscription();
   const [clinic, setClinic] = useState<Clinic | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingGeneral, setSavingGeneral] = useState(false);
@@ -492,22 +495,28 @@ export default function Configuracoes() {
                       <h3 className="text-lg font-semibold">Status da Assinatura</h3>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                      {subscriptionStatus.subscribed ? (
+                      {subscription.isSubscribed() ? (
                         <>
                           <Badge className="bg-green-500">Ativa</Badge>
-                          {subscriptionStatus.product_id && (
-                            <span className="text-sm text-muted-foreground">
-                              ID: {subscriptionStatus.product_id}
-                            </span>
-                          )}
+                          <span className="text-sm font-medium">
+                            {subscription.getPlanName()}
+                          </span>
                         </>
                       ) : (
                         <Badge variant="outline">Sem Assinatura</Badge>
                       )}
                     </div>
+                    
+                    {subscription.isExpiringSoon() && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 border-yellow-500/20">
+                          Expira em {subscription.daysUntilRenewal()} dias
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                   <Button 
-                    onClick={() => checkSubscription()}
+                    onClick={() => subscription.refresh()}
                     variant="outline"
                     size="sm"
                   >
@@ -515,16 +524,23 @@ export default function Configuracoes() {
                   </Button>
                 </div>
                 
-                {subscriptionStatus.subscription_end && (
-                  <div className="mt-4 pt-4 border-t">
-                    <p className="text-sm text-muted-foreground">
-                      Data de Renovação: <span className="font-medium text-foreground">{formatDate(subscriptionStatus.subscription_end)}</span>
-                    </p>
+                {subscription.getCurrentPlan() && (
+                  <div className="mt-4 pt-4 border-t space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Valor:</span>
+                      <span className="font-medium">{formatPrice(subscription.getCurrentPlan()!.price)}</span>
+                    </div>
+                    {subscription.getSubscriptionEnd() && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Próxima Renovação:</span>
+                        <span className="font-medium">{formatDate(subscription.subscriptionStatus.subscription_end)}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {subscriptionStatus.subscribed ? (
+              {subscription.isSubscribed() ? (
                 <div className="space-y-4">
                   <div className="rounded-lg bg-muted p-4">
                     <h4 className="font-medium mb-2">Gerenciar Assinatura</h4>

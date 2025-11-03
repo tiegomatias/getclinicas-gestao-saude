@@ -1,0 +1,84 @@
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  priceId: string;
+  productId: string;
+  price: number;
+  interval: 'month' | 'year';
+  features: string[];
+  discount?: string;
+}
+
+// Mapear os product IDs do Stripe para informações legíveis
+export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
+  mensal: {
+    id: 'mensal',
+    name: 'Plano Mensal',
+    priceId: 'price_mensal', // Será substituído pelo ID real do Stripe
+    productId: 'prod_mensal', // Será substituído pelo ID real do Stripe
+    price: 197,
+    interval: 'month',
+    features: [
+      'Gestão completa de pacientes',
+      'Controle de medicamentos',
+      'Agenda de atividades',
+      'Gestão de leitos',
+      'Contratos digitais',
+      'Relatórios básicos',
+      'Suporte via chat'
+    ]
+  },
+  semestral: {
+    id: 'semestral',
+    name: 'Plano Semestral',
+    priceId: 'price_semestral',
+    productId: 'prod_semestral',
+    price: 997,
+    interval: 'month',
+    features: [
+      'Todos os recursos do Plano Mensal',
+      'Relatórios avançados',
+      'Integração com sistemas externos',
+      'Suporte prioritário',
+      'Treinamento da equipe',
+      'Backup automático diário'
+    ],
+    discount: 'Economize 15%'
+  },
+  anual: {
+    id: 'anual',
+    name: 'Plano Anual',
+    priceId: 'price_anual',
+    productId: 'prod_anual',
+    price: 1697,
+    interval: 'year',
+    features: [
+      'Todos os recursos do Plano Semestral',
+      'Consultoria personalizada',
+      'Desenvolvimento de features sob demanda',
+      'Suporte 24/7',
+      'Gerente de conta dedicado',
+      'Acesso antecipado a novos recursos'
+    ],
+    discount: 'Economize 30%'
+  }
+};
+
+export const getPlanByProductId = (productId: string | null): SubscriptionPlan | null => {
+  if (!productId) return null;
+  
+  const plan = Object.values(SUBSCRIPTION_PLANS).find(p => p.productId === productId);
+  return plan || null;
+};
+
+export const getPlanByName = (planName: string): SubscriptionPlan | null => {
+  const normalizedName = planName.toLowerCase();
+  return SUBSCRIPTION_PLANS[normalizedName] || null;
+};
+
+export const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(price);
+};

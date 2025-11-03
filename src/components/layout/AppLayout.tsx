@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import { useLocation, Outlet } from "react-router-dom";
 import AppHeader from "./AppHeader";
+import { SubscriptionBanner } from "./SubscriptionBanner";
 
 export default function AppLayout() {
   const location = useLocation();
@@ -35,6 +36,7 @@ export default function AppLayout() {
         <div className="flex-1">
           <AppHeader title={getTitle()} />
           <main className="container mx-auto p-3 sm:p-4 lg:p-6 max-w-full">
+            <SubscriptionBanner />
             <Outlet />
           </main>
         </div>
