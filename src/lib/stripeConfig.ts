@@ -21,8 +21,8 @@ export const STRIPE_CONFIG = {
     priceId: 'price_1SPRrEICb7cdsHyg06wvKvVL',
   },
   semestral: {
-    productId: 'prod_TMABN1bgZaj8L6',
-    priceId: 'price_1SPRrVICb7cdsHygXMyLx8CF',
+    productId: 'prod_TMBF40e3WTdaZQ',
+    priceId: 'price_1SPSsxICb7cdsHygXzGgJXMt',
   },
   anual: {
     productId: 'prod_TMADuKpCMkikfz',
