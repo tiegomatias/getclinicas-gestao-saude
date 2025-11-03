@@ -28,10 +28,14 @@ serve(async (req) => {
 
     console.log('Criando checkout com dados:', { planName, priceAmount, interval });
 
-    // Criar produto no Stripe
+    // Criar produto no Stripe com metadata
     const product = await stripe.products.create({
       name: planName,
       description: `Assinatura ${planName} - GetClinicas`,
+      metadata: {
+        source: 'getclinicas',
+        plan_name: planName
+      }
     });
 
     console.log('Produto criado:', product.id);
@@ -44,6 +48,9 @@ serve(async (req) => {
       recurring: {
         interval: interval,
       },
+      metadata: {
+        plan_name: planName
+      }
     });
 
     console.log('Preço criado:', price.id);
@@ -63,12 +70,22 @@ serve(async (req) => {
       allow_promotion_codes: true,
       billing_address_collection: 'required',
       locale: 'pt-BR',
+      metadata: {
+        plan_name: planName,
+        product_id: product.id,
+        price_id: price.id
+      }
     });
 
-    console.log('Sessão de checkout criada:', session.id);
+    console.log('Sessão de checkout criada:', session.id, 'Product ID:', product.id, 'Price ID:', price.id);
 
     return new Response(
-      JSON.stringify({ url: session.url, sessionId: session.id }),
+      JSON.stringify({ 
+        url: session.url, 
+        sessionId: session.id,
+        productId: product.id,
+        priceId: price.id
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,

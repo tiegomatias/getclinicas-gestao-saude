@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { CheckIcon, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { SUBSCRIPTION_PLANS, type SubscriptionPlan, formatPrice } from "@/lib/subscriptionPlans";
 
 // Custom Logo SVG Component
 const GetClinicasLogo = () => (
@@ -41,76 +42,33 @@ const GetClinicasLogo = () => (
   </svg>
 );
 
-type PlanDetails = {
-  name: string;
-  price: string;
-  priceAmount: number;
-  period: string;
-  interval: 'month' | 'year';
-  discount?: string;
-  features: string[];
-};
-
-const plans: Record<string, PlanDetails> = {
-  "Mensal": {
-    name: "Plano Mensal",
-    price: "R$ 990",
-    priceAmount: 99000, // em centavos
-    period: "mês",
-    interval: "month",
-    features: [
-      "Acesso completo ao sistema",
-      "Geração ilimitada de contratos",
-      "Suporte por e-mail",
-      "Atualizações do sistema"
-    ]
-  },
-  "Semestral": {
-    name: "Plano Semestral",
-    price: "R$ 5.346",
-    priceAmount: 534600, // em centavos
-    period: "semestre",
-    interval: "month",
-    discount: "Economia de 10%",
-    features: [
-      "Acesso completo ao sistema",
-      "Geração ilimitada de contratos",
-      "Suporte prioritário",
-      "Atualizações do sistema",
-      "Treinamento da equipe"
-    ]
-  },
-  "Anual": {
-    name: "Plano Anual",
-    price: "R$ 10.454",
-    priceAmount: 1045400, // em centavos
-    period: "ano",
-    interval: "year",
-    discount: "Economia de 12%",
-    features: [
-      "Acesso completo ao sistema",
-      "Geração ilimitada de contratos",
-      "Suporte VIP 24/7",
-      "Atualizações prioritárias",
-      "Treinamento completo da equipe",
-      "Personalização de modelos"
-    ]
-  }
+// Mapeamento de nomes de URL para IDs de planos
+const planUrlMapping: Record<string, string> = {
+  "Mensal": "mensal",
+  "Semestral": "semestral",
+  "Anual": "anual"
 };
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Get the plan from the URL query parameter
     const params = new URLSearchParams(location.search);
-    const plan = params.get("plan");
+    const planParam = params.get("plan");
     
-    if (plan && plan in plans) {
-      setSelectedPlan(plan);
+    if (planParam && planParam in planUrlMapping) {
+      const planId = planUrlMapping[planParam];
+      const plan = SUBSCRIPTION_PLANS[planId];
+      if (plan) {
+        setSelectedPlan(plan);
+      } else {
+        toast.error("Plano não encontrado");
+        navigate("/");
+      }
     } else {
       toast.error("Plano não encontrado");
       navigate("/");
@@ -123,16 +81,14 @@ const Checkout = () => {
     setLoading(true);
     
     try {
-      const planDetails = plans[selectedPlan];
-      
-      // Criar produto e preço no Stripe
+      // Criar checkout session no Stripe
       const { data: createData, error: createError } = await supabase.functions.invoke('create-stripe-checkout', {
         body: {
-          planName: planDetails.name,
-          priceAmount: planDetails.priceAmount,
-          interval: planDetails.interval,
-          successUrl: `${window.location.origin}/registro?plan=${selectedPlan}&session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/checkout?plan=${selectedPlan}`
+          planName: selectedPlan.name,
+          priceAmount: selectedPlan.price * 100, // converter para centavos
+          interval: selectedPlan.interval,
+          successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/checkout?plan=${selectedPlan.id}`
         }
       });
 
@@ -161,7 +117,7 @@ const Checkout = () => {
     navigate("/");
   };
 
-  if (!selectedPlan || !(selectedPlan in plans)) {
+  if (!selectedPlan) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -175,8 +131,6 @@ const Checkout = () => {
       </div>
     );
   }
-
-  const planDetails = plans[selectedPlan];
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-getclinicas-light to-white">
@@ -208,14 +162,14 @@ const Checkout = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold">{planDetails.name}</h3>
-                <span className="text-xl font-bold">{planDetails.price}</span>
+                <h3 className="text-xl font-bold">{selectedPlan.name}</h3>
+                <span className="text-xl font-bold">{formatPrice(selectedPlan.price)}</span>
               </div>
               
               <p className="text-gray-500">
-                Período: {planDetails.period}
-                {planDetails.discount && (
-                  <span className="block text-getclinicas-primary">{planDetails.discount}</span>
+                Período: {selectedPlan.interval === 'month' ? 'mensal' : 'anual'}
+                {selectedPlan.discount && (
+                  <span className="block text-getclinicas-primary">{selectedPlan.discount}</span>
                 )}
               </p>
               
@@ -224,7 +178,7 @@ const Checkout = () => {
               <div className="space-y-2">
                 <h4 className="font-semibold">O que está incluído:</h4>
                 <ul className="space-y-2">
-                  {planDetails.features.map((feature, index) => (
+                  {selectedPlan.features.map((feature, index) => (
                     <li key={index} className="flex items-start">
                       <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
                       <span>{feature}</span>
