@@ -20,6 +20,7 @@ import { MasterStatsCards } from "@/components/master/MasterStatsCards";
 import { MasterClinicsTable } from "@/components/master/MasterClinicsTable";
 import { MasterOccupationChart } from "@/components/master/MasterOccupationChart";
 import { MasterFinanceCard } from "@/components/master/MasterFinanceCard";
+import { MasterFinancialDashboard } from "@/components/master/MasterFinancialDashboard";
 import { EditClinicDialog } from "@/components/master/EditClinicDialog";
 import { toast } from "sonner";
 import { masterService, type ClinicData } from "@/services/masterService";
@@ -210,6 +211,9 @@ export default function MasterDashboard() {
         averageOccupation={averageOccupation}
         totalRevenue={totalRevenue}
       />
+
+      {/* Financial Dashboard */}
+      <MasterFinancialDashboard />
       
       {/* Search and filters */}
       <div className="flex flex-col sm:flex-row gap-4 items-end">
