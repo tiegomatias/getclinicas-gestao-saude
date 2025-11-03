@@ -204,33 +204,19 @@ const Registration = () => {
         // Even if auto-login fails, user was created successfully
         toast.success("Clínica registrada com sucesso! Faça login para continuar.");
         
-        const params = new URLSearchParams(location.search);
-        const redirectPath = params.get('redirect');
-        
-        if (redirectPath === '/checkout' && selectedPlan) {
-          navigate(`/login?redirect=/checkout&plan=${selectedPlan}`);
-        } else {
-          navigate("/login");
-        }
+        // Redirecionar para login com checkout como destino
+        navigate(`/login?redirect=/checkout&plan=${selectedPlan}`);
         return;
       }
       
       console.log("Login automático realizado com sucesso");
       toast.success("Clínica registrada com sucesso!");
       
-      // Verificar se há redirecionamento para checkout
-      const params = new URLSearchParams(location.search);
-      const redirectPath = params.get('redirect');
-      
+      // Após registro bem-sucedido, sempre redirecionar para checkout
       // Adding a small delay before redirecting to ensure localStorage is set
       setTimeout(() => {
-        if (redirectPath === '/checkout' && selectedPlan) {
-          console.log("Redirecionando para o checkout com plano:", selectedPlan);
-          navigate(`/checkout?plan=${selectedPlan}`);
-        } else {
-          console.log("Redirecionando para o dashboard...");
-          navigate("/dashboard");
-        }
+        console.log("Redirecionando para o checkout após registro...");
+        navigate(`/checkout?plan=${selectedPlan}`);
       }, 500);
       
     } catch (error: any) {

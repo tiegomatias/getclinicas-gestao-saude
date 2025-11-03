@@ -15,6 +15,7 @@ import { patientService } from "@/services/patientService";
 import { bedService } from "@/services/bedService";
 import { activityService } from "@/services/activityService";
 import { financeService } from "@/services/financeService";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface ClinicData {
   clinicName: string;
@@ -32,6 +33,15 @@ export default function Dashboard() {
   const [showDebug, setShowDebug] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { isSubscribed } = useSubscription();
+  
+  // Verificar assinatura e redirecionar para checkout se não estiver ativo
+  useEffect(() => {
+    if (!loading && !isSubscribed()) {
+      toast.info("Complete sua assinatura para acessar o sistema");
+      navigate("/checkout?plan=Mensal");
+    }
+  }, [loading, isSubscribed, navigate]);
   
   // Real data states
   const [totalPatients, setTotalPatients] = useState(0);

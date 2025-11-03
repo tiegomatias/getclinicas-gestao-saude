@@ -84,7 +84,8 @@ const Login = () => {
         console.log("Redirecting professional to /professional-dashboard");
         navigate("/professional-dashboard", { replace: true });
       } else if (currentClinicId || allClinics) {
-        console.log("Redirecting clinic admin to /dashboard");
+        console.log("Redirecting clinic admin - checking subscription");
+        // Redirecionar para checkout se não tiver assinatura
         navigate("/dashboard", { replace: true });
       } else {
         console.log("No clinic data found, staying on login");
