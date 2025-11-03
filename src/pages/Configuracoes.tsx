@@ -37,6 +37,7 @@ export default function Configuracoes() {
   const [savingSecurity, setSavingSecurity] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -45,6 +46,8 @@ export default function Configuracoes() {
   const [state, setState] = useState("");
   const [website, setWebsite] = useState("");
   const [cnpj, setCnpj] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   
   // System users
   const [systemUsers, setSystemUsers] = useState<Professional[]>([]);
@@ -181,6 +184,41 @@ export default function Configuracoes() {
       toast.error("Erro ao salvar configurações de segurança");
     } finally {
       setSavingSecurity(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("A senha deve ter no mínimo 6 caracteres");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success("Senha alterada com sucesso!");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      console.error("Erro ao alterar senha:", error);
+      toast.error(`Erro ao alterar senha: ${error.message || 'Tente novamente'}`);
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -820,23 +858,38 @@ export default function Configuracoes() {
               
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="text-lg font-medium">Alteração de Senha</h3>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="current-password">Senha Atual</Label>
-                  <Input id="current-password" type="password" />
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  Digite uma nova senha para sua conta
+                </p>
                 
                 <div className="space-y-2">
                   <Label htmlFor="new-password">Nova Senha</Label>
-                  <Input id="new-password" type="password" />
+                  <Input 
+                    id="new-password" 
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                  />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">Confirme a Nova Senha</Label>
-                  <Input id="confirm-password" type="password" />
+                  <Input 
+                    id="confirm-password" 
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repita a nova senha"
+                  />
                 </div>
                 
-                <Button>Alterar Senha</Button>
+                <Button 
+                  onClick={handleChangePassword}
+                  disabled={changingPassword}
+                >
+                  {changingPassword ? "Alterando..." : "Alterar Senha"}
+                </Button>
               </div>
               
               <div className="space-y-4 pt-4 border-t">
