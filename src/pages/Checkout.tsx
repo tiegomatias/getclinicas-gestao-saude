@@ -8,6 +8,7 @@ import { CheckIcon, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SUBSCRIPTION_PLANS, type SubscriptionPlan, formatPrice } from "@/lib/subscriptionPlans";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Custom Logo SVG Component
 const GetClinicasLogo = () => (
@@ -52,8 +53,17 @@ const planUrlMapping: Record<string, string> = {
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Verificar autenticação
+  useEffect(() => {
+    if (!user) {
+      toast.error("Você precisa estar logado para assinar um plano");
+      navigate("/login");
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     // Get the plan from the URL query parameter
