@@ -32,6 +32,7 @@ interface AuthContextProps {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -487,6 +488,23 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      const redirectUrl = `${window.location.origin}/login`;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.");
+    } catch (error: any) {
+      console.error("Reset password error:", error);
+      toast.error(`Erro ao enviar email de recuperação: ${error.message || 'Tente novamente'}`);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -500,6 +518,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         signIn,
         signUp,
         signOut,
+        resetPassword,
       }}
     >
       {children}

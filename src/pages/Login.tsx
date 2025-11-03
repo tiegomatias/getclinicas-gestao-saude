@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 // Custom Logo SVG Component
 const GetClinicasLogo = () => (
@@ -46,7 +47,10 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, isAuthenticated, loading: authLoading, isMasterAdmin } = useAuth();
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const { signIn, resetPassword, isAuthenticated, loading: authLoading, isMasterAdmin } = useAuth();
   
   // Redirect authenticated users
   useEffect(() => {
@@ -111,6 +115,29 @@ const Login = () => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (resetLoading) return;
+    
+    if (!resetEmail) {
+      toast.error("Por favor, insira seu email");
+      return;
+    }
+    
+    setResetLoading(true);
+    
+    try {
+      await resetPassword(resetEmail);
+      setShowResetPassword(false);
+      setResetEmail("");
+    } catch (error) {
+      console.error("Reset password error:", error);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   // Show loading state while checking authentication
   if (authLoading) {
     return (
@@ -146,44 +173,94 @@ const Login = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label htmlFor="password">Senha</Label>
-                <a href="#" className="text-sm text-blue-600 hover:underline">
-                  Esqueceu a senha?
-                </a>
+          {showResetPassword ? (
+            <div>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold mb-2">Recuperar Senha</h2>
+                <p className="text-sm text-gray-600">
+                  Digite seu email e enviaremos um link para redefinir sua senha.
+                </p>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setShowResetPassword(false);
+                      setResetEmail("");
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={resetLoading}
+                  >
+                    {resetLoading ? "Enviando..." : "Enviar Link"}
+                  </Button>
+                </div>
+              </form>
             </div>
-            
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? "Entrando..." : "Entrar"}
-            </Button>
-          </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label htmlFor="password">Senha</Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowResetPassword(true)}
+                    className="text-sm text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading}
+              >
+                {loading ? "Entrando..." : "Entrar"}
+              </Button>
+            </form>
+          )}
           
           <div className="mt-6 text-center">
             <p className="text-gray-600">
