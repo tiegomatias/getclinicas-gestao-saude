@@ -22,6 +22,7 @@ import {
   TrendingUp,
   CreditCard,
   MessageSquare,
+  Database,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,6 +61,11 @@ export default function MasterSidebar() {
       title: "Comunicação",
       path: "/master/communication",
       icon: MessageSquare,
+    },
+    {
+      title: "Manutenção",
+      path: "/master/maintenance",
+      icon: Database,
     },
     {
       title: "Relatórios",
