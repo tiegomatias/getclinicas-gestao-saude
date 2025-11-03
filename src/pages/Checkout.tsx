@@ -57,13 +57,15 @@ const Checkout = () => {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Verificar autenticação
+  // Verificar autenticação e redirecionar para login mantendo o plano na URL
   useEffect(() => {
     if (!user) {
-      toast.error("Você precisa estar logado para assinar um plano");
-      navigate("/login");
+      const params = new URLSearchParams(location.search);
+      const planParam = params.get("plan");
+      toast.info("Faça login ou crie uma conta para continuar");
+      navigate(`/login?redirect=/checkout&plan=${planParam}`);
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.search]);
 
   useEffect(() => {
     // Get the plan from the URL query parameter

@@ -53,6 +53,18 @@ const Login = () => {
     if (!authLoading && isAuthenticated) {
       console.log("User already authenticated, redirecting");
       
+      // Verificar se há parâmetros de redirecionamento
+      const params = new URLSearchParams(location.search);
+      const redirectPath = params.get('redirect');
+      const planParam = params.get('plan');
+      
+      // Se há redirect para checkout, redirecionar com o plano
+      if (redirectPath === '/checkout' && planParam) {
+        console.log("Redirecting to checkout with plan:", planParam);
+        navigate(`/checkout?plan=${planParam}`, { replace: true });
+        return;
+      }
+      
       // Check localStorage to determine user type more reliably
       const isProfessionalFlag = localStorage.getItem('isProfessional') === 'true';
       const currentClinicId = localStorage.getItem('currentClinicId');
@@ -79,7 +91,7 @@ const Login = () => {
         // Don't redirect if no clinic data is found
       }
     }
-  }, [isAuthenticated, navigate, authLoading, isMasterAdmin]);
+  }, [isAuthenticated, navigate, authLoading, isMasterAdmin, location.search]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,12 +187,22 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Não tem uma conta?{" "}
-              <a 
-                href="/registro" 
-                className="text-blue-600 hover:underline"
+              <button 
+                onClick={() => {
+                  const params = new URLSearchParams(location.search);
+                  const redirectPath = params.get('redirect');
+                  const planParam = params.get('plan');
+                  
+                  if (redirectPath && planParam) {
+                    navigate(`/registro?redirect=${redirectPath}&plan=${planParam}`);
+                  } else {
+                    navigate("/registro");
+                  }
+                }}
+                className="text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
               >
                 Registrar
-              </a>
+              </button>
             </p>
           </div>
         </div>

@@ -31,9 +31,9 @@ const Registration = () => {
     if (plan && (plan === "Mensal" || plan === "Semestral" || plan === "Anual")) {
       setSelectedPlan(plan);
     } else {
-      // If no plan is selected, redirect to checkout page
+      // If no plan is selected, redirect to home page
       toast.error("Por favor, selecione um plano antes de continuar");
-      navigate("/checkout");
+      navigate("/");
     }
   }, [location.search, navigate]);
   
@@ -203,17 +203,34 @@ const Registration = () => {
         
         // Even if auto-login fails, user was created successfully
         toast.success("Clínica registrada com sucesso! Faça login para continuar.");
-        navigate("/login");
+        
+        const params = new URLSearchParams(location.search);
+        const redirectPath = params.get('redirect');
+        
+        if (redirectPath === '/checkout' && selectedPlan) {
+          navigate(`/login?redirect=/checkout&plan=${selectedPlan}`);
+        } else {
+          navigate("/login");
+        }
         return;
       }
       
       console.log("Login automático realizado com sucesso");
       toast.success("Clínica registrada com sucesso!");
       
+      // Verificar se há redirecionamento para checkout
+      const params = new URLSearchParams(location.search);
+      const redirectPath = params.get('redirect');
+      
       // Adding a small delay before redirecting to ensure localStorage is set
       setTimeout(() => {
-        console.log("Redirecionando para o dashboard...");
-        navigate("/dashboard");
+        if (redirectPath === '/checkout' && selectedPlan) {
+          console.log("Redirecionando para o checkout com plano:", selectedPlan);
+          navigate(`/checkout?plan=${selectedPlan}`);
+        } else {
+          console.log("Redirecionando para o dashboard...");
+          navigate("/dashboard");
+        }
       }, 500);
       
     } catch (error: any) {
