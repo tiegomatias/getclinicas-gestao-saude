@@ -35,7 +35,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
     name: 'Plano Semestral',
     priceId: STRIPE_CONFIG.semestral.priceId,
     productId: STRIPE_CONFIG.semestral.productId,
-    price: 440,
+    price: 2640,
     interval: 'month',
     features: [
       'Todos os recursos do Plano Mensal',
@@ -45,7 +45,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
       'Treinamento da equipe',
       'Backup automático diário'
     ],
-    discount: 'Economize 10% pagando semestralmente (R$ 440/mês)'
+    discount: 'Economize 10% - R$ 2.640 a cada 6 meses (R$ 440/mês)'
   },
   anual: {
     id: 'anual',

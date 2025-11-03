@@ -110,7 +110,7 @@ const Plans = () => {
                         {formatPrice(plan.price)}
                       </span>
                       <span className="text-muted-foreground">
-                        /{plan.interval === 'month' ? 'mês' : 'ano'}
+                        {plan.id === 'semestral' ? '/a cada 6 meses' : plan.interval === 'month' ? '/mês' : '/ano'}
                       </span>
                     </div>
                     {plan.discount && (

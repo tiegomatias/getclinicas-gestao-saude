@@ -175,7 +175,7 @@ const Checkout = () => {
               </div>
               
               <p className="text-gray-500">
-                Período: {selectedPlan.interval === 'month' ? 'mensal' : 'anual'}
+                Período: {selectedPlan.id === 'semestral' ? 'semestral (a cada 6 meses)' : selectedPlan.interval === 'month' ? 'mensal' : 'anual'}
                 {selectedPlan.discount && (
                   <span className="block text-getclinicas-primary">{selectedPlan.discount}</span>
                 )}
