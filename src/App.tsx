@@ -13,6 +13,7 @@ import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import Checkout from "./pages/Checkout";
+import Success from "./pages/Success";
 import MasterDashboard from "./pages/MasterDashboard";
 import MasterClinics from "./pages/MasterClinics";
 import MasterReports from "./pages/MasterReports";
@@ -52,6 +53,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registration />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/success" element={<Success />} />
 
             {/* Master Admin Routes with MasterLayout */}
             <Route element={<AuthGuard role="master" />}>

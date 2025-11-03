@@ -15,12 +15,20 @@ import {
   castDbInsert
 } from '@/lib/types';
 
+interface SubscriptionStatus {
+  subscribed: boolean;
+  product_id: string | null;
+  subscription_end: string | null;
+}
+
 interface AuthContextProps {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAuthenticated: boolean;
   isMasterAdmin: boolean;
+  subscriptionStatus: SubscriptionStatus;
+  checkSubscription: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -33,6 +41,11 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({
+    subscribed: false,
+    product_id: null,
+    subscription_end: null
+  });
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,9 +61,18 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         
         if (currentSession?.user) {
           console.log("User found in session, loading data...");
+          
+          // Load subscription status from localStorage
+          const savedStatus = localStorage.getItem('subscriptionStatus');
+          if (savedStatus) {
+            setSubscriptionStatus(JSON.parse(savedStatus));
+          }
+          
           // Check if user is master admin - using setTimeout to avoid recursion
           setTimeout(async () => {
             try {
+              // Check subscription status
+              checkSubscription();
               // Properly format query parameters with type casting
               const { data, error } = await supabase
                 .from('user_roles')
@@ -165,7 +187,13 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
           localStorage.removeItem('allClinics');
           localStorage.removeItem('isProfessional');
           localStorage.removeItem('professionalData');
+          localStorage.removeItem('subscriptionStatus');
           setIsMasterAdmin(false);
+          setSubscriptionStatus({
+            subscribed: false,
+            product_id: null,
+            subscription_end: null
+          });
           setLoading(false);
         }
       }
@@ -184,6 +212,17 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       subscription.unsubscribe();
     };
   }, []);
+
+  // Periodic subscription check every 60 seconds
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(() => {
+      checkSubscription();
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -342,6 +381,28 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const checkSubscription = async (): Promise<void> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('Error checking subscription:', error);
+        return;
+      }
+      
+      const status: SubscriptionStatus = {
+        subscribed: data.subscribed || false,
+        product_id: data.product_id || null,
+        subscription_end: data.subscription_end || null
+      };
+      
+      setSubscriptionStatus(status);
+      localStorage.setItem('subscriptionStatus', JSON.stringify(status));
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -354,10 +415,16 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       localStorage.removeItem('allClinics');
       localStorage.removeItem('isProfessional');
       localStorage.removeItem('professionalData');
+      localStorage.removeItem('subscriptionStatus');
       
       setUser(null);
       setSession(null);
       setIsMasterAdmin(false);
+      setSubscriptionStatus({
+        subscribed: false,
+        product_id: null,
+        subscription_end: null
+      });
       
       navigate('/login', { replace: true });
       toast.success("Logout realizado com sucesso!");
@@ -374,6 +441,8 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         loading,
         isAuthenticated: !!user,
         isMasterAdmin,
+        subscriptionStatus,
+        checkSubscription,
         signIn,
         signUp,
         signOut,

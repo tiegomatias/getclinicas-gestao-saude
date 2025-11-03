@@ -10,23 +10,30 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Users, Building, Bell, Shield, Database } from "lucide-react";
+import { Settings, Users, Building, Bell, Shield, Database, CreditCard, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { clinicService } from "@/services/clinicService";
 import { professionalService } from "@/services/professionalService";
 import { settingsService, type ClinicSettings } from "@/services/settingsService";
 import type { Clinic, Professional } from "@/lib/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export default function Configuracoes() {
+  const navigate = useNavigate();
+  const { subscriptionStatus, checkSubscription } = useAuth();
   const [clinic, setClinic] = useState<Clinic | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingGeneral, setSavingGeneral] = useState(false);
   const [savingSecurity, setSavingSecurity] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
+  const [loadingPortal, setLoadingPortal] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -174,6 +181,29 @@ export default function Configuracoes() {
     }
   };
 
+  const handleManageSubscription = async () => {
+    setLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error opening portal:', error);
+      toast.error('Erro ao abrir portal de gerenciamento');
+    } finally {
+      setLoadingPortal(false);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -199,10 +229,11 @@ export default function Configuracoes() {
       </div>
 
       <Tabs defaultValue="geral">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 md:w-auto">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 md:w-auto">
           <TabsTrigger value="geral">Geral</TabsTrigger>
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
           <TabsTrigger value="clinica">Clínica</TabsTrigger>
+          <TabsTrigger value="assinatura">Assinatura</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="seguranca">Segurança</TabsTrigger>
           <TabsTrigger value="sistema">Sistema</TabsTrigger>
@@ -441,6 +472,96 @@ export default function Configuracoes() {
                 {savingGeneral ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="assinatura">
+          <Card>
+            <CardHeader>
+              <CardTitle>Minha Assinatura</CardTitle>
+              <CardDescription>
+                Gerencie sua assinatura e pagamentos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-lg border p-6">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Status da Assinatura</h3>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      {subscriptionStatus.subscribed ? (
+                        <>
+                          <Badge className="bg-green-500">Ativa</Badge>
+                          {subscriptionStatus.product_id && (
+                            <span className="text-sm text-muted-foreground">
+                              ID: {subscriptionStatus.product_id}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <Badge variant="outline">Sem Assinatura</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => checkSubscription()}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Atualizar Status
+                  </Button>
+                </div>
+                
+                {subscriptionStatus.subscription_end && (
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      Data de Renovação: <span className="font-medium text-foreground">{formatDate(subscriptionStatus.subscription_end)}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {subscriptionStatus.subscribed ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-muted p-4">
+                    <h4 className="font-medium mb-2">Gerenciar Assinatura</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Acesse o portal de gerenciamento para alterar seu plano, atualizar forma de pagamento ou cancelar sua assinatura.
+                    </p>
+                    <Button 
+                      onClick={handleManageSubscription}
+                      disabled={loadingPortal}
+                      className="w-full sm:w-auto"
+                    >
+                      {loadingPortal ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Carregando...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Gerenciar Assinatura
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg bg-muted p-6 text-center">
+                  <h4 className="font-medium mb-2">Sem Assinatura Ativa</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Assine agora para ter acesso a todos os recursos da plataforma
+                  </p>
+                  <Button onClick={() => navigate('/checkout')}>
+                    Ver Planos Disponíveis
+                  </Button>
+                </div>
+              )}
+            </CardContent>
           </Card>
         </TabsContent>
         

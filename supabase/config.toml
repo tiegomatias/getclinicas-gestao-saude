@@ -26,6 +26,12 @@ verify_jwt = true
 [functions.create-stripe-checkout]
 verify_jwt = false
 
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
 [auth]
 enabled = true
 port = 54324
