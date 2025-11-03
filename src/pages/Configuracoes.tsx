@@ -17,13 +17,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { clinicService } from "@/services/clinicService";
-import type { Clinic } from "@/lib/types";
+import { professionalService } from "@/services/professionalService";
+import { settingsService, type ClinicSettings } from "@/services/settingsService";
+import type { Clinic, Professional } from "@/lib/types";
 
 export default function Configuracoes() {
   const [clinic, setClinic] = useState<Clinic | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingGeneral, setSavingGeneral] = useState(false);
   const [savingSecurity, setSavingSecurity] = useState(false);
+  const [savingNotifications, setSavingNotifications] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -32,11 +35,16 @@ export default function Configuracoes() {
   const [state, setState] = useState("");
   const [website, setWebsite] = useState("");
   const [cnpj, setCnpj] = useState("");
+  
+  // System users
+  const [systemUsers, setSystemUsers] = useState<Professional[]>([]);
+  
+  // Settings state
+  const [settings, setSettings] = useState<ClinicSettings | null>(null);
 
   useEffect(() => {
     const fetchClinicData = async () => {
       try {
-        // Get clinic ID from localStorage for demonstration
         const clinicDataStr = localStorage.getItem("clinicData");
         
         if (!clinicDataStr) {
@@ -52,16 +60,14 @@ export default function Configuracoes() {
           return;
         }
         
+        // Load clinic info
         const clinicInfo = await clinicService.getClinicById(clinicId);
         
         if (clinicInfo) {
           setClinic(clinicInfo);
-          
-          // Initialize form fields with clinic data
           setName(clinicInfo.clinic_name || "");
           setEmail(clinicInfo.admin_email || "");
           
-          // If we have additional clinic metadata in localStorage, use it
           const metadata = clinicData.metadata || {};
           setPhone(metadata.phone || "");
           setAddress(metadata.address || "");
@@ -70,8 +76,21 @@ export default function Configuracoes() {
           setWebsite(metadata.website || "");
           setCnpj(metadata.cnpj || "");
         }
+        
+        // Load system users (professionals with system access)
+        const users = await professionalService.getProfessionalsWithSystemAccess(clinicId);
+        setSystemUsers(users);
+        
+        // Load settings
+        let clinicSettings = await settingsService.getClinicSettings(clinicId);
+        if (!clinicSettings) {
+          clinicSettings = settingsService.getDefaultSettings(clinicId);
+        }
+        setSettings(clinicSettings);
+        
       } catch (error) {
-        console.error("Erro ao buscar dados da clínica:", error);
+        console.error("Erro ao buscar dados:", error);
+        toast.error("Erro ao carregar configurações");
       } finally {
         setLoading(false);
       }
@@ -125,13 +144,34 @@ export default function Configuracoes() {
     }
   };
   
-  const handleSaveSecurity = () => {
-    setSavingSecurity(true);
+  const handleSaveNotifications = async () => {
+    if (!clinic || !settings) return;
     
-    setTimeout(() => {
-      toast.success("Configurações de segurança salvas com sucesso!");
+    setSavingNotifications(true);
+    try {
+      await settingsService.upsertClinicSettings(settings);
+      toast.success("Configurações de notificações salvas!");
+    } catch (error) {
+      console.error("Erro ao salvar notificações:", error);
+      toast.error("Erro ao salvar configurações de notificações");
+    } finally {
+      setSavingNotifications(false);
+    }
+  };
+  
+  const handleSaveSecurity = async () => {
+    if (!clinic || !settings) return;
+    
+    setSavingSecurity(true);
+    try {
+      await settingsService.upsertClinicSettings(settings);
+      toast.success("Configurações de segurança salvas!");
+    } catch (error) {
+      console.error("Erro ao salvar segurança:", error);
+      toast.error("Erro ao salvar configurações de segurança");
+    } finally {
       setSavingSecurity(false);
-    }, 1000);
+    }
   };
 
   if (loading) {
@@ -247,70 +287,47 @@ export default function Configuracoes() {
             <CardHeader>
               <CardTitle>Gerenciamento de Usuários</CardTitle>
               <CardDescription>
-                Administre usuários e permissões do sistema
+                Profissionais com acesso ao sistema
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex justify-end">
-                <Button>
-                  <Users className="mr-2 h-4 w-4" /> Adicionar Usuário
-                </Button>
-              </div>
-              
-              <div className="rounded-md border">
-                <div className="p-4 border-b">
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-medium">{clinic?.admin_name || "Admin Clínica"}</h3>
-                      <p className="text-sm text-muted-foreground">{clinic?.admin_email || email}</p>
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                        Administrador
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">Editar</Button>
-                      <Button variant="outline" size="sm">Redefinir Senha</Button>
-                    </div>
-                  </div>
+              {systemUsers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    Nenhum profissional com acesso ao sistema encontrado
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Configure o acesso ao sistema na página de Profissionais
+                  </p>
                 </div>
-                
-                {/* Opcional: se houver outros usuários vinculados à clínica */}
-                {clinic?.has_initial_data && (
-                  <>
-                    <div className="p-4 border-b">
+              ) : (
+                <div className="rounded-md border">
+                  {systemUsers.map((user, index) => (
+                    <div 
+                      key={user.id} 
+                      className={`p-4 ${index < systemUsers.length - 1 ? 'border-b' : ''}`}
+                    >
                       <div className="flex flex-col sm:flex-row justify-between gap-4">
                         <div>
-                          <h3 className="text-lg font-medium">Dr. João Silva</h3>
-                          <p className="text-sm text-muted-foreground">joao.silva@getclinicas.com</p>
-                          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                            Médico
-                          </span>
+                          <h3 className="text-lg font-medium">{user.name}</h3>
+                          <p className="text-sm text-muted-foreground">{user.email || "Sem e-mail"}</p>
+                          <div className="flex gap-2 mt-2">
+                            <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                              {user.profession}
+                            </span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm">Editar</Button>
-                          <Button variant="outline" size="sm">Redefinir Senha</Button>
+                          <Button variant="outline" size="sm" disabled>
+                            Ver Permissões
+                          </Button>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="p-4">
-                      <div className="flex flex-col sm:flex-row justify-between gap-4">
-                        <div>
-                          <h3 className="text-lg font-medium">Ana Oliveira</h3>
-                          <p className="text-sm text-muted-foreground">ana.oliveira@getclinicas.com</p>
-                          <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
-                            Recepcionista
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm">Editar</Button>
-                          <Button variant="outline" size="sm">Redefinir Senha</Button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -446,7 +463,13 @@ export default function Configuracoes() {
                       Notificações quando novos agendamentos são criados
                     </p>
                   </div>
-                  <Switch id="new-appointments" defaultChecked />
+                  <Switch 
+                    id="new-appointments" 
+                    checked={settings?.notifications_appointments ?? true}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, notifications_appointments: checked} : null)
+                    }
+                  />
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -456,27 +479,45 @@ export default function Configuracoes() {
                       Notificações quando agendamentos são cancelados
                     </p>
                   </div>
-                  <Switch id="cancellations" defaultChecked />
+                  <Switch 
+                    id="cancellations" 
+                    checked={settings?.notifications_cancellations ?? true}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, notifications_cancellations: checked} : null)
+                    }
+                  />
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Estoque Baixo</p>
+                    <p className="font-medium">Medicamentos</p>
                     <p className="text-sm text-muted-foreground">
-                      Alertas quando medicamentos estão em estoque baixo
+                      Alertas quando medicamentos precisam de atenção
                     </p>
                   </div>
-                  <Switch id="low-stock" defaultChecked />
+                  <Switch 
+                    id="medicines" 
+                    checked={settings?.notifications_medicines ?? true}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, notifications_medicines: checked} : null)
+                    }
+                  />
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Atualizações do Sistema</p>
+                    <p className="font-medium">Documentos</p>
                     <p className="text-sm text-muted-foreground">
-                      Notificações sobre novas atualizações e recursos
+                      Notificações sobre novos documentos
                     </p>
                   </div>
-                  <Switch id="system-updates" />
+                  <Switch 
+                    id="documents" 
+                    checked={settings?.notifications_documents ?? true}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, notifications_documents: checked} : null)
+                    }
+                  />
                 </div>
               </div>
               
@@ -490,7 +531,13 @@ export default function Configuracoes() {
                       Receber notificações por e-mail
                     </p>
                   </div>
-                  <Switch id="email-notifications" defaultChecked />
+                  <Switch 
+                    id="email-notifications" 
+                    checked={settings?.notifications_email ?? true}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, notifications_email: checked} : null)
+                    }
+                  />
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -500,7 +547,13 @@ export default function Configuracoes() {
                       Notificações push no navegador
                     </p>
                   </div>
-                  <Switch id="browser-notifications" defaultChecked />
+                  <Switch 
+                    id="browser-notifications" 
+                    checked={settings?.notifications_browser ?? true}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, notifications_browser: checked} : null)
+                    }
+                  />
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -510,7 +563,13 @@ export default function Configuracoes() {
                       Receber notificações por SMS
                     </p>
                   </div>
-                  <Switch id="sms-notifications" />
+                  <Switch 
+                    id="sms-notifications" 
+                    checked={settings?.notifications_sms ?? false}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, notifications_sms: checked} : null)
+                    }
+                  />
                 </div>
               </div>
               
@@ -521,21 +580,24 @@ export default function Configuracoes() {
                   <div>
                     <p className="font-medium">Lembretes de Consulta</p>
                     <p className="text-sm text-muted-foreground">
-                      Quando enviar lembretes de consulta para pacientes
+                      Enviar lembretes automáticos de consultas
                     </p>
                   </div>
-                  <select className="w-48 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background">
-                    <option>1 dia antes</option>
-                    <option>2 dias antes</option>
-                    <option>1 semana antes</option>
-                    <option>Não enviar</option>
-                  </select>
+                  <Switch 
+                    id="reminders" 
+                    checked={settings?.notifications_reminders ?? true}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, notifications_reminders: checked} : null)
+                    }
+                  />
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
               <Button variant="outline">Restaurar Padrões</Button>
-              <Button>Salvar Configurações</Button>
+              <Button onClick={handleSaveNotifications} disabled={savingNotifications}>
+                {savingNotifications ? "Salvando..." : "Salvar Configurações"}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -559,22 +621,32 @@ export default function Configuracoes() {
                       Aumente a segurança com verificação adicional
                     </p>
                   </div>
-                  <Switch id="two-factor" />
+                  <Switch 
+                    id="two-factor" 
+                    checked={settings?.security_two_factor ?? false}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => prev ? {...prev, security_two_factor: checked} : null)
+                    }
+                  />
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Tempo Limite de Sessão</p>
                     <p className="text-sm text-muted-foreground">
-                      Tempo de inatividade até desconectar automaticamente
+                      Tempo de inatividade até desconectar automaticamente (minutos)
                     </p>
                   </div>
-                  <select className="w-48 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background">
-                    <option>30 minutos</option>
-                    <option>1 hora</option>
-                    <option>2 horas</option>
-                    <option>4 horas</option>
-                    <option>8 horas</option>
+                  <select 
+                    className="w-48 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
+                    value={settings?.security_session_timeout ?? 30}
+                    onChange={(e) => setSettings(prev => prev ? {...prev, security_session_timeout: Number(e.target.value)} : null)}
+                  >
+                    <option value={15}>15 minutos</option>
+                    <option value={30}>30 minutos</option>
+                    <option value={60}>1 hora</option>
+                    <option value={120}>2 horas</option>
+                    <option value={240}>4 horas</option>
                   </select>
                 </div>
               </div>
@@ -630,7 +702,9 @@ export default function Configuracoes() {
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
               <Button variant="outline">Cancelar</Button>
-              <Button>Salvar Configurações</Button>
+              <Button onClick={handleSaveSecurity} disabled={savingSecurity}>
+                {savingSecurity ? "Salvando..." : "Salvar Configurações"}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
