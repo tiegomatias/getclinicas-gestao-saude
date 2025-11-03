@@ -13,7 +13,6 @@ const Registration = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const { signUp } = useAuth();
   
   // Form values
@@ -24,17 +23,8 @@ const Registration = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   
   useEffect(() => {
-    // Get the plan from the URL query parameter
-    const params = new URLSearchParams(location.search);
-    const plan = params.get("plan");
-    
-    if (plan && (plan === "Mensal" || plan === "Semestral" || plan === "Anual")) {
-      setSelectedPlan(plan);
-    } else {
-      // If no plan is selected, redirect to home page
-      toast.error("Por favor, selecione um plano antes de continuar");
-      navigate("/");
-    }
+    // Não é mais necessário validar o plano na URL
+    // O plano será escolhido após o registro na página /plans
   }, [location.search, navigate]);
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,8 +108,7 @@ const Registration = () => {
           {
             name: clinicName,
             admin_id: signUpData.user.id,
-            admin_email: adminEmail,
-            plan: selectedPlan
+            admin_email: adminEmail
           }
         ])
         .select();
@@ -203,20 +192,17 @@ const Registration = () => {
         
         // Even if auto-login fails, user was created successfully
         toast.success("Clínica registrada com sucesso! Faça login para continuar.");
-        
-        // Redirecionar para login com checkout como destino
-        navigate(`/login?redirect=/checkout&plan=${selectedPlan}`);
+        navigate("/login");
         return;
       }
       
       console.log("Login automático realizado com sucesso");
       toast.success("Clínica registrada com sucesso!");
       
-      // Após registro bem-sucedido, sempre redirecionar para checkout
-      // Adding a small delay before redirecting to ensure localStorage is set
+      // Após registro bem-sucedido, redirecionar para página de planos
       setTimeout(() => {
-        console.log("Redirecionando para o checkout após registro...");
-        navigate(`/checkout?plan=${selectedPlan}`);
+        console.log("Redirecionando para seleção de planos...");
+        navigate("/plans");
       }, 500);
       
     } catch (error: any) {
@@ -259,24 +245,12 @@ const Registration = () => {
           <CardTitle className="text-2xl">Registre sua Clínica</CardTitle>
         </CardHeader>
         <CardContent>
-          {!selectedPlan ? (
-            <div className="text-center">
-              <p className="text-red-500 mb-4">É necessário selecionar um plano antes de continuar</p>
-              <Button onClick={() => navigate("/checkout")}>
-                Selecionar um Plano
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="bg-blue-50 p-3 rounded-md mb-6 text-center">
-                <p className="text-sm text-blue-600">Plano selecionado: <strong>{selectedPlan}</strong></p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="clinicName">Nome da Clínica</Label>
-                <Input
-                  id="clinicName"
-                  placeholder="Ex: Centro de Recuperação São Lucas"
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="clinicName">Nome da Clínica</Label>
+              <Input
+                id="clinicName"
+                placeholder="Ex: Centro de Recuperação São Lucas"
                   value={clinicName}
                   onChange={(e) => setClinicName(e.target.value)}
                   required
@@ -333,7 +307,7 @@ const Registration = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loading || !selectedPlan}
+                disabled={loading}
               >
                 {loading ? "Registrando..." : "Registrar Clínica"}
               </Button>
@@ -345,7 +319,6 @@ const Registration = () => {
                 </a>
               </p>
             </form>
-          )}
         </CardContent>
       </Card>
     </div>

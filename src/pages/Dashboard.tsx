@@ -35,11 +35,11 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { isSubscribed } = useSubscription();
   
-  // Verificar assinatura e redirecionar para checkout se não estiver ativo
+  // Verificar assinatura e redirecionar para planos se não estiver ativo
   useEffect(() => {
     if (!loading && !isSubscribed()) {
-      toast.info("Complete sua assinatura para acessar o sistema");
-      navigate("/checkout?plan=Mensal");
+      toast.info("Escolha um plano para acessar o sistema");
+      navigate("/plans");
     }
   }, [loading, isSubscribed, navigate]);
   

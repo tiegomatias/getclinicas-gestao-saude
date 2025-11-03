@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import Registration from "./pages/Registration";
+import Plans from "./pages/Plans";
 import Checkout from "./pages/Checkout";
 import Success from "./pages/Success";
 import SubscriptionRequired from "./pages/SubscriptionRequired";
@@ -53,6 +54,7 @@ function App() {
             <Route path="/home" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registration />} />
+            <Route path="/plans" element={<Plans />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/success" element={<Success />} />
             <Route path="/subscription-required" element={<SubscriptionRequired />} />

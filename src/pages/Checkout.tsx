@@ -60,12 +60,10 @@ const Checkout = () => {
   // Verificar autenticação e redirecionar para login mantendo o plano na URL
   useEffect(() => {
     if (!user) {
-      const params = new URLSearchParams(location.search);
-      const planParam = params.get("plan");
       toast.info("Faça login ou crie uma conta para continuar");
-      navigate(`/login?redirect=/checkout&plan=${planParam}`);
+      navigate(`/login`);
     }
-  }, [user, navigate, location.search]);
+  }, [user, navigate]);
 
   useEffect(() => {
     // Get the plan from the URL query parameter
