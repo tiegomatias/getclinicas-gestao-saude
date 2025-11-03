@@ -2,8 +2,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckIcon, ArrowLeft } from "lucide-react";
+import { CheckIcon, ArrowLeft, LogOut } from "lucide-react";
 import { SUBSCRIPTION_PLANS, formatPrice } from "@/lib/subscriptionPlans";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Custom Logo SVG Component
 const GetClinicasLogo = () => (
@@ -40,9 +41,15 @@ const GetClinicasLogo = () => (
 
 const Plans = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const handleSelectPlan = (planId: string) => {
     navigate(`/checkout?plan=${planId.charAt(0).toUpperCase() + planId.slice(1)}`);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
   };
 
   const plans = [
@@ -59,10 +66,16 @@ const Plans = () => {
             <GetClinicasLogo />
             <h1 className="text-2xl font-bold">GetClinicas</h1>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => navigate("/")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
