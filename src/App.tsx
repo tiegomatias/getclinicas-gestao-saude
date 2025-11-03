@@ -25,6 +25,7 @@ import MasterMaintenance from "./pages/MasterMaintenance";
 import MasterSupport from "./pages/MasterSupport";
 import MasterReports from "./pages/MasterReports";
 import MasterSettings from "./pages/MasterSettings";
+import MasterWebhooks from "./pages/MasterWebhooks";
 import Dashboard from "./pages/Dashboard";
 import Patients from "./pages/Patients";
 import Professionals from "./pages/Professionals";
@@ -76,6 +77,7 @@ function App() {
                 <Route path="/master/support" element={<MasterSupport />} />
                 <Route path="/master/reports" element={<MasterReports />} />
                 <Route path="/master/settings" element={<MasterSettings />} />
+                <Route path="/master/webhooks" element={<MasterWebhooks />} />
               </Route>
             </Route>
 

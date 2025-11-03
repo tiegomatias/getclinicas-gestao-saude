@@ -24,6 +24,7 @@ import {
   MessageSquare,
   Database,
   HelpCircle,
+  Webhook,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,6 +78,11 @@ export default function MasterSidebar() {
       title: "Relatórios",
       path: "/master/reports",
       icon: BarChart2,
+    },
+    {
+      title: "Webhooks",
+      path: "/master/webhooks",
+      icon: Webhook,
     },
     {
       title: "Configurações",

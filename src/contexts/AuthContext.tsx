@@ -414,7 +414,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       // Verificar se há sessão válida antes de chamar a função
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
+      if (!session?.access_token || !session?.user?.id) {
         console.log('No active session or access token, skipping subscription check');
         // Limpar status de assinatura quando não há sessão
         setSubscriptionStatus({
@@ -426,7 +426,37 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return;
       }
 
-      console.log('Calling check-subscription with valid session');
+      console.log('Checking subscription status from local database first');
+      
+      // Primeiro, tentar buscar da tabela local (mais rápido)
+      const { data: localStatus, error: localError } = await supabase
+        .from('subscription_status')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (!localError && localStatus) {
+        console.log('Found local subscription status:', localStatus);
+        
+        // Verificar se o status está ativo e não expirou
+        const isActive = localStatus.status === 'active' && 
+                         localStatus.current_period_end && 
+                         new Date(localStatus.current_period_end) > new Date();
+        
+        const status: SubscriptionStatus = {
+          subscribed: isActive,
+          product_id: localStatus.product_id,
+          subscription_end: localStatus.current_period_end
+        };
+        
+        console.log('Using local subscription status:', status);
+        setSubscriptionStatus(status);
+        localStorage.setItem('subscriptionStatus', JSON.stringify(status));
+        return;
+      }
+
+      // Se não encontrou localmente ou houve erro, fazer fallback para Stripe API
+      console.log('Local status not found, checking with Stripe API');
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -434,7 +464,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       });
       
       if (error) {
-        console.error('Error checking subscription:', error);
+        console.error('Error checking subscription from Stripe:', error);
         
         // Se a sessão expirou (401), fazer logout automático mas não bloquear a UI
         if (error.message?.includes('401') || error.message?.includes('Session expired')) {
@@ -463,7 +493,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         subscription_end: data.subscription_end || null
       };
       
-      console.log('Subscription status updated:', status);
+      console.log('Subscription status updated from Stripe:', status);
       setSubscriptionStatus(status);
       localStorage.setItem('subscriptionStatus', JSON.stringify(status));
     } catch (error) {

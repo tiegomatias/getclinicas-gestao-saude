@@ -32,6 +32,21 @@ verify_jwt = true
 [functions.customer-portal]
 verify_jwt = true
 
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.stripe-list-products]
+verify_jwt = true
+
+[functions.stripe-create-product]
+verify_jwt = true
+
+[functions.get-clinic-users]
+verify_jwt = true
+
+[functions.master-financial-stats]
+verify_jwt = true
+
 [auth]
 enabled = true
 port = 54324
