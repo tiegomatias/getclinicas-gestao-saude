@@ -37,28 +37,36 @@ serve(async (req) => {
     logStep('Function started');
 
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('No authorization header provided');
+    if (!authHeader) {
+      logStep('No authorization header');
+      throw new Error('No authorization header provided');
+    }
     logStep('Authorization header found');
 
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) throw new Error('STRIPE_SECRET_KEY is not set');
     logStep('Stripe key verified');
 
-    // Criar cliente Supabase com o token de autenticação
+    // Extrair o token do header
+    const token = authHeader.replace('Bearer ', '');
+    logStep('Token extracted', { tokenLength: token.length });
+
+    // Criar cliente Supabase
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { 
-        global: {
-          headers: { Authorization: authHeader }
-        }
-      }
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Obter o usuário autenticado
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    if (!user?.email) throw new Error('User not authenticated or email not available');
+    // Obter o usuário autenticado usando o token diretamente
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError) {
+      logStep('Auth error', { error: userError.message });
+      throw new Error(`Authentication error: ${userError.message}`);
+    }
+    if (!user?.email) {
+      logStep('No user or email');
+      throw new Error('User not authenticated or email not available');
+    }
     logStep('User authenticated', { userId: user.id, email: user.email });
 
     const { planId, successUrl, cancelUrl } = await req.json();
