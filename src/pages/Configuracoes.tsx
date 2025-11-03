@@ -465,9 +465,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="new-appointments" 
-                    checked={settings?.notifications_appointments ?? true}
+                    checked={settings?.notification_settings?.appointments ?? true}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, notifications_appointments: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev, 
+                        notification_settings: {...prev.notification_settings, appointments: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -481,9 +484,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="cancellations" 
-                    checked={settings?.notifications_cancellations ?? true}
+                    checked={settings?.notification_settings?.cancellations ?? true}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, notifications_cancellations: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev,
+                        notification_settings: {...prev.notification_settings, cancellations: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -497,9 +503,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="medicines" 
-                    checked={settings?.notifications_medicines ?? true}
+                    checked={settings?.notification_settings?.medicines ?? true}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, notifications_medicines: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev,
+                        notification_settings: {...prev.notification_settings, medicines: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -513,9 +522,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="documents" 
-                    checked={settings?.notifications_documents ?? true}
+                    checked={settings?.notification_settings?.documents ?? true}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, notifications_documents: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev,
+                        notification_settings: {...prev.notification_settings, documents: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -533,9 +545,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="email-notifications" 
-                    checked={settings?.notifications_email ?? true}
+                    checked={settings?.notification_settings?.email ?? true}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, notifications_email: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev,
+                        notification_settings: {...prev.notification_settings, email: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -549,9 +564,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="browser-notifications" 
-                    checked={settings?.notifications_browser ?? true}
+                    checked={settings?.notification_settings?.browser ?? true}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, notifications_browser: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev,
+                        notification_settings: {...prev.notification_settings, browser: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -565,9 +583,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="sms-notifications" 
-                    checked={settings?.notifications_sms ?? false}
+                    checked={settings?.notification_settings?.sms ?? false}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, notifications_sms: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev,
+                        notification_settings: {...prev.notification_settings, sms: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -585,9 +606,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="reminders" 
-                    checked={settings?.notifications_reminders ?? true}
+                    checked={settings?.notification_settings?.reminders ?? true}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, notifications_reminders: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev,
+                        notification_settings: {...prev.notification_settings, reminders: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -623,9 +647,12 @@ export default function Configuracoes() {
                   </div>
                   <Switch 
                     id="two-factor" 
-                    checked={settings?.security_two_factor ?? false}
+                    checked={settings?.security_settings?.two_factor ?? false}
                     onCheckedChange={(checked) => 
-                      setSettings(prev => prev ? {...prev, security_two_factor: checked} : null)
+                      setSettings(prev => prev ? {
+                        ...prev,
+                        security_settings: {...prev.security_settings, two_factor: checked}
+                      } : null)
                     }
                   />
                 </div>
@@ -639,8 +666,11 @@ export default function Configuracoes() {
                   </div>
                   <select 
                     className="w-48 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
-                    value={settings?.security_session_timeout ?? 30}
-                    onChange={(e) => setSettings(prev => prev ? {...prev, security_session_timeout: Number(e.target.value)} : null)}
+                    value={settings?.security_settings?.session_timeout ?? 30}
+                    onChange={(e) => setSettings(prev => prev ? {
+                      ...prev,
+                      security_settings: {...prev.security_settings, session_timeout: Number(e.target.value)}
+                    } : null)}
                   >
                     <option value={15}>15 minutos</option>
                     <option value={30}>30 minutos</option>
