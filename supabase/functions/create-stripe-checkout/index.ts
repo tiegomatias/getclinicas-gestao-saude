@@ -51,13 +51,19 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     logStep('Token extracted', { tokenLength: token.length });
 
-    // Criar cliente Supabase
+    // Criar cliente Supabase com SERVICE_ROLE_KEY para validar o token
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     );
 
-    // Obter o usuário autenticado usando o token diretamente
+    // Obter o usuário autenticado usando o token diretamente com SERVICE_ROLE_KEY
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) {
       logStep('Auth error', { error: userError.message });
