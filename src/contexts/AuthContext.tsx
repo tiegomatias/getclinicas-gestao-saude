@@ -419,6 +419,14 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       if (error) {
         console.error('Error checking subscription:', error);
+        
+        // Se a sessão expirou (401), fazer logout automático
+        if (error.message?.includes('401') || error.message?.includes('Session expired')) {
+          console.log('Session expired, logging out user');
+          toast.error('Sua sessão expirou. Faça login novamente.');
+          await signOut();
+          navigate('/login');
+        }
         return;
       }
       
