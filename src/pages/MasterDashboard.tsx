@@ -20,6 +20,7 @@ import { MasterStatsCards } from "@/components/master/MasterStatsCards";
 import { MasterClinicsTable } from "@/components/master/MasterClinicsTable";
 import { MasterOccupationChart } from "@/components/master/MasterOccupationChart";
 import { MasterFinanceCard } from "@/components/master/MasterFinanceCard";
+import { EditClinicDialog } from "@/components/master/EditClinicDialog";
 import { toast } from "sonner";
 import { masterService, type ClinicData } from "@/services/masterService";
 
@@ -34,6 +35,8 @@ export default function MasterDashboard() {
   const [planRevenueData, setPlanRevenueData] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPlan, setFilterPlan] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedClinic, setSelectedClinic] = useState<ClinicData | null>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -91,15 +94,39 @@ export default function MasterDashboard() {
   }, [searchQuery, filterPlan, clinics]);
   
   const handleNavigateToClinic = (clinicId: string) => {
-    // Set the current clinic ID in localStorage
     localStorage.setItem("currentClinicId", clinicId);
-    
-    // Navigate to the dashboard
     navigate("/dashboard");
   };
   
   const handleCreateClinic = () => {
     navigate("/registro");
+  };
+
+  const handleEditClinic = (clinic: ClinicData) => {
+    setSelectedClinic(clinic);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveClinic = async (clinicId: string, updates: Partial<ClinicData>) => {
+    try {
+      await masterService.updateClinic(clinicId, updates);
+      toast.success("Clínica atualizada com sucesso");
+      await loadClinicsData();
+    } catch (error) {
+      console.error("Error updating clinic:", error);
+      toast.error("Erro ao atualizar clínica");
+    }
+  };
+
+  const handleDeleteClinic = async (clinicId: string) => {
+    try {
+      await masterService.deleteClinic(clinicId);
+      toast.success("Clínica excluída com sucesso");
+      await loadClinicsData();
+    } catch (error) {
+      console.error("Error deleting clinic:", error);
+      toast.error("Erro ao excluir clínica");
+    }
   };
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,6 +252,8 @@ export default function MasterDashboard() {
           <MasterClinicsTable 
             clinics={filteredClinics}
             onViewClinic={handleNavigateToClinic}
+            onEditClinic={handleEditClinic}
+            onDeleteClinic={handleDeleteClinic}
           />
         </div>
         
@@ -237,6 +266,13 @@ export default function MasterDashboard() {
           <MasterOccupationChart clinics={filteredClinics} />
         </div>
       </div>
+
+      <EditClinicDialog
+        clinic={selectedClinic}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={handleSaveClinic}
+      />
     </div>
   );
 }
