@@ -52,6 +52,19 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError) {
       logStep("Auth error", { error: userError.message });
+      
+      // Se a sessão expirou, retornar resposta apropriada
+      if (userError.message.includes("session") || userError.message.includes("Session")) {
+        logStep("Session expired or invalid - user needs to login again");
+        return new Response(JSON.stringify({ 
+          error: "Session expired. Please login again.",
+          subscribed: false 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        });
+      }
+      
       throw new Error(`Authentication error: ${userError.message}`);
     }
     if (!user?.email) {
