@@ -24,6 +24,7 @@ import { MasterFinancialDashboard } from "@/components/master/MasterFinancialDas
 import { EditClinicDialog } from "@/components/master/EditClinicDialog";
 import { toast } from "sonner";
 import { masterService, type ClinicData } from "@/services/masterService";
+import { auditService } from "@/services/auditService";
 
 export default function MasterDashboard() {
   const [clinics, setClinics] = useState<ClinicData[]>([]);
@@ -111,6 +112,13 @@ export default function MasterDashboard() {
   const handleSaveClinic = async (clinicId: string, updates: Partial<ClinicData>) => {
     try {
       await masterService.updateClinic(clinicId, updates);
+      
+      // Registrar log de auditoria
+      await auditService.logAction('UPDATE', 'clinic', clinicId, {
+        changes: updates,
+        clinicName: selectedClinic?.name
+      });
+      
       toast.success("Clínica atualizada com sucesso");
       await loadClinicsData();
     } catch (error) {
@@ -121,7 +129,16 @@ export default function MasterDashboard() {
 
   const handleDeleteClinic = async (clinicId: string) => {
     try {
+      const clinic = clinics.find(c => c.id === clinicId);
+      
       await masterService.deleteClinic(clinicId);
+      
+      // Registrar log de auditoria
+      await auditService.logAction('DELETE', 'clinic', clinicId, {
+        clinicName: clinic?.name,
+        plan: clinic?.plan
+      });
+      
       toast.success("Clínica excluída com sucesso");
       await loadClinicsData();
     } catch (error) {

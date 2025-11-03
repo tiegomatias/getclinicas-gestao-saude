@@ -1,241 +1,96 @@
-
-import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+import { Shield, Database, Bell } from "lucide-react";
+import { AuditLogsTable } from "@/components/master/AuditLogsTable";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function MasterSettings() {
-  const [adminEmail, setAdminEmail] = useState("tiegomatias@gmail.comm");
-  const [systemName, setSystemName] = useState("GetClinicas");
-  const [sendEmails, setSendEmails] = useState(true);
-  const [allowRegistration, setAllowRegistration] = useState(true);
-  const [securityLevel, setSecurityLevel] = useState("high");
-  const [loading, setLoading] = useState(false);
-  const [require2fa, setRequire2fa] = useState(true);
-  const [weeklyReports, setWeeklyReports] = useState(true);
-  const [systemAlerts, setSystemAlerts] = useState(true);
-
-  const handleSaveGeneral = () => {
-    setLoading(true);
-    
-    setTimeout(() => {
-      // Salvar configurações na localStorage para persistência
-      const settings = {
-        systemName,
-        adminEmail,
-        allowRegistration
-      };
-      localStorage.setItem("masterGeneralSettings", JSON.stringify(settings));
-      
-      toast.success("Configurações gerais salvas com sucesso!");
-      setLoading(false);
-    }, 1000);
-  };
-  
-  const handleSaveSecurity = () => {
-    setLoading(true);
-    
-    setTimeout(() => {
-      // Salvar configurações de segurança
-      const securitySettings = {
-        securityLevel,
-        require2fa
-      };
-      localStorage.setItem("masterSecuritySettings", JSON.stringify(securitySettings));
-      
-      toast.success("Configurações de segurança salvas com sucesso!");
-      setLoading(false);
-    }, 1000);
-  };
-
-  const handleSaveNotifications = () => {
-    setLoading(true);
-    
-    setTimeout(() => {
-      // Salvar configurações de notificações
-      const notificationSettings = {
-        sendEmails,
-        weeklyReports,
-        systemAlerts
-      };
-      localStorage.setItem("masterNotificationSettings", JSON.stringify(notificationSettings));
-      
-      toast.success("Configurações de notificações salvas com sucesso!");
-      setLoading(false);
-    }, 1000);
-  };
-
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Configurações do Sistema</h1>
         <p className="text-muted-foreground">
-          Gerencie as configurações gerais do sistema GetClinicas
+          Gerencie configurações e visualize logs de auditoria
         </p>
       </div>
-      
-      <Tabs defaultValue="general" className="space-y-4">
+
+      <Tabs defaultValue="audit" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="general">Geral</TabsTrigger>
-          <TabsTrigger value="security">Segurança</TabsTrigger>
-          <TabsTrigger value="notifications">Notificações</TabsTrigger>
+          <TabsTrigger value="audit">
+            <Shield className="mr-2 h-4 w-4" />
+            Auditoria
+          </TabsTrigger>
+          <TabsTrigger value="database">
+            <Database className="mr-2 h-4 w-4" />
+            Banco de Dados
+          </TabsTrigger>
+          <TabsTrigger value="notifications">
+            <Bell className="mr-2 h-4 w-4" />
+            Notificações
+          </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="general" className="space-y-4">
+
+        <TabsContent value="audit">
+          <AuditLogsTable />
+        </TabsContent>
+
+        <TabsContent value="database">
           <Card>
             <CardHeader>
-              <CardTitle>Configurações Gerais</CardTitle>
-              <CardDescription>Configure as informações básicas do sistema</CardDescription>
+              <CardTitle>Gerenciamento de Banco de Dados</CardTitle>
+              <CardDescription>
+                Visualize estatísticas e gerencie o banco de dados
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="systemName">Nome do Sistema</Label>
-                <Input 
-                  id="systemName" 
-                  value={systemName}
-                  onChange={(e) => setSystemName(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="adminEmail">Email do Administrador</Label>
-                <Input 
-                  id="adminEmail" 
-                  type="email" 
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                />
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="registration">Permitir Novos Registros</Label>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-semibold mb-2">Estatísticas</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Total de Registros</p>
+                      <p className="text-2xl font-bold">Em breve</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Tamanho do Banco</p>
+                      <p className="text-2xl font-bold">Em breve</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 border rounded-lg bg-muted">
                   <p className="text-sm text-muted-foreground">
-                    Habilita ou desabilita o registro de novas clínicas
+                    Funcionalidades avançadas de gerenciamento de banco de dados
+                    serão implementadas em breve.
                   </p>
                 </div>
-                <Switch 
-                  id="registration" 
-                  checked={allowRegistration}
-                  onCheckedChange={setAllowRegistration}
-                />
               </div>
-              
-              <Button onClick={handleSaveGeneral} disabled={loading}>
-                {loading ? "Salvando..." : "Salvar Alterações"}
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="security" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações de Segurança</CardTitle>
-              <CardDescription>Configure as opções de segurança do sistema</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="securityLevel">Nível de Segurança</Label>
-                <select 
-                  id="securityLevel"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={securityLevel}
-                  onChange={(e) => setSecurityLevel(e.target.value)}
-                >
-                  <option value="low">Baixo</option>
-                  <option value="medium">Médio</option>
-                  <option value="high">Alto</option>
-                </select>
-                <p className="text-sm text-muted-foreground">
-                  Define o nível de segurança para todas as clínicas
-                </p>
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="2fa">Exigir Autenticação de Dois Fatores</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Exige autenticação de dois fatores para administradores de clínicas
-                  </p>
-                </div>
-                <Switch 
-                  id="2fa" 
-                  checked={require2fa} 
-                  onCheckedChange={setRequire2fa}
-                />
-              </div>
-              
-              <Button onClick={handleSaveSecurity} disabled={loading}>
-                {loading ? "Salvando..." : "Salvar Alterações"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="notifications" className="space-y-4">
+
+        <TabsContent value="notifications">
           <Card>
             <CardHeader>
               <CardTitle>Configurações de Notificações</CardTitle>
-              <CardDescription>Configure como as notificações são enviadas</CardDescription>
+              <CardDescription>
+                Configure alertas e notificações do sistema
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="emailNotifications">Notificações por Email</Label>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg bg-muted">
                   <p className="text-sm text-muted-foreground">
-                    Enviar notificações do sistema por email
+                    Sistema de notificações será implementado em breve.
+                    Incluirá alertas para:
                   </p>
+                  <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
+                    <li>Novas clínicas cadastradas</li>
+                    <li>Alterações importantes no sistema</li>
+                    <li>Problemas de segurança</li>
+                    <li>Relatórios de uso</li>
+                  </ul>
                 </div>
-                <Switch 
-                  id="emailNotifications" 
-                  checked={sendEmails}
-                  onCheckedChange={setSendEmails}
-                />
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="weeklyReports">Relatórios Semanais</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Enviar relatórios semanais para administradores
-                  </p>
-                </div>
-                <Switch 
-                  id="weeklyReports" 
-                  checked={weeklyReports} 
-                  onCheckedChange={setWeeklyReports}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="systemAlerts">Alertas do Sistema</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Notificar sobre eventos críticos do sistema
-                  </p>
-                </div>
-                <Switch 
-                  id="systemAlerts" 
-                  checked={systemAlerts} 
-                  onCheckedChange={setSystemAlerts}
-                />
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <Button onClick={handleSaveNotifications} disabled={loading}>
-                {loading ? "Salvando..." : "Salvar Alterações"}
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
