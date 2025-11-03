@@ -47,21 +47,24 @@ serve(async (req) => {
     if (!stripeKey) throw new Error('STRIPE_SECRET_KEY is not set');
     logStep('Stripe key verified');
 
-    // Criar cliente Supabase com o token de autorização
+    // Criar cliente Supabase com SERVICE_ROLE_KEY
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: {
-            Authorization: authHeader,
-          },
-        },
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { 
+        auth: { 
+          persistSession: false,
+          autoRefreshToken: false
+        } 
       }
     );
 
-    // Obter o usuário autenticado
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Extrair o token JWT removendo o prefixo "Bearer "
+    const token = authHeader.replace('Bearer ', '').trim();
+    logStep('Token extracted', { tokenLength: token.length });
+
+    // Obter o usuário autenticado usando o token
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) {
       logStep('Auth error', { error: userError.message });
       throw new Error(`Authentication error: ${userError.message}`);
