@@ -309,7 +309,7 @@ const HomePage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4 md:mb-6">
-                    <p className="text-3xl md:text-4xl font-bold">R$ 990</p>
+                    <p className="text-3xl md:text-4xl font-bold">R$ 490</p>
                     <p className="text-gray-500">por mês</p>
                   </div>
                   <ul className="space-y-2">
@@ -353,11 +353,11 @@ const HomePage = () => {
                 <CardContent>
                   <div className="mb-4 md:mb-6">
                     <div className="flex items-center justify-center mb-1">
-                      <p className="text-sm line-through text-gray-400 mr-2">R$ 5.940</p>
-                      <p className="text-3xl md:text-4xl font-bold">R$ 5.346</p>
+                      <p className="text-sm line-through text-gray-400 mr-2">R$ 2.940</p>
+                      <p className="text-3xl md:text-4xl font-bold">R$ 2.640</p>
                     </div>
                     <p className="text-gray-500">por semestre</p>
-                    <p className="text-green-600 text-sm font-medium">Economia de 10% (R$ 594)</p>
+                    <p className="text-green-600 text-sm font-medium">Economia de 10% (R$ 300)</p>
                   </div>
                   <ul className="space-y-2">
                     <li className="flex items-start">
@@ -401,11 +401,11 @@ const HomePage = () => {
                 <CardContent>
                   <div className="mb-4 md:mb-6">
                     <div className="flex items-center justify-center mb-1">
-                      <p className="text-sm line-through text-gray-400 mr-2">R$ 11.880</p>
-                      <p className="text-3xl md:text-4xl font-bold">R$ 10.454</p>
+                      <p className="text-sm line-through text-gray-400 mr-2">R$ 5.880</p>
+                      <p className="text-3xl md:text-4xl font-bold">R$ 4.900</p>
                     </div>
                     <p className="text-gray-500">por ano</p>
-                    <p className="text-green-600 text-sm font-medium">Economia de 12% (R$ 1.426)</p>
+                    <p className="text-green-600 text-sm font-medium">Economia de 17% (R$ 980)</p>
                   </div>
                   <ul className="space-y-2">
                     <li className="flex items-start">
