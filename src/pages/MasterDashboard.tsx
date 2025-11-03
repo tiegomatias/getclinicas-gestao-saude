@@ -21,27 +21,12 @@ import { MasterClinicsTable } from "@/components/master/MasterClinicsTable";
 import { MasterOccupationChart } from "@/components/master/MasterOccupationChart";
 import { MasterFinanceCard } from "@/components/master/MasterFinanceCard";
 import { toast } from "sonner";
-
-// Define the plan pricing
-const PLAN_PRICING = {
-  'Básico': 299,
-  'Padrão': 499,
-  'Premium': 999,
-  'Enterprise': 1999
-};
-
-// Define plan colors for the financial charts
-const PLAN_COLORS = {
-  'Básico': '#3b82f6',
-  'Padrão': '#10b981',
-  'Premium': '#8b5cf6',
-  'Enterprise': '#f59e0b',
-  'default': '#6b7280'
-};
+import { masterService, type ClinicData } from "@/services/masterService";
 
 export default function MasterDashboard() {
-  const [clinics, setClinics] = useState<any[]>([]);
-  const [filteredClinics, setFilteredClinics] = useState<any[]>([]);
+  const [clinics, setClinics] = useState<ClinicData[]>([]);
+  const [filteredClinics, setFilteredClinics] = useState<ClinicData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [totalClinics, setTotalClinics] = useState(0);
   const [totalBeds, setTotalBeds] = useState(0);
   const [averageOccupation, setAverageOccupation] = useState(0);
@@ -52,76 +37,38 @@ export default function MasterDashboard() {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Fetch clinics data from localStorage
-    const allClinicsStr = localStorage.getItem("allClinics");
-    if (allClinicsStr) {
-      const allClinics = JSON.parse(allClinicsStr);
-      setClinics(allClinics);
-      setFilteredClinics(allClinics);
-      setTotalClinics(allClinics.length);
-      
-      // Calculate total beds
-      let bedsCount = 0;
-      let occupiedTotal = 0;
-      
-      allClinics.forEach((clinic: any) => {
-        // Use default value of 30 beds if not specified
-        const clinicBeds = clinic.bedsCapacity ? parseInt(clinic.bedsCapacity) : 30;
-        bedsCount += clinicBeds;
-        
-        // Calculate occupation if available (default to 0)
-        const occupiedBeds = clinic.occupiedBeds ? parseInt(clinic.occupiedBeds) : 0;
-        occupiedTotal += occupiedBeds;
-      });
-      
-      setTotalBeds(bedsCount);
-      
-      // Calculate average occupation percentage
-      if (bedsCount > 0) {
-        setAverageOccupation(Math.round((occupiedTotal / bedsCount) * 100));
-      }
-      
-      // Calculate financial data
-      calculateFinancialData(allClinics);
-    }
+    loadClinicsData();
   }, []);
-  
-  // Calculate financial metrics
-  const calculateFinancialData = (clinicsList: any[]) => {
-    let revenue = 0;
-    const planCounts: Record<string, number> = {};
-    
-    clinicsList.forEach((clinic) => {
-      const plan = clinic.plan || 'Básico';
-      planCounts[plan] = (planCounts[plan] || 0) + 1;
+
+  const loadClinicsData = async () => {
+    try {
+      setLoading(true);
+      const clinicsData = await masterService.getAllClinics();
       
-      // Get the price for this plan
-      const planPrice = PLAN_PRICING[plan as keyof typeof PLAN_PRICING] || PLAN_PRICING.Básico;
-      revenue += planPrice;
-    });
-    
-    setTotalRevenue(revenue);
-    
-    // Generate plan revenue data for the chart
-    const revenueData = Object.keys(planCounts).map(plan => {
-      const count = planCounts[plan];
-      const planPrice = PLAN_PRICING[plan as keyof typeof PLAN_PRICING] || PLAN_PRICING.Básico;
-      const monthlyRevenue = count * planPrice;
-      const color = PLAN_COLORS[plan as keyof typeof PLAN_COLORS] || PLAN_COLORS.default;
+      console.log("Loaded clinics:", clinicsData);
       
-      return {
-        plan,
-        count,
-        monthlyRevenue,
-        color
-      };
-    });
-    
-    // Sort by revenue (highest first)
-    revenueData.sort((a, b) => b.monthlyRevenue - a.monthlyRevenue);
-    
-    setPlanRevenueData(revenueData);
+      setClinics(clinicsData);
+      setFilteredClinics(clinicsData);
+      
+      // Calculate statistics
+      const stats = masterService.calculateStats(clinicsData);
+      setTotalClinics(stats.totalClinics);
+      setTotalBeds(stats.totalBeds);
+      setAverageOccupation(stats.averageOccupation);
+      setTotalRevenue(stats.totalRevenue);
+      
+      // Calculate plan revenue
+      const planRevenue = masterService.calculatePlanRevenue(clinicsData);
+      setPlanRevenueData(planRevenue);
+      
+    } catch (error) {
+      console.error("Error loading clinics:", error);
+      toast.error("Erro ao carregar dados das clínicas");
+    } finally {
+      setLoading(false);
+    }
   };
+  
   
   useEffect(() => {
     // Apply filters whenever search query or plan filter changes
@@ -130,8 +77,8 @@ export default function MasterDashboard() {
     // Apply search filter
     if (searchQuery) {
       result = result.filter(clinic => 
-        clinic.clinicName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        clinic.adminEmail?.toLowerCase().includes(searchQuery.toLowerCase())
+        clinic.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        clinic.admin_email?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     
@@ -181,6 +128,17 @@ export default function MasterDashboard() {
     });
     return Array.from(plans);
   }, [clinics]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

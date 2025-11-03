@@ -5,9 +5,10 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ClinicData } from "@/services/masterService";
 
 interface MasterClinicsTableProps {
-  clinics: any[];
+  clinics: ClinicData[];
   onViewClinic: (clinicId: string) => void;
 }
 
@@ -56,7 +57,7 @@ export const MasterClinicsTable = ({ clinics, onViewClinic }: MasterClinicsTable
             <TableBody>
               {currentItems.map((clinic) => {
                 // Check if the clinic was created in the last 48 hours
-                const createdAt = new Date(clinic.createdAt);
+                const createdAt = new Date(clinic.created_at);
                 const now = new Date();
                 const diffTime = Math.abs(now.getTime() - createdAt.getTime());
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -65,7 +66,7 @@ export const MasterClinicsTable = ({ clinics, onViewClinic }: MasterClinicsTable
                 return (
                   <TableRow key={clinic.id}>
                     <TableCell className="font-medium">
-                      {clinic.clinicName}
+                      {clinic.name}
                       {isNew && (
                         <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 border-green-200">
                           Nova
@@ -73,7 +74,7 @@ export const MasterClinicsTable = ({ clinics, onViewClinic }: MasterClinicsTable
                       )}
                     </TableCell>
                     <TableCell>{clinic.plan || "Padrão"}</TableCell>
-                    <TableCell>{new Date(clinic.createdAt).toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell>{new Date(clinic.created_at).toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                         Ativo

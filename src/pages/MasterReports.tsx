@@ -6,80 +6,43 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
+import { masterService, type ClinicData } from "@/services/masterService";
 
 export default function MasterReports() {
-  const [clinics, setClinics] = useState<any[]>([]);
+  const [clinics, setClinics] = useState<ClinicData[]>([]);
   const [timeRange, setTimeRange] = useState("month");
   const [reportData, setReportData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Fetch clinics data from localStorage
-    const allClinicsStr = localStorage.getItem("allClinics");
-    if (allClinicsStr) {
-      const allClinics = JSON.parse(allClinicsStr);
-      setClinics(allClinics);
-    }
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await masterService.getAllClinics();
+      setClinics(data);
+    } catch (error) {
+      console.error("Error loading clinics:", error);
+      toast.error("Erro ao carregar dados");
+    } finally {
+      setLoading(false);
+    }
+  };
   
   useEffect(() => {
-    // Generate report data based on clinics and time range
-    if (clinics.length === 0) return;
-    
-    let data: any[] = [];
-    
-    if (timeRange === "week") {
-      // Generate weekly data (last 7 days)
-      const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-      const today = new Date().getDay();
-      
-      for (let i = 6; i >= 0; i--) {
-        const dayIndex = (today - i + 7) % 7;
-        const dayName = days[dayIndex];
-        
-        // Random data for demonstration
-        const occupiedBeds = Math.floor(Math.random() * 60) + 10;
-        const availableBeds = Math.floor(Math.random() * 40) + 10;
-        
-        data.push({
-          name: dayName,
-          ocupados: occupiedBeds,
-          disponíveis: availableBeds
-        });
-      }
-    } else if (timeRange === "month") {
-      // Generate monthly data (last 4 weeks)
-      const weeks = ["Semana 1", "Semana 2", "Semana 3", "Semana 4"];
-      
-      weeks.forEach(week => {
-        // Random data for demonstration
-        const occupiedBeds = Math.floor(Math.random() * 80) + 20;
-        const availableBeds = Math.floor(Math.random() * 50) + 10;
-        
-        data.push({
-          name: week,
-          ocupados: occupiedBeds,
-          disponíveis: availableBeds
-        });
-      });
-    } else if (timeRange === "year") {
-      // Generate yearly data (last 12 months)
-      const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-      
-      months.forEach(month => {
-        // Random data for demonstration
-        const occupiedBeds = Math.floor(Math.random() * 100) + 30;
-        const availableBeds = Math.floor(Math.random() * 60) + 20;
-        
-        data.push({
-          name: month,
-          ocupados: occupiedBeds,
-          disponíveis: availableBeds
-        });
-      });
+    loadReportData();
+  }, [timeRange]);
+
+  const loadReportData = async () => {
+    try {
+      const data = await masterService.getOccupationData(timeRange as any);
+      setReportData(data);
+    } catch (error) {
+      console.error("Error loading report data:", error);
     }
-    
-    setReportData(data);
-  }, [timeRange, clinics]);
+  };
   
   const handleExportReport = () => {
     // Implementação do download de relatório em CSV
@@ -110,6 +73,17 @@ export default function MasterReports() {
     
     toast.success("Relatório exportado com sucesso!");
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Carregando relatórios...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -180,14 +154,16 @@ export default function MasterReports() {
                 <div className="space-y-4">
                   {clinics.map((clinic) => {
                     // Random occupation rate for demonstration
-                    const occupationRate = Math.floor(Math.random() * 100);
+                    const occupationRate = clinic.beds_capacity > 0 
+                      ? Math.round((clinic.occupied_beds / clinic.beds_capacity) * 100)
+                      : 0;
                     
                     return (
                       <div key={clinic.id} className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">{clinic.clinicName}</p>
+                          <p className="font-medium">{clinic.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(clinic.createdAt).toLocaleDateString("pt-BR")}
+                            {new Date(clinic.created_at).toLocaleDateString("pt-BR")}
                           </p>
                         </div>
                         <div className="flex items-center">

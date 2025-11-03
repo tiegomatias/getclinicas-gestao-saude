@@ -99,85 +99,109 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               
               if (isMaster) {
                 localStorage.setItem('isMasterAdmin', 'true');
-              }
-              
-              // Load user's clinics and professional data
-              try {
-                let clinics = [];
-                let isProfessional = false;
-                let professionalData = null;
                 
-                // First, check if user is clinic admin
-                const { data: adminClinics, error: clinicsError } = await supabase
-                  .from('clinics')
-                  .select('*')
-                  .eq('admin_id', currentSession.user.id);
+                // Master admin deve ter acesso a todas as clínicas
+                try {
+                  const { data: allClinics, error: masterClinicsError } = await supabase
+                    .from('clinics')
+                    .select('*')
+                    .order('created_at', { ascending: false });
                   
-                console.log("Admin clinics query result:", { adminClinics, clinicsError, userId: currentSession.user.id });
-                
-                if (clinicsError) {
-                  console.error("Error fetching admin clinics:", clinicsError);
-                } else if (adminClinics && Array.isArray(adminClinics) && adminClinics.length > 0) {
-                  console.log("Found admin clinics:", adminClinics.length);
-                  clinics = adminClinics;
-                } else {
-                  console.log("No admin clinics found, checking professional clinics...");
-                  // If not admin, check if user is a professional
-                  const { data: professionalClinics, error: profError } = await supabase
-                    .from('clinic_users')
-                    .select('clinic:clinics(*), role')
-                    .eq('user_id', currentSession.user.id);
+                  console.log("Master admin clinics query result:", { allClinics, masterClinicsError });
+                  
+                  if (!masterClinicsError && allClinics) {
+                    console.log("Found clinics for master admin:", allClinics.length);
+                    localStorage.setItem('allClinics', JSON.stringify(allClinics));
                     
-                  console.log("Professional clinics query result:", { professionalClinics, profError });
+                    // Set first clinic as current if none selected
+                    if (allClinics.length > 0 && !localStorage.getItem('currentClinicId')) {
+                      const firstClinic = allClinics[0];
+                      localStorage.setItem('currentClinicId', firstClinic.id);
+                      localStorage.setItem('clinicData', JSON.stringify(firstClinic));
+                    }
+                  }
+                } catch (err) {
+                  console.error("Error fetching clinics for master admin:", err);
+                }
+              } else {
+                // Load user's clinics and professional data (only for non-master users)
+                try {
+                  let clinics = [];
+                  let isProfessional = false;
+                  let professionalData = null;
+                  
+                  // First, check if user is clinic admin
+                  const { data: adminClinics, error: clinicsError } = await supabase
+                    .from('clinics')
+                    .select('*')
+                    .eq('admin_id', currentSession.user.id);
                     
-                  if (profError) {
-                    console.error("Error fetching professional clinics:", profError);
-                  } else if (professionalClinics && Array.isArray(professionalClinics) && professionalClinics.length > 0) {
-                    console.log("Found professional clinics:", professionalClinics.length);
-                    isProfessional = true;
-                    clinics = professionalClinics.map(pc => pc.clinic).filter(Boolean);
-                    
-                    // Get professional data
-                    const { data: professional, error: professionalError } = await supabase
-                      .from('professionals')
-                      .select('*')
-                      .eq('email', currentSession.user.email)
-                      .single();
+                  console.log("Admin clinics query result:", { adminClinics, clinicsError, userId: currentSession.user.id });
+                  
+                  if (clinicsError) {
+                    console.error("Error fetching admin clinics:", clinicsError);
+                  } else if (adminClinics && Array.isArray(adminClinics) && adminClinics.length > 0) {
+                    console.log("Found admin clinics:", adminClinics.length);
+                    clinics = adminClinics;
+                  } else {
+                    console.log("No admin clinics found, checking professional clinics...");
+                    // If not admin, check if user is a professional
+                    const { data: professionalClinics, error: profError } = await supabase
+                      .from('clinic_users')
+                      .select('clinic:clinics(*), role')
+                      .eq('user_id', currentSession.user.id);
                       
-                    if (!professionalError && professional) {
-                      professionalData = professional;
-                      localStorage.setItem('professionalData', JSON.stringify(professional));
+                    console.log("Professional clinics query result:", { professionalClinics, profError });
+                      
+                    if (profError) {
+                      console.error("Error fetching professional clinics:", profError);
+                    } else if (professionalClinics && Array.isArray(professionalClinics) && professionalClinics.length > 0) {
+                      console.log("Found professional clinics:", professionalClinics.length);
+                      isProfessional = true;
+                      clinics = professionalClinics.map(pc => pc.clinic).filter(Boolean);
+                      
+                      // Get professional data
+                      const { data: professional, error: professionalError } = await supabase
+                        .from('professionals')
+                        .select('*')
+                        .eq('email', currentSession.user.email)
+                        .single();
+                        
+                      if (!professionalError && professional) {
+                        professionalData = professional;
+                        localStorage.setItem('professionalData', JSON.stringify(professional));
+                      }
+                    } else {
+                      console.log("No professional clinics found either");
+                    }
+                  }
+                  
+                  console.log("Clinics found:", clinics.length, "Is professional:", isProfessional);
+                  
+                  if (clinics.length > 0) {
+                    // Safely parse and store clinic data
+                    localStorage.setItem('allClinics', JSON.stringify(clinics));
+                    localStorage.setItem('isProfessional', String(isProfessional));
+                    
+                    // If no clinic is selected, select the first one
+                    if (!localStorage.getItem('currentClinicId')) {
+                      const clinic = clinics[0];
+                      if (clinic && clinic.id) {
+                        console.log("Setting current clinic:", clinic.id);
+                        localStorage.setItem('currentClinicId', String(clinic.id));
+                        localStorage.setItem('clinicData', JSON.stringify(clinic));
+                      }
                     }
                   } else {
-                    console.log("No professional clinics found either");
+                    console.log("No clinics found for user");
                   }
+                } catch (err) {
+                  console.error("Error processing clinics data:", err);
                 }
-                
-                console.log("Clinics found:", clinics.length, "Is professional:", isProfessional);
-                
-                if (clinics.length > 0) {
-                  // Safely parse and store clinic data
-                  localStorage.setItem('allClinics', JSON.stringify(clinics));
-                  localStorage.setItem('isProfessional', String(isProfessional));
-                  
-                  // If no clinic is selected, select the first one
-                  if (!localStorage.getItem('currentClinicId')) {
-                    const clinic = clinics[0];
-                    if (clinic && clinic.id) {
-                      console.log("Setting current clinic:", clinic.id);
-                      localStorage.setItem('currentClinicId', String(clinic.id));
-                      localStorage.setItem('clinicData', JSON.stringify(clinic));
-                    }
-                  }
-                } else {
-                  console.log("No clinics found for user");
-                }
-              } catch (err) {
-                console.error("Error processing clinics data:", err);
-              } finally {
-                console.log("Auth state change processing complete");
-                setLoading(false);
               }
+              
+              console.log("Auth state change processing complete");
+              setLoading(false);
             } catch (err) {
               console.error("Error in auth state change handler:", err);
               setLoading(false);
@@ -250,87 +274,10 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (data.user) {
         console.log("User signed in successfully:", data.user.email);
         
-        // Fetch user clinics and professional data after login
-        let clinics = [];
+        let clinics: any[] = [];
         let isProfessional = false;
-        let professionalData = null;
         
-        try {
-          // First, check if user is clinic admin
-          const { data: adminClinics, error: clinicsError } = await supabase
-            .from('clinics')
-            .select('*')
-            .eq('admin_id', data.user.id);
-            
-          console.log("SignIn - Admin clinics query:", { adminClinics, clinicsError, userId: data.user.id });
-            
-          if (clinicsError) {
-            console.error("Error fetching admin clinics:", clinicsError);
-          } else if (adminClinics && Array.isArray(adminClinics) && adminClinics.length > 0) {
-            console.log("SignIn - Found admin clinics:", adminClinics.length);
-            clinics = adminClinics;
-          } else {
-            console.log("SignIn - No admin clinics, checking professional...");
-            // If not admin, check if user is a professional
-            const { data: professionalClinics, error: profError } = await supabase
-              .from('clinic_users')
-              .select('clinic:clinics(*), role')
-              .eq('user_id', data.user.id);
-              
-            console.log("SignIn - Professional clinics query:", { professionalClinics, profError });
-              
-            if (profError) {
-              console.error("Error fetching professional clinics:", profError);
-            } else if (professionalClinics && Array.isArray(professionalClinics) && professionalClinics.length > 0) {
-              console.log("SignIn - Found professional clinics:", professionalClinics.length);
-              isProfessional = true;
-              clinics = professionalClinics.map(pc => pc.clinic).filter(Boolean);
-              
-              // Get professional data
-              const { data: professional, error: professionalError } = await supabase
-                .from('professionals')
-                .select('*')
-                .eq('email', data.user.email)
-                .single();
-                
-              if (!professionalError && professional) {
-                professionalData = professional;
-                localStorage.setItem('professionalData', JSON.stringify(professional));
-              }
-            } else {
-              console.log("SignIn - No professional clinics found either");
-            }
-          }
-          
-          if (clinics.length > 0) {
-            // Safely store clinic data
-            localStorage.setItem('allClinics', JSON.stringify(clinics));
-            localStorage.setItem('isProfessional', String(isProfessional));
-            
-            console.log("SignIn - Storing clinic data:", { 
-              clinicsCount: clinics.length, 
-              isProfessional,
-              firstClinic: clinics[0]
-            });
-            
-            // If no clinic is selected, select the first one
-            const clinic = clinics[0];
-            if (clinic && clinic.id) {
-              console.log("SignIn - Setting current clinic:", clinic.id, clinic.name);
-              localStorage.setItem('currentClinicId', String(clinic.id));
-              localStorage.setItem('clinicData', JSON.stringify(clinic));
-            }
-          } else {
-            console.log("SignIn - Clearing clinic data since none found");
-            localStorage.removeItem('isProfessional');
-            localStorage.removeItem('currentClinicId');
-            localStorage.removeItem('clinicData');
-          }
-        } catch (err) {
-          console.error("Error processing clinics data:", err);
-        }
-        
-        // Check if user is master admin and redirect accordingly
+        // Check if user is master admin first
         try {
           const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
@@ -339,31 +286,79 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             .eq('role', 'master_admin');
             
           console.log("Role check result:", { roleData, roleError });
-            
-          if (!roleError && roleData && roleData.length > 0) {
+          
+          const isMaster = !roleError && roleData && roleData.length > 0;
+          
+          if (isMaster) {
             setIsMasterAdmin(true);
             localStorage.setItem('isMasterAdmin', 'true');
-            console.log("Redirecting master admin to /master");
+            
+            // Master admin - fetch ALL clinics
+            const { data: allClinics, error: masterClinicsError } = await supabase
+              .from('clinics')
+              .select('*')
+              .order('created_at', { ascending: false });
+            
+            if (!masterClinicsError && allClinics) {
+              localStorage.setItem('allClinics', JSON.stringify(allClinics));
+              
+              if (allClinics.length > 0) {
+                localStorage.setItem('currentClinicId', allClinics[0].id);
+                localStorage.setItem('clinicData', JSON.stringify(allClinics[0]));
+              }
+            }
+            
             navigate('/master', { replace: true });
-          } else if (isProfessional && clinics.length > 0) {
-            console.log("Redirecting professional to /professional-dashboard");
-            navigate('/professional-dashboard', { replace: true });
-          } else if (clinics.length > 0) {
-            console.log("Redirecting clinic admin to /dashboard");
-            navigate('/dashboard', { replace: true });
-          } else {  
-            console.log("No clinics found, redirecting to registration");
-            navigate('/registro', { replace: true });
-            toast.error("Nenhuma clínica encontrada para este usuário. Por favor, registre uma clínica.");
+            toast.success("Login realizado com sucesso!");
+            return;
           }
-        } catch (err) {
-          console.error("Error checking master admin role:", err);
+          
+          // Not master - check clinic admin
+          const { data: adminClinics, error: clinicsError } = await supabase
+            .from('clinics')
+            .select('*')
+            .eq('admin_id', data.user.id);
+            
+          if (!clinicsError && adminClinics && adminClinics.length > 0) {
+            clinics = adminClinics;
+          } else {
+            // Check professional
+            const { data: professionalClinics, error: profError } = await supabase
+              .from('clinic_users')
+              .select('clinic:clinics(*), role')
+              .eq('user_id', data.user.id);
+              
+            if (!profError && professionalClinics && professionalClinics.length > 0) {
+              isProfessional = true;
+              clinics = professionalClinics.map(pc => pc.clinic).filter(Boolean);
+              
+              const { data: professional } = await supabase
+                .from('professionals')
+                .select('*')
+                .eq('email', data.user.email)
+                .maybeSingle();
+                
+              if (professional) {
+                localStorage.setItem('professionalData', JSON.stringify(professional));
+              }
+            }
+          }
+          
           if (clinics.length > 0) {
+            localStorage.setItem('allClinics', JSON.stringify(clinics));
+            localStorage.setItem('isProfessional', String(isProfessional));
+            localStorage.setItem('currentClinicId', clinics[0].id);
+            localStorage.setItem('clinicData', JSON.stringify(clinics[0]));
+            
             navigate(isProfessional ? '/professional-dashboard' : '/dashboard', { replace: true });
           } else {
             navigate('/registro', { replace: true });
-            toast.error("Erro ao verificar permissões. Redirecionando para registro.");
+            toast.error("Nenhuma clínica encontrada. Por favor, registre uma clínica.");
           }
+          
+        } catch (err) {
+          console.error("Error in sign in process:", err);
+          navigate('/registro', { replace: true });
         }
         
         toast.success("Login realizado com sucesso!");

@@ -2,9 +2,10 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { ClinicData } from "@/services/masterService";
 
 interface MasterOccupationChartProps {
-  clinics: any[];
+  clinics: ClinicData[];
 }
 
 export const MasterOccupationChart = ({ clinics }: MasterOccupationChartProps) => {
@@ -16,13 +17,13 @@ export const MasterOccupationChart = ({ clinics }: MasterOccupationChartProps) =
 
     clinics.forEach((clinic) => {
       // Only count data from clinics that have bed information
-      if (clinic.hasBedsData) {
-        totalOccupied += clinic.occupiedBeds ? parseInt(clinic.occupiedBeds) : 0;
-        totalAvailable += clinic.availableBeds ? parseInt(clinic.availableBeds) : 0;
-        totalMaintenance += clinic.maintenanceBeds ? parseInt(clinic.maintenanceBeds) : 0;
+      if (clinic.has_beds_data) {
+        totalOccupied += clinic.occupied_beds || 0;
+        totalAvailable += clinic.available_beds || 0;
+        totalMaintenance += clinic.maintenance_beds || 0;
       } else {
         // Default to all beds available for new clinics
-        totalAvailable += clinic.bedsCapacity ? parseInt(clinic.bedsCapacity) : 30;
+        totalAvailable += clinic.beds_capacity || 30;
       }
     });
 

@@ -8,30 +8,40 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Eye, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
+import { masterService, type ClinicData } from "@/services/masterService";
 
 export default function MasterClinics() {
   const navigate = useNavigate();
-  const [clinics, setClinics] = useState<any[]>([]);
+  const [clinics, setClinics] = useState<ClinicData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredClinics, setFilteredClinics] = useState<any[]>([]);
+  const [filteredClinics, setFilteredClinics] = useState<ClinicData[]>([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Fetch clinics data from localStorage
-    const allClinicsStr = localStorage.getItem("allClinics");
-    if (allClinicsStr) {
-      const allClinics = JSON.parse(allClinicsStr);
-      setClinics(allClinics);
-      setFilteredClinics(allClinics);
-    }
+    loadClinics();
   }, []);
+
+  const loadClinics = async () => {
+    try {
+      setLoading(true);
+      const data = await masterService.getAllClinics();
+      setClinics(data);
+      setFilteredClinics(data);
+    } catch (error) {
+      console.error("Error loading clinics:", error);
+      toast.error("Erro ao carregar clínicas");
+    } finally {
+      setLoading(false);
+    }
+  };
   
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredClinics(clinics);
     } else {
       const filtered = clinics.filter(clinic => 
-        clinic.clinicName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        clinic.adminEmail.toLowerCase().includes(searchQuery.toLowerCase())
+        clinic.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        clinic.admin_email.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredClinics(filtered);
     }
@@ -53,6 +63,17 @@ export default function MasterClinics() {
   const handleCreateClinic = () => {
     navigate("/registro");
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Carregando clínicas...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -104,7 +125,7 @@ export default function MasterClinics() {
                 <TableBody>
                   {filteredClinics.map((clinic) => {
                     // Check if the clinic was created in the last 48 hours
-                    const createdAt = new Date(clinic.createdAt);
+                    const createdAt = new Date(clinic.created_at);
                     const now = new Date();
                     const diffTime = Math.abs(now.getTime() - createdAt.getTime());
                     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -113,16 +134,16 @@ export default function MasterClinics() {
                     return (
                       <TableRow key={clinic.id}>
                         <TableCell className="font-medium">
-                          {clinic.clinicName}
+                          {clinic.name}
                           {isNew && (
                             <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 border-green-200">
                               Nova
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell>{clinic.adminEmail || "Não informado"}</TableCell>
+                        <TableCell>{clinic.admin_email || "Não informado"}</TableCell>
                         <TableCell>{clinic.plan || "Padrão"}</TableCell>
-                        <TableCell>{new Date(clinic.createdAt).toLocaleDateString("pt-BR")}</TableCell>
+                        <TableCell>{new Date(clinic.created_at).toLocaleDateString("pt-BR")}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                             Ativo

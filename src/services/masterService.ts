@@ -1,0 +1,262 @@
+import { supabase } from '@/integrations/supabase/client';
+
+export interface ClinicData {
+  id: string;
+  name: string;
+  admin_email: string;
+  plan: string;
+  created_at: string;
+  beds_capacity: number;
+  occupied_beds: number;
+  available_beds: number;
+  maintenance_beds: number;
+  has_beds_data: boolean;
+}
+
+export interface ClinicStats {
+  totalClinics: number;
+  totalBeds: number;
+  totalOccupiedBeds: number;
+  averageOccupation: number;
+  totalRevenue: number;
+}
+
+export interface PlanRevenue {
+  plan: string;
+  count: number;
+  monthlyRevenue: number;
+  color: string;
+}
+
+const PLAN_PRICING: Record<string, number> = {
+  'Básico': 299,
+  'Mensal': 299,
+  'Padrão': 499,
+  'Semestral': 499,
+  'Premium': 999,
+  'Anual': 999,
+  'Enterprise': 1999
+};
+
+const PLAN_COLORS: Record<string, string> = {
+  'Básico': '#3b82f6',
+  'Mensal': '#3b82f6',
+  'Padrão': '#10b981',
+  'Semestral': '#10b981',
+  'Premium': '#8b5cf6',
+  'Anual': '#8b5cf6',
+  'Enterprise': '#f59e0b',
+  'default': '#6b7280'
+};
+
+export const masterService = {
+  /**
+   * Busca todas as clínicas do sistema
+   */
+  async getAllClinics(): Promise<ClinicData[]> {
+    const { data, error } = await supabase
+      .from('clinics')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching clinics:', error);
+      throw error;
+    }
+
+    return data.map(clinic => ({
+      id: clinic.id,
+      name: clinic.name,
+      admin_email: clinic.admin_email,
+      plan: clinic.plan || 'Básico',
+      created_at: clinic.created_at,
+      beds_capacity: clinic.beds_capacity || 30,
+      occupied_beds: clinic.occupied_beds || 0,
+      available_beds: clinic.available_beds || 30,
+      maintenance_beds: clinic.maintenance_beds || 0,
+      has_beds_data: clinic.has_beds_data || false
+    }));
+  },
+
+  /**
+   * Calcula estatísticas gerais das clínicas
+   */
+  calculateStats(clinics: ClinicData[]): ClinicStats {
+    const totalClinics = clinics.length;
+    let totalBeds = 0;
+    let totalOccupiedBeds = 0;
+    let totalRevenue = 0;
+
+    clinics.forEach(clinic => {
+      totalBeds += clinic.beds_capacity;
+      totalOccupiedBeds += clinic.occupied_beds;
+      
+      const planPrice = PLAN_PRICING[clinic.plan] || PLAN_PRICING['Básico'];
+      totalRevenue += planPrice;
+    });
+
+    const averageOccupation = totalBeds > 0 
+      ? Math.round((totalOccupiedBeds / totalBeds) * 100) 
+      : 0;
+
+    return {
+      totalClinics,
+      totalBeds,
+      totalOccupiedBeds,
+      averageOccupation,
+      totalRevenue
+    };
+  },
+
+  /**
+   * Calcula receita por plano
+   */
+  calculatePlanRevenue(clinics: ClinicData[]): PlanRevenue[] {
+    const planCounts: Record<string, number> = {};
+
+    clinics.forEach(clinic => {
+      const plan = clinic.plan || 'Básico';
+      planCounts[plan] = (planCounts[plan] || 0) + 1;
+    });
+
+    const revenueData = Object.keys(planCounts).map(plan => {
+      const count = planCounts[plan];
+      const planPrice = PLAN_PRICING[plan] || PLAN_PRICING['Básico'];
+      const monthlyRevenue = count * planPrice;
+      const color = PLAN_COLORS[plan] || PLAN_COLORS['default'];
+
+      return {
+        plan,
+        count,
+        monthlyRevenue,
+        color
+      };
+    });
+
+    // Ordenar por receita (maior primeiro)
+    revenueData.sort((a, b) => b.monthlyRevenue - a.monthlyRevenue);
+
+    return revenueData;
+  },
+
+  /**
+   * Busca clínica por ID
+   */
+  async getClinicById(clinicId: string): Promise<ClinicData | null> {
+    const { data, error } = await supabase
+      .from('clinics')
+      .select('*')
+      .eq('id', clinicId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching clinic:', error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      admin_email: data.admin_email,
+      plan: data.plan || 'Básico',
+      created_at: data.created_at,
+      beds_capacity: data.beds_capacity || 30,
+      occupied_beds: data.occupied_beds || 0,
+      available_beds: data.available_beds || 30,
+      maintenance_beds: data.maintenance_beds || 0,
+      has_beds_data: data.has_beds_data || false
+    };
+  },
+
+  /**
+   * Atualiza uma clínica
+   */
+  async updateClinic(clinicId: string, updates: Partial<ClinicData>): Promise<ClinicData> {
+    const { data, error } = await supabase
+      .from('clinics')
+      .update({
+        name: updates.name,
+        admin_email: updates.admin_email,
+        plan: updates.plan,
+        beds_capacity: updates.beds_capacity
+      })
+      .eq('id', clinicId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating clinic:', error);
+      throw error;
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      admin_email: data.admin_email,
+      plan: data.plan || 'Básico',
+      created_at: data.created_at,
+      beds_capacity: data.beds_capacity || 30,
+      occupied_beds: data.occupied_beds || 0,
+      available_beds: data.available_beds || 30,
+      maintenance_beds: data.maintenance_beds || 0,
+      has_beds_data: data.has_beds_data || false
+    };
+  },
+
+  /**
+   * Deleta uma clínica
+   */
+  async deleteClinic(clinicId: string): Promise<void> {
+    const { error } = await supabase
+      .from('clinics')
+      .delete()
+      .eq('id', clinicId);
+
+    if (error) {
+      console.error('Error deleting clinic:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Busca dados de ocupação para relatórios
+   */
+  async getOccupationData(timeRange: 'week' | 'month' | 'year' = 'month') {
+    // Por enquanto, retorna dados simulados até implementarmos histórico
+    // TODO: Implementar tabela de histórico de ocupação
+    const data: any[] = [];
+    
+    if (timeRange === 'week') {
+      const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      const today = new Date().getDay();
+      
+      for (let i = 6; i >= 0; i--) {
+        const dayIndex = (today - i + 7) % 7;
+        data.push({
+          name: days[dayIndex],
+          ocupados: Math.floor(Math.random() * 60) + 10,
+          disponíveis: Math.floor(Math.random() * 40) + 10
+        });
+      }
+    } else if (timeRange === 'month') {
+      for (let i = 1; i <= 4; i++) {
+        data.push({
+          name: `Semana ${i}`,
+          ocupados: Math.floor(Math.random() * 80) + 20,
+          disponíveis: Math.floor(Math.random() * 50) + 10
+        });
+      }
+    } else {
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      months.forEach(month => {
+        data.push({
+          name: month,
+          ocupados: Math.floor(Math.random() * 100) + 30,
+          disponíveis: Math.floor(Math.random() * 60) + 20
+        });
+      });
+    }
+    
+    return data;
+  }
+};
