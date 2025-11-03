@@ -420,12 +420,23 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (error) {
         console.error('Error checking subscription:', error);
         
-        // Se a sessão expirou (401), fazer logout automático
+        // Se a sessão expirou (401), fazer logout automático mas não bloquear a UI
         if (error.message?.includes('401') || error.message?.includes('Session expired')) {
-          console.log('Session expired, logging out user');
-          toast.error('Sua sessão expirou. Faça login novamente.');
-          await signOut();
-          navigate('/login');
+          console.log('Session expired detected');
+          
+          // Limpar status de assinatura
+          setSubscriptionStatus({
+            subscribed: false,
+            product_id: null,
+            subscription_end: null
+          });
+          localStorage.removeItem('subscriptionStatus');
+          
+          // Fazer logout em background sem bloquear a UI
+          setTimeout(async () => {
+            toast.error('Sua sessão expirou. Faça login novamente.');
+            await signOut();
+          }, 100);
         }
         return;
       }
@@ -446,6 +457,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const signOut = async () => {
     try {
+      console.log('Starting sign out process');
       await supabase.auth.signOut();
       
       // Clear local storage
@@ -467,6 +479,7 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         subscription_end: null
       });
       
+      console.log('Sign out completed, redirecting to login');
       navigate('/login', { replace: true });
       toast.success("Logout realizado com sucesso!");
     } catch (error: any) {
