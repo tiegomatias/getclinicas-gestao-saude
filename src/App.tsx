@@ -19,6 +19,7 @@ import SubscriptionRequired from "./pages/SubscriptionRequired";
 import MasterDashboard from "./pages/MasterDashboard";
 import MasterClinics from "./pages/MasterClinics";
 import MasterAnalytics from "./pages/MasterAnalytics";
+import MasterPlans from "./pages/MasterPlans";
 import MasterReports from "./pages/MasterReports";
 import MasterSettings from "./pages/MasterSettings";
 import Dashboard from "./pages/Dashboard";
@@ -66,6 +67,7 @@ function App() {
                 <Route path="/master" element={<MasterDashboard />} />
                 <Route path="/master/clinics" element={<MasterClinics />} />
                 <Route path="/master/analytics" element={<MasterAnalytics />} />
+                <Route path="/master/plans" element={<MasterPlans />} />
                 <Route path="/master/reports" element={<MasterReports />} />
                 <Route path="/master/settings" element={<MasterSettings />} />
               </Route>

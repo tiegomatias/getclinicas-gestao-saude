@@ -20,6 +20,7 @@ import {
   Settings,
   LogOut,
   TrendingUp,
+  CreditCard,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,6 +49,11 @@ export default function MasterSidebar() {
       title: "Analytics",
       path: "/master/analytics",
       icon: TrendingUp,
+    },
+    {
+      title: "Planos",
+      path: "/master/plans",
+      icon: CreditCard,
     },
     {
       title: "Relatórios",
