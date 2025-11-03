@@ -19,6 +19,7 @@ import {
   BarChart2,
   Settings,
   LogOut,
+  TrendingUp,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,6 +43,11 @@ export default function MasterSidebar() {
       title: "Clínicas",
       path: "/master/clinics",
       icon: Building,
+    },
+    {
+      title: "Analytics",
+      path: "/master/analytics",
+      icon: TrendingUp,
     },
     {
       title: "Relatórios",
