@@ -21,6 +21,7 @@ import {
   LogOut,
   TrendingUp,
   CreditCard,
+  MessageSquare,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,6 +55,11 @@ export default function MasterSidebar() {
       title: "Planos",
       path: "/master/plans",
       icon: CreditCard,
+    },
+    {
+      title: "Comunicação",
+      path: "/master/communication",
+      icon: MessageSquare,
     },
     {
       title: "Relatórios",
