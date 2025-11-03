@@ -23,6 +23,9 @@ pop3_port = 54326
 [functions.create-professional-account]
 verify_jwt = true
 
+[functions.create-stripe-checkout]
+verify_jwt = false
+
 [auth]
 enabled = true
 port = 54324

@@ -4,8 +4,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CheckIcon, ArrowLeft } from "lucide-react";
+import { CheckIcon, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Custom Logo SVG Component
 const GetClinicasLogo = () => (
@@ -43,7 +44,9 @@ const GetClinicasLogo = () => (
 type PlanDetails = {
   name: string;
   price: string;
+  priceAmount: number;
   period: string;
+  interval: 'month' | 'year';
   discount?: string;
   features: string[];
 };
@@ -52,7 +55,9 @@ const plans: Record<string, PlanDetails> = {
   "Mensal": {
     name: "Plano Mensal",
     price: "R$ 990",
+    priceAmount: 99000, // em centavos
     period: "mês",
+    interval: "month",
     features: [
       "Acesso completo ao sistema",
       "Geração ilimitada de contratos",
@@ -63,7 +68,9 @@ const plans: Record<string, PlanDetails> = {
   "Semestral": {
     name: "Plano Semestral",
     price: "R$ 5.346",
+    priceAmount: 534600, // em centavos
     period: "semestre",
+    interval: "month",
     discount: "Economia de 10%",
     features: [
       "Acesso completo ao sistema",
@@ -76,7 +83,9 @@ const plans: Record<string, PlanDetails> = {
   "Anual": {
     name: "Plano Anual",
     price: "R$ 10.454",
+    priceAmount: 1045400, // em centavos
     period: "ano",
+    interval: "year",
     discount: "Economia de 12%",
     features: [
       "Acesso completo ao sistema",
@@ -108,15 +117,44 @@ const Checkout = () => {
     }
   }, [location.search, navigate]);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
+    if (!selectedPlan) return;
+    
     setLoading(true);
-    // Simulate checkout process
-    setTimeout(() => {
-      toast.success("Redirecionando para pagamento...");
-      // Change this from "/login" to "/registro" to go to the new registration page
-      navigate("/registro?plan=" + selectedPlan);
+    
+    try {
+      const planDetails = plans[selectedPlan];
+      
+      // Criar produto e preço no Stripe
+      const { data: createData, error: createError } = await supabase.functions.invoke('create-stripe-checkout', {
+        body: {
+          planName: planDetails.name,
+          priceAmount: planDetails.priceAmount,
+          interval: planDetails.interval,
+          successUrl: `${window.location.origin}/registro?plan=${selectedPlan}&session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/checkout?plan=${selectedPlan}`
+        }
+      });
+
+      if (createError) {
+        console.error('Erro ao criar checkout:', createError);
+        toast.error("Erro ao criar sessão de pagamento. Tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      if (createData?.url) {
+        // Redirecionar para o Stripe Checkout
+        window.location.href = createData.url;
+      } else {
+        toast.error("Erro ao obter URL de pagamento.");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Erro no checkout:', error);
+      toast.error("Erro ao processar pagamento. Tente novamente.");
       setLoading(false);
-    }, 1500);
+    }
   };
   
   const handleBackToPlans = () => {
@@ -231,7 +269,14 @@ const Checkout = () => {
                 className="w-full bg-getclinicas-primary hover:bg-getclinicas-dark"
                 disabled={loading}
               >
-                {loading ? "Processando..." : "Prosseguir para Pagamento"}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  "Prosseguir para Pagamento Seguro"
+                )}
               </Button>
             </CardFooter>
           </Card>
