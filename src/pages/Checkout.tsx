@@ -81,12 +81,10 @@ const Checkout = () => {
     setLoading(true);
     
     try {
-      // Criar checkout session no Stripe
+      // Criar checkout session no Stripe usando o planId
       const { data: createData, error: createError } = await supabase.functions.invoke('create-stripe-checkout', {
         body: {
-          planName: selectedPlan.name,
-          priceAmount: selectedPlan.price * 100, // converter para centavos
-          interval: selectedPlan.interval,
+          planId: selectedPlan.id,
           successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}/checkout?plan=${selectedPlan.id}`
         }
