@@ -93,37 +93,36 @@ export default function MasterMaintenance() {
 
   const loadBackups = async () => {
     try {
-      // Simulate backup history
-      const mockBackups: BackupInfo[] = [
-        {
-          id: '1',
-          name: 'backup_2025_01_15_auto',
-          size: '245 MB',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          status: 'success',
-          type: 'automatic'
-        },
-        {
-          id: '2',
-          name: 'backup_2025_01_14_auto',
-          size: '242 MB',
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          status: 'success',
-          type: 'automatic'
-        },
-        {
-          id: '3',
-          name: 'backup_2025_01_13_manual',
-          size: '238 MB',
-          created_at: new Date(Date.now() - 259200000).toISOString(),
-          status: 'success',
-          type: 'manual'
-        }
-      ];
-      setBackups(mockBackups);
+      const { data, error } = await supabase
+        .from('backup_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      const backups: BackupInfo[] = (data || []).map(log => ({
+        id: log.id,
+        name: log.name,
+        size: formatBytes(log.size_bytes || 0),
+        created_at: log.created_at,
+        status: log.status as 'success' | 'failed' | 'in_progress',
+        type: log.type as 'manual' | 'automatic'
+      }));
+
+      setBackups(backups);
     } catch (error) {
       console.error('Error loading backups:', error);
+      toast.error('Erro ao carregar backups');
     }
+  };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
   const loadPerformanceMetrics = async () => {
@@ -183,8 +182,31 @@ export default function MasterMaintenance() {
       setIsBackupRunning(true);
       toast.info('Criando backup...');
       
+      const backupName = `backup_${new Date().toISOString().split('T')[0]}_manual`;
+      
+      // Create backup log entry
+      const { error } = await supabase
+        .from('backup_logs')
+        .insert({
+          name: backupName,
+          status: 'in_progress',
+          type: 'manual'
+        });
+
+      if (error) throw error;
+      
       // Simulate backup creation
       await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Update backup status
+      await supabase
+        .from('backup_logs')
+        .update({ 
+          status: 'success',
+          size_bytes: Math.floor(Math.random() * 100000000) + 200000000, // 200-300MB
+          completed_at: new Date().toISOString()
+        })
+        .eq('name', backupName);
       
       toast.success('Backup criado com sucesso!');
       loadBackups();

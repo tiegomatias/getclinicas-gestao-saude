@@ -284,6 +284,36 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          name: string
+          size_bytes: number | null
+          status: string
+          type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          size_bytes?: number | null
+          status?: string
+          type?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          size_bytes?: number | null
+          status?: string
+          type?: string
+        }
+        Relationships: []
+      }
       beds: {
         Row: {
           bed_number: string
@@ -583,6 +613,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      faqs: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          id: string
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category: string
+          created_at?: string
+          id?: string
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          id?: string
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       finances: {
         Row: {
@@ -1529,6 +1586,119 @@ export type Database = {
           purchase_date?: string | null
           status?: string
           total_amount?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_ticket_responses: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_responses_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          category: string
+          clinic_id: string
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          clinic_id: string
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          clinic_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "vw_bed_occupation"
+            referencedColumns: ["clinic_id"]
+          },
+        ]
+      }
+      system_announcements: {
+        Row: {
+          active: boolean
+          content: string
+          created_at: string
+          id: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          type?: string
           updated_at?: string
         }
         Relationships: []

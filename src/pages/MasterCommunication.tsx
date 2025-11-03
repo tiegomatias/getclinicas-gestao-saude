@@ -125,28 +125,23 @@ export default function MasterCommunication() {
 
   const loadAnnouncements = async () => {
     try {
-      // Simulate announcements (could be stored in a separate table)
-      const mockAnnouncements: Announcement[] = [
-        {
-          id: '1',
-          title: 'Nova Funcionalidade: Analytics Avançado',
-          content: 'Agora você pode visualizar métricas detalhadas de uso do sistema!',
-          type: 'success',
-          active: true,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          title: 'Manutenção Programada',
-          content: 'Haverá manutenção do sistema no domingo das 2h às 6h.',
-          type: 'warning',
-          active: true,
-          created_at: new Date(Date.now() - 86400000).toISOString()
-        }
-      ];
-      setAnnouncements(mockAnnouncements);
+      const { data, error } = await supabase
+        .from('system_announcements')
+        .select('*')
+        .eq('active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const announcements: Announcement[] = (data || []).map(a => ({
+        ...a,
+        type: a.type as 'info' | 'warning' | 'success' | 'error'
+      }));
+      
+      setAnnouncements(announcements);
     } catch (error) {
       console.error('Error loading announcements:', error);
+      toast.error('Erro ao carregar anúncios');
     }
   };
 
@@ -235,7 +230,17 @@ export default function MasterCommunication() {
     }
 
     try {
-      // In a real implementation, this would be stored in a database
+      const { error } = await supabase
+        .from('system_announcements')
+        .insert({
+          title: announcementTitle,
+          content: announcementContent,
+          type: announcementType,
+          active: true
+        });
+
+      if (error) throw error;
+
       toast.success('Anúncio criado com sucesso!');
       setAnnouncementDialogOpen(false);
       resetAnnouncementForm();

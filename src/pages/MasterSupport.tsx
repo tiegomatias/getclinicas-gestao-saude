@@ -62,8 +62,40 @@ export default function MasterSupport() {
   const [faqQuestion, setFaqQuestion] = useState("");
   const [faqAnswer, setFaqAnswer] = useState("");
 
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
   useEffect(() => {
     loadData();
+    
+    // Setup realtime subscriptions
+    const ticketsChannel = supabase
+      .channel('support-tickets-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'support_tickets'
+      }, () => {
+        loadTickets();
+      })
+      .subscribe();
+
+    const faqsChannel = supabase
+      .channel('faqs-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'faqs'
+      }, () => {
+        loadFAQs();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ticketsChannel);
+      supabase.removeChannel(faqsChannel);
+    };
   }, []);
 
   const loadData = async () => {
@@ -84,106 +116,50 @@ export default function MasterSupport() {
 
   const loadTickets = async () => {
     try {
-      // Simulate ticket data
-      const mockTickets: SupportTicket[] = [
-        {
-          id: '1',
-          clinic_id: 'clinic-1',
-          clinic_name: 'Clínica São Paulo',
-          subject: 'Problema com acesso ao módulo de medicamentos',
-          description: 'Não consigo acessar o módulo de medicamentos. Aparece erro 403.',
-          priority: 'high',
-          status: 'open',
-          category: 'technical',
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          updated_at: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: '2',
-          clinic_id: 'clinic-2',
-          clinic_name: 'Clínica Rio de Janeiro',
-          subject: 'Dúvida sobre relatórios financeiros',
-          description: 'Como exportar relatórios financeiros em PDF?',
-          priority: 'medium',
-          status: 'in_progress',
-          category: 'question',
-          created_at: new Date(Date.now() - 7200000).toISOString(),
-          updated_at: new Date(Date.now() - 1800000).toISOString()
-        },
-        {
-          id: '3',
-          clinic_id: 'clinic-3',
-          clinic_name: 'Clínica Belo Horizonte',
-          subject: 'Sugestão de melhoria no calendário',
-          description: 'Seria ótimo ter notificações por email para compromissos.',
-          priority: 'low',
-          status: 'open',
-          category: 'feature_request',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          updated_at: new Date(Date.now() - 86400000).toISOString()
-        }
-      ];
-      setTickets(mockTickets);
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch clinic names
+      if (data && data.length > 0) {
+        const clinicIds = [...new Set(data.map(t => t.clinic_id))];
+        const { data: clinicsData } = await supabase
+          .from('clinics')
+          .select('id, name')
+          .in('id', clinicIds);
+
+        const clinicsMap = new Map(clinicsData?.map(c => [c.id, c.name]) || []);
+        
+        const ticketsWithClinicNames = data.map(t => ({
+          ...t,
+          clinic_name: clinicsMap.get(t.clinic_id) || 'Desconhecida',
+          priority: t.priority as 'low' | 'medium' | 'high' | 'urgent',
+          status: t.status as 'open' | 'in_progress' | 'resolved' | 'closed'
+        }));
+
+        setTickets(ticketsWithClinicNames);
+      }
     } catch (error) {
       console.error('Error loading tickets:', error);
+      toast.error('Erro ao carregar tickets');
     }
   };
 
   const loadFAQs = async () => {
     try {
-      const mockFAQs: FAQ[] = [
-        {
-          id: '1',
-          category: 'Conta e Acesso',
-          question: 'Como redefinir minha senha?',
-          answer: 'Para redefinir sua senha, clique em "Esqueci minha senha" na tela de login e siga as instruções enviadas para seu email.'
-        },
-        {
-          id: '2',
-          category: 'Conta e Acesso',
-          question: 'Como adicionar novos usuários à clínica?',
-          answer: 'Acesse Configurações > Profissionais, clique em "Novo Profissional" e marque a opção "Conceder acesso ao sistema".'
-        },
-        {
-          id: '3',
-          category: 'Funcionalidades',
-          question: 'Como gerenciar leitos?',
-          answer: 'Acesse o menu Leitos para visualizar, adicionar e atualizar o status dos leitos da sua clínica.'
-        },
-        {
-          id: '4',
-          category: 'Funcionalidades',
-          question: 'Como criar um relatório financeiro?',
-          answer: 'Vá para Financeiro > Relatórios e selecione o período desejado. Você pode exportar em PDF ou Excel.'
-        },
-        {
-          id: '5',
-          category: 'Pagamentos',
-          question: 'Quais são os planos disponíveis?',
-          answer: 'Oferecemos três planos: Básico (R$ 299/mês), Padrão (R$ 499/mês) e Premium (R$ 999/mês).'
-        },
-        {
-          id: '6',
-          category: 'Pagamentos',
-          question: 'Como alterar meu plano?',
-          answer: 'Acesse Configurações > Planos e Assinaturas para visualizar e alterar seu plano atual.'
-        },
-        {
-          id: '7',
-          category: 'Técnico',
-          question: 'O sistema está lento, o que fazer?',
-          answer: 'Tente limpar o cache do navegador, verificar sua conexão com a internet ou entrar em contato com o suporte.'
-        },
-        {
-          id: '8',
-          category: 'Técnico',
-          question: 'Posso usar o sistema em dispositivos móveis?',
-          answer: 'Sim! O sistema é totalmente responsivo e funciona em tablets e smartphones.'
-        }
-      ];
-      setFaqs(mockFAQs);
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+      setFaqs(data || []);
     } catch (error) {
       console.error('Error loading FAQs:', error);
+      toast.error('Erro ao carregar FAQs');
     }
   };
 
@@ -232,8 +208,28 @@ export default function MasterSupport() {
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Create response record
+      await supabase
+        .from('support_ticket_responses')
+        .insert({
+          ticket_id: selectedTicket.id,
+          user_id: user.id,
+          message: responseMessage
+        });
+
+      // Update ticket status
+      const { error: updateError } = await supabase
+        .from('support_tickets')
+        .update({ status: newStatus })
+        .eq('id', selectedTicket.id);
+
+      if (updateError) throw updateError;
+
       // Create notification for the clinic
-      const { error } = await supabase
+      await supabase
         .from('notifications')
         .insert({
           clinic_id: selectedTicket.clinic_id,
@@ -244,20 +240,11 @@ export default function MasterSupport() {
           read: false
         });
 
-      if (error) throw error;
-
-      // Update ticket status
-      const updatedTickets = tickets.map(t =>
-        t.id === selectedTicket.id
-          ? { ...t, status: newStatus, updated_at: new Date().toISOString() }
-          : t
-      );
-      setTickets(updatedTickets);
-
       toast.success('Resposta enviada com sucesso!');
       setResponseDialogOpen(false);
       setResponseMessage("");
       setSelectedTicket(null);
+      loadTickets();
     } catch (error) {
       console.error('Error responding to ticket:', error);
       toast.error('Erro ao enviar resposta');
@@ -271,17 +258,20 @@ export default function MasterSupport() {
     }
 
     try {
-      const newFaq: FAQ = {
-        id: Date.now().toString(),
-        category: faqCategory,
-        question: faqQuestion,
-        answer: faqAnswer
-      };
+      const { error } = await supabase
+        .from('faqs')
+        .insert({
+          category: faqCategory,
+          question: faqQuestion,
+          answer: faqAnswer
+        });
 
-      setFaqs([...faqs, newFaq]);
+      if (error) throw error;
+
       toast.success('FAQ criado com sucesso!');
       setFaqDialogOpen(false);
       resetFaqForm();
+      loadFAQs();
     } catch (error) {
       console.error('Error creating FAQ:', error);
       toast.error('Erro ao criar FAQ');
@@ -325,6 +315,16 @@ export default function MasterSupport() {
     };
     return labels[category] || category;
   };
+
+  // Filter tickets based on status and search
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
+    const matchesSearch = !searchQuery || 
+      ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.clinic_name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   const groupedFaqs = faqs.reduce((acc, faq) => {
     if (!acc[faq.category]) {
@@ -466,8 +466,35 @@ export default function MasterSupport() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Filters */}
+              <div className="flex gap-4 mb-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Buscar por título, descrição ou clínica..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="open">Abertos</SelectItem>
+                    <SelectItem value="in_progress">Em Progresso</SelectItem>
+                    <SelectItem value="resolved">Resolvidos</SelectItem>
+                    <SelectItem value="closed">Fechados</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-3">
-                {tickets.map((ticket) => (
+                {filteredTickets.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum ticket encontrado
+                  </div>
+                ) : (
+                  filteredTickets.map((ticket) => (
                   <div
                     key={ticket.id}
                     className="flex items-start gap-3 p-4 rounded-lg border hover:bg-accent/5 transition-colors"
@@ -505,7 +532,8 @@ export default function MasterSupport() {
                       Responder
                     </Button>
                   </div>
-                ))}
+                ))
+                )}
               </div>
             </CardContent>
           </Card>

@@ -104,64 +104,18 @@ export default function MasterPlans() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      // Get products from Stripe via RPC or direct call
-      // For now, using the defined products from stripeConfig
-      const mockProducts: StripeProduct[] = [
-        {
-          id: 'prod_TMABLR5OuXIAIf',
-          name: 'Plano Mensal',
-          description: 'Plano básico com renovação mensal',
-          active: true,
-          default_price: 'price_1SPRrEICb7cdsHyg06wvKvVL'
-        },
-        {
-          id: 'prod_TMBF40e3WTdaZQ',
-          name: 'Plano Semestral',
-          description: 'Plano padrão com renovação semestral',
-          active: true,
-          default_price: 'price_1SPSsxICb7cdsHygXzGgJXMt'
-        },
-        {
-          id: 'prod_TMADuKpCMkikfz',
-          name: 'Plano Anual',
-          description: 'Plano premium com renovação anual',
-          active: true,
-          default_price: 'price_1SPRtEICb7cdsHygC3bOjBXl'
-        }
-      ];
+      // Call edge function to get real Stripe data
+      const { data, error } = await supabase.functions.invoke('stripe-list-products');
 
-      const mockPrices: StripePrice[] = [
-        {
-          id: 'price_1SPRrEICb7cdsHyg06wvKvVL',
-          product: 'prod_TMABLR5OuXIAIf',
-          unit_amount: 29900,
-          currency: 'brl',
-          recurring: { interval: 'month', interval_count: 1 },
-          active: true
-        },
-        {
-          id: 'price_1SPSsxICb7cdsHygXzGgJXMt',
-          product: 'prod_TMBF40e3WTdaZQ',
-          unit_amount: 49900,
-          currency: 'brl',
-          recurring: { interval: 'month', interval_count: 6 },
-          active: true
-        },
-        {
-          id: 'price_1SPRtEICb7cdsHygC3bOjBXl',
-          product: 'prod_TMADuKpCMkikfz',
-          unit_amount: 99900,
-          currency: 'brl',
-          recurring: { interval: 'year', interval_count: 1 },
-          active: true
-        }
-      ];
+      if (error) throw error;
 
-      setProducts(mockProducts);
-      setPrices(mockPrices);
+      if (data && data.products && data.prices) {
+        setProducts(data.products);
+        setPrices(data.prices);
+      }
     } catch (error) {
       console.error('Error loading products:', error);
-      toast.error('Erro ao carregar produtos');
+      toast.error('Erro ao carregar produtos do Stripe');
     }
   };
 
@@ -189,9 +143,20 @@ export default function MasterPlans() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      // Call Stripe to create product and price
-      // This would use the Stripe API or a dedicated edge function
-      toast.success('Produto criado com sucesso!');
+      // Call edge function to create product in Stripe
+      const { data, error } = await supabase.functions.invoke('stripe-create-product', {
+        body: {
+          productName,
+          productDescription,
+          priceAmount,
+          priceCurrency,
+          recurringInterval
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success('Produto criado com sucesso no Stripe!');
       setCreateDialogOpen(false);
       resetForm();
       loadProducts();
