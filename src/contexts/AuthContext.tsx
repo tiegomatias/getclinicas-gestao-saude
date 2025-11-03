@@ -383,6 +383,13 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const checkSubscription = async (): Promise<void> => {
     try {
+      // Verificar se há sessão válida antes de chamar a função
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('No active session, skipping subscription check');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) {
