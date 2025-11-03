@@ -16,7 +16,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
     name: 'Plano Mensal',
     priceId: 'price_mensal', // Será substituído pelo ID real do Stripe
     productId: 'prod_mensal', // Será substituído pelo ID real do Stripe
-    price: 197,
+    price: 490,
     interval: 'month',
     features: [
       'Gestão completa de pacientes',
@@ -33,7 +33,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
     name: 'Plano Semestral',
     priceId: 'price_semestral',
     productId: 'prod_semestral',
-    price: 997,
+    price: 2640,
     interval: 'month',
     features: [
       'Todos os recursos do Plano Mensal',
@@ -43,14 +43,14 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
       'Treinamento da equipe',
       'Backup automático diário'
     ],
-    discount: 'Economize 15%'
+    discount: 'Economize 10% (R$ 440/mês)'
   },
   anual: {
     id: 'anual',
     name: 'Plano Anual',
     priceId: 'price_anual',
     productId: 'prod_anual',
-    price: 1697,
+    price: 4900,
     interval: 'year',
     features: [
       'Todos os recursos do Plano Semestral',
@@ -60,7 +60,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
       'Gerente de conta dedicado',
       'Acesso antecipado a novos recursos'
     ],
-    discount: 'Economize 30%'
+    discount: 'Economize 17% (R$ 408/mês)'
   }
 };
 
