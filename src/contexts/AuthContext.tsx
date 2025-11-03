@@ -14,6 +14,7 @@ import {
   safelyParseObject,
   castDbInsert
 } from '@/lib/types';
+import { auditService } from '@/services/auditService';
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -293,6 +294,12 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
             setIsMasterAdmin(true);
             localStorage.setItem('isMasterAdmin', 'true');
             
+            // Registrar log de auditoria
+            await auditService.logAction('LOGIN', 'user', data.user.id, {
+              email: data.user.email,
+              role: 'master_admin'
+            });
+            
             // Master admin - fetch ALL clinics
             const { data: allClinics, error: masterClinicsError } = await supabase
               .from('clinics')
@@ -454,6 +461,15 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const signOut = async () => {
     try {
       console.log('Starting sign out process');
+      
+      // Registrar log de auditoria antes do logout
+      if (user) {
+        await auditService.logAction('LOGOUT', 'user', user.id, {
+          email: user.email,
+          isMasterAdmin
+        });
+      }
+      
       await supabase.auth.signOut();
       
       // Clear local storage

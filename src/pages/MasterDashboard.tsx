@@ -96,6 +96,13 @@ export default function MasterDashboard() {
   }, [searchQuery, filterPlan, clinics]);
   
   const handleNavigateToClinic = (clinicId: string) => {
+    const clinic = clinics.find(c => c.id === clinicId);
+    
+    // Registrar log de auditoria
+    auditService.logAction('VIEW', 'clinic', clinicId, {
+      clinicName: clinic?.name
+    });
+    
     localStorage.setItem("currentClinicId", clinicId);
     navigate("/dashboard");
   };

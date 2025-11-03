@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { toast } from "sonner";
 import { masterService, type ClinicData } from "@/services/masterService";
 import { MasterFinancialDashboard } from "@/components/master/MasterFinancialDashboard";
+import { auditService } from "@/services/auditService";
 
 export default function MasterReports() {
   const [clinics, setClinics] = useState<ClinicData[]>([]);
@@ -69,6 +70,13 @@ export default function MasterReports() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    // Registrar log de auditoria
+    auditService.logAction('EXPORT', 'report', undefined, {
+      reportType: 'occupation',
+      timeRange,
+      fileName: `relatorio_ocupacao_${timeRange}_${new Date().toISOString().split('T')[0]}.csv`
+    });
     
     toast.success("Relatório exportado com sucesso!");
   };
