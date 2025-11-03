@@ -411,7 +411,11 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       console.log('Calling check-subscription with valid session');
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
       
       if (error) {
         console.error('Error checking subscription:', error);
