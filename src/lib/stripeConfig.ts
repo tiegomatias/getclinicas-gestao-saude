@@ -17,22 +17,16 @@
 
 export const STRIPE_CONFIG = {
   mensal: {
-    // TODO: Substituir pelos IDs reais do Stripe
-    productId: 'prod_mensal_placeholder',
-    priceId: 'price_mensal_placeholder',
-    // Exemplo de IDs reais:
-    // productId: 'prod_RabcdefGHIJKL',
-    // priceId: 'price_1QabcdefGHIJKLMN',
+    productId: 'prod_TMABLR5OuXIAIf',
+    priceId: 'price_1SPRrEICb7cdsHyg06wvKvVL',
   },
   semestral: {
-    // TODO: Substituir pelos IDs reais do Stripe
-    productId: 'prod_semestral_placeholder',
-    priceId: 'price_semestral_placeholder',
+    productId: 'prod_TMABuN1bgZaj8L6',
+    priceId: 'price_1SPRrVICb7cdsHygXMyLx8CF',
   },
   anual: {
-    // TODO: Substituir pelos IDs reais do Stripe
-    productId: 'prod_anual_placeholder',
-    priceId: 'price_anual_placeholder',
+    productId: 'prod_TMADuKpCMkikfz',
+    priceId: 'price_1SPRtEICb7cdsHygC3bOjBXl',
   },
 };
 
