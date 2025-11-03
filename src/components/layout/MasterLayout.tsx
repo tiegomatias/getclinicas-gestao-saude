@@ -16,6 +16,7 @@ export default function MasterLayout() {
     if (location.pathname === "/master/plans") return "Gestão de Planos";
     if (location.pathname === "/master/communication") return "Sistema de Comunicação";
     if (location.pathname === "/master/maintenance") return "Backup & Manutenção";
+    if (location.pathname === "/master/support") return "Sistema de Suporte";
     if (location.pathname === "/master/reports") return "Relatórios Gerais";
     if (location.pathname === "/master/settings") return "Configurações do Sistema";
     return "GetClinicas Master";

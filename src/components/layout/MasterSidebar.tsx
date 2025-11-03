@@ -23,6 +23,7 @@ import {
   CreditCard,
   MessageSquare,
   Database,
+  HelpCircle,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,6 +67,11 @@ export default function MasterSidebar() {
       title: "Manutenção",
       path: "/master/maintenance",
       icon: Database,
+    },
+    {
+      title: "Suporte",
+      path: "/master/support",
+      icon: HelpCircle,
     },
     {
       title: "Relatórios",

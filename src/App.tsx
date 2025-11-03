@@ -22,6 +22,7 @@ import MasterAnalytics from "./pages/MasterAnalytics";
 import MasterPlans from "./pages/MasterPlans";
 import MasterCommunication from "./pages/MasterCommunication";
 import MasterMaintenance from "./pages/MasterMaintenance";
+import MasterSupport from "./pages/MasterSupport";
 import MasterReports from "./pages/MasterReports";
 import MasterSettings from "./pages/MasterSettings";
 import Dashboard from "./pages/Dashboard";
@@ -72,6 +73,7 @@ function App() {
                 <Route path="/master/plans" element={<MasterPlans />} />
                 <Route path="/master/communication" element={<MasterCommunication />} />
                 <Route path="/master/maintenance" element={<MasterMaintenance />} />
+                <Route path="/master/support" element={<MasterSupport />} />
                 <Route path="/master/reports" element={<MasterReports />} />
                 <Route path="/master/settings" element={<MasterSettings />} />
               </Route>
