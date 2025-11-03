@@ -36,17 +36,6 @@ serve(async (req) => {
   try {
     logStep('Function started');
 
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) throw new Error('STRIPE_SECRET_KEY is not set');
-    logStep('Stripe key verified');
-
-    // Criar cliente Supabase com SERVICE_ROLE_KEY
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
-    );
-
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       logStep('No authorization header');
@@ -54,15 +43,29 @@ serve(async (req) => {
     }
     logStep('Authorization header found');
 
-    const token = authHeader.replace('Bearer ', '');
-    logStep('Authenticating user with token');
-    
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeKey) throw new Error('STRIPE_SECRET_KEY is not set');
+    logStep('Stripe key verified');
+
+    // Criar cliente Supabase com o token de autorização
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    // Obter o usuário autenticado
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError) {
       logStep('Auth error', { error: userError.message });
       throw new Error(`Authentication error: ${userError.message}`);
     }
-    const user = userData.user;
     if (!user?.email) {
       logStep('No user or email');
       throw new Error('User not authenticated or email not available');
