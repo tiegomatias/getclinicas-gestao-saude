@@ -1,16 +1,19 @@
 
 import React, { useState, useEffect } from "react";
-import { CalendarIcon, Search } from "lucide-react";
+import { CalendarIcon, Search, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Logo from "@/components/ui/Logo";
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export default function AppHeader({ title }: { title: string }) {
   const navigate = useNavigate();
+  const subscription = useSubscription();
   const [clinicId, setClinicId] = useState<string | null>(null);
   
   useEffect(() => {
@@ -55,6 +58,17 @@ export default function AppHeader({ title }: { title: string }) {
       </div>
       
       <div className="flex items-center gap-1 sm:gap-2">
+        {/* Badge de Assinatura */}
+        {subscription.isSubscribed() && (
+          <Badge 
+            variant="outline" 
+            className="hidden lg:flex items-center gap-1 bg-primary/10 text-primary border-primary/20"
+          >
+            <Crown className="h-3 w-3" />
+            {subscription.getPlanName()}
+          </Badge>
+        )}
+        
         {/* Mobile search toggle */}
         <Button variant="ghost" size="icon" className="md:hidden">
           <Search className="h-4 w-4" />

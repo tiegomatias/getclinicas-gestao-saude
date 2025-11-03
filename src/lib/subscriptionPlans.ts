@@ -1,3 +1,5 @@
+import { STRIPE_CONFIG } from './stripeConfig';
+
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -14,8 +16,8 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
   mensal: {
     id: 'mensal',
     name: 'Plano Mensal',
-    priceId: 'price_mensal', // Será substituído pelo ID real do Stripe
-    productId: 'prod_mensal', // Será substituído pelo ID real do Stripe
+    priceId: STRIPE_CONFIG.mensal.priceId,
+    productId: STRIPE_CONFIG.mensal.productId,
     price: 490,
     interval: 'month',
     features: [
@@ -31,8 +33,8 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
   semestral: {
     id: 'semestral',
     name: 'Plano Semestral',
-    priceId: 'price_semestral',
-    productId: 'prod_semestral',
+    priceId: STRIPE_CONFIG.semestral.priceId,
+    productId: STRIPE_CONFIG.semestral.productId,
     price: 2640,
     interval: 'month',
     features: [
@@ -48,8 +50,8 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
   anual: {
     id: 'anual',
     name: 'Plano Anual',
-    priceId: 'price_anual',
-    productId: 'prod_anual',
+    priceId: STRIPE_CONFIG.anual.priceId,
+    productId: STRIPE_CONFIG.anual.productId,
     price: 4900,
     interval: 'year',
     features: [
