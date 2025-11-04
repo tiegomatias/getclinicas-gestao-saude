@@ -94,7 +94,25 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
               // Check subscription status only if user has valid session and is not master admin
               if (currentSession?.access_token && !isMaster) {
                 console.log('Checking subscription status for authenticated user');
-                checkSubscription();
+                // First check if user has a manually assigned plan in clinics table
+                const { data: userClinics } = await supabase
+                  .from('clinics')
+                  .select('plan, id')
+                  .eq('admin_id', currentSession.user.id);
+                
+                if (userClinics && userClinics.length > 0 && userClinics[0].plan) {
+                  console.log('User has manually assigned plan:', userClinics[0].plan);
+                  // Set subscription status based on manually assigned plan
+                  const manualStatus: SubscriptionStatus = {
+                    subscribed: true,
+                    product_id: userClinics[0].plan, // Use plan name as product_id
+                    subscription_end: null
+                  };
+                  setSubscriptionStatus(manualStatus);
+                  localStorage.setItem('subscriptionStatus', JSON.stringify(manualStatus));
+                } else {
+                  checkSubscription();
+                }
               } else {
                 console.log('Skipping subscription check - no access token or is master admin');
               }
@@ -428,7 +446,29 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       console.log('Checking subscription status from local database first');
       
-      // Primeiro, tentar buscar da tabela local (mais rápido)
+      // PRIMEIRO: Verificar se há plano atribuído manualmente na clínica
+      const { data: userClinics, error: clinicsError } = await supabase
+        .from('clinics')
+        .select('plan, id')
+        .eq('admin_id', session.user.id)
+        .maybeSingle();
+      
+      if (!clinicsError && userClinics && userClinics.plan && userClinics.plan !== 'basic') {
+        console.log('User has manually assigned plan:', userClinics.plan);
+        // Se tem plano atribuído manualmente, considera como assinado
+        const manualStatus: SubscriptionStatus = {
+          subscribed: true,
+          product_id: userClinics.plan, // Use plan name as product_id
+          subscription_end: null // Plano manual não tem data de expiração
+        };
+        
+        console.log('Using manually assigned plan:', manualStatus);
+        setSubscriptionStatus(manualStatus);
+        localStorage.setItem('subscriptionStatus', JSON.stringify(manualStatus));
+        return;
+      }
+      
+      // SEGUNDO: Tentar buscar da tabela subscription_status (mais rápido)
       const { data: localStatus, error: localError } = await supabase
         .from('subscription_status')
         .select('*')
