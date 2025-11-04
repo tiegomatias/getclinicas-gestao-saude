@@ -165,37 +165,44 @@ export default function MasterSupport() {
 
   const loadDocumentation = async () => {
     try {
-      const mockDocs: Documentation[] = [
+      const realDocs: Documentation[] = [
         {
           id: '1',
-          title: 'Guia de Início Rápido',
+          title: 'Guia de Início Rápido do GetClinicas',
           category: 'Primeiros Passos',
-          content: 'Bem-vindo ao GetClínicas! Este guia vai ajudá-lo a configurar sua clínica e começar a usar o sistema...',
+          content: 'Bem-vindo ao GetClinicas! Configure sua clínica cadastrando leitos, profissionais e pacientes. O sistema oferece controle completo de gestão clínica com módulos integrados.',
           lastUpdated: new Date(Date.now() - 604800000).toISOString()
         },
         {
           id: '2',
-          title: 'Gerenciamento de Pacientes',
-          category: 'Módulos',
-          content: 'O módulo de pacientes permite cadastrar, editar e acompanhar todos os pacientes da sua clínica...',
+          title: 'Módulo de Gestão de Leitos',
+          category: 'Funcionalidades',
+          content: 'Gerencie ocupação de leitos em tempo real, vincule pacientes e acompanhe indicadores de ocupação automaticamente no dashboard principal.',
           lastUpdated: new Date(Date.now() - 1209600000).toISOString()
         },
         {
           id: '3',
-          title: 'Sistema de Medicamentos',
-          category: 'Módulos',
-          content: 'Gerencie prescrições, estoque e administração de medicamentos de forma integrada...',
+          title: 'Controle de Medicamentos',
+          category: 'Funcionalidades',
+          content: 'Sistema completo de prescrição, estoque e administração de medicamentos com alertas de vencimento e controle de estoque mínimo.',
           lastUpdated: new Date(Date.now() - 1814400000).toISOString()
         },
         {
           id: '4',
-          title: 'Relatórios e Analytics',
-          category: 'Avançado',
-          content: 'Aprenda a gerar relatórios detalhados sobre ocupação, financeiro e atividades...',
+          title: 'Gestão Financeira',
+          category: 'Funcionalidades',
+          content: 'Controle receitas e despesas, gere relatórios financeiros detalhados e acompanhe o fluxo de caixa da sua clínica.',
           lastUpdated: new Date(Date.now() - 2419200000).toISOString()
+        },
+        {
+          id: '5',
+          title: 'Suporte e Contato',
+          category: 'Ajuda',
+          content: 'Entre em contato pelo WhatsApp (13) 97404-0377 ou abra um ticket de suporte diretamente pelo sistema. Horário comercial.',
+          lastUpdated: new Date(Date.now() - 86400000).toISOString()
         }
       ];
-      setDocumentation(mockDocs);
+      setDocumentation(realDocs);
     } catch (error) {
       console.error('Error loading documentation:', error);
     }

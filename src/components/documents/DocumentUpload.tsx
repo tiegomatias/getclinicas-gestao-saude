@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,15 +22,23 @@ import { useForm } from "react-hook-form";
 import { Upload, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DocumentUploadProps {
   clinicId: string;
   onComplete?: () => void;
 }
 
+interface Patient {
+  id: string;
+  name: string;
+}
+
 export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loadingPatients, setLoadingPatients] = useState(true);
 
   const form = useForm({
     defaultValues: {
@@ -41,6 +49,30 @@ export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadP
       file: null,
     },
   });
+
+  useEffect(() => {
+    loadPatients();
+  }, [clinicId]);
+
+  const loadPatients = async () => {
+    try {
+      setLoadingPatients(true);
+      const { data, error } = await supabase
+        .from('patients')
+        .select('id, name')
+        .eq('clinic_id', clinicId)
+        .eq('status', 'active')
+        .order('name');
+
+      if (error) throw error;
+      setPatients(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar pacientes:', error);
+      toast.error('Erro ao carregar pacientes');
+    } finally {
+      setLoadingPatients(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -113,18 +145,25 @@ export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadP
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    disabled={loadingPatients}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o paciente" />
+                        <SelectValue placeholder={loadingPatients ? "Carregando..." : "Selecione o paciente"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">João Silva</SelectItem>
-                      <SelectItem value="2">Maria Oliveira</SelectItem>
-                      <SelectItem value="3">Pedro Santos</SelectItem>
-                      <SelectItem value="4">Carla Mendes</SelectItem>
-                      <SelectItem value="5">Paulo Ferreira</SelectItem>
+                      {patients.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Nenhum paciente ativo cadastrado
+                        </div>
+                      ) : (
+                        patients.map((patient) => (
+                          <SelectItem key={patient.id} value={patient.id}>
+                            {patient.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
