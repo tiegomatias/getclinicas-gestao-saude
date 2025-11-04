@@ -78,13 +78,16 @@ const ProfessionalDashboard = () => {
         .eq('status', 'active');
       
       // Count today's activities
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date();
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+      
       const { count: activitiesCount } = await supabase
         .from('activities')
         .select('*', { count: 'exact', head: true })
         .eq('clinic_id', clinicId)
-        .gte('date', today)
-        .lte('date', today + 'T23:59:59');
+        .gte('start_time', startOfDay)
+        .lte('start_time', endOfDay);
       
       // Count active prescriptions
       const { count: prescriptionsCount } = await supabase

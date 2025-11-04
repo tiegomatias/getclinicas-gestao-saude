@@ -71,19 +71,27 @@ export default function AppointmentCalendar({ activities, onActivityClick }: App
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-blue-500" />
-            <span className="text-xs">Consultas Médicas</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-green-500" />
-            <span className="text-xs">Terapias em Grupo</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-amber-500" />
-            <span className="text-xs">Atividades Individuais</span>
+            <span className="text-xs">Médico</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-purple-500" />
-            <span className="text-xs">Eventos</span>
+            <span className="text-xs">Terapia</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-green-500" />
+            <span className="text-xs">Grupo</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-amber-500" />
+            <span className="text-xs">Workshop</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-pink-500" />
+            <span className="text-xs">Recreação</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-gray-500" />
+            <span className="text-xs">Outro</span>
           </div>
         </div>
       </div>

@@ -332,7 +332,21 @@ export default function Configuracoes() {
                     Ativar modo escuro para a interface
                   </p>
                 </div>
-                <Switch id="dark-mode" defaultChecked />
+                <Switch 
+                  id="dark-mode" 
+                  checked={settings?.general_settings?.dark_mode === true}
+                  onCheckedChange={(checked) => {
+                    if (settings) {
+                      setSettings({
+                        ...settings,
+                        general_settings: {
+                          ...settings.general_settings,
+                          dark_mode: checked
+                        }
+                      });
+                    }
+                  }}
+                />
               </div>
               
               <div className="flex items-center justify-between">
@@ -342,7 +356,21 @@ export default function Configuracoes() {
                     Reduzir o espaçamento entre elementos
                   </p>
                 </div>
-                <Switch id="compact-mode" />
+                <Switch 
+                  id="compact-mode"
+                  checked={settings?.general_settings?.compact_mode === true}
+                  onCheckedChange={(checked) => {
+                    if (settings) {
+                      setSettings({
+                        ...settings,
+                        general_settings: {
+                          ...settings.general_settings,
+                          compact_mode: checked
+                        }
+                      });
+                    }
+                  }}
+                />
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">

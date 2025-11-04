@@ -12,6 +12,7 @@ import { ChartBarIcon, Download, TrendingUp, DollarSign, Activity, Users } from 
 import { Input } from "@/components/ui/input";
 import EmptyState from "@/components/shared/EmptyState";
 import { reportService, OccupationReport, FinancialReport, ActivitiesReport, PatientsReport } from "@/services/reportService";
+import { exportService } from "@/services/exportService";
 import { toast } from "sonner";
 
 export default function Relatorios() {
@@ -62,6 +63,30 @@ export default function Relatorios() {
     toast.success("Relatórios atualizados!");
   };
 
+  const handleExportCSV = () => {
+    exportService.exportToCSV(
+      occupationReport,
+      financialReport,
+      activitiesReport,
+      patientsReport,
+      startDate,
+      endDate
+    );
+    toast.success("Relatório exportado em CSV!");
+  };
+
+  const handleExportPDF = async () => {
+    await exportService.exportToPDF(
+      occupationReport,
+      financialReport,
+      activitiesReport,
+      patientsReport,
+      startDate,
+      endDate
+    );
+    toast.success("Abrindo visualização para impressão...");
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -92,7 +117,7 @@ export default function Relatorios() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Input
             type="date"
             value={startDate}
@@ -108,6 +133,12 @@ export default function Relatorios() {
           />
           <Button onClick={handleGenerateReport}>
             <TrendingUp className="mr-2 h-4 w-4" /> Atualizar
+          </Button>
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="mr-2 h-4 w-4" /> CSV
+          </Button>
+          <Button variant="outline" onClick={handleExportPDF}>
+            <Download className="mr-2 h-4 w-4" /> PDF
           </Button>
         </div>
       </div>

@@ -299,24 +299,24 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Tempo médio de internação</span>
-                  <span className="font-medium">42 dias</span>
+                  <span className="text-muted-foreground">Taxa de Ocupação</span>
+                  <span className="font-medium">{occupationRate}%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Taxa de alta planejada</span>
-                  <span className="font-medium">74%</span>
+                  <span className="text-muted-foreground">Total de Pacientes</span>
+                  <span className="font-medium">{totalPatients}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Taxa de reinternação (30 dias)</span>
-                  <span className="font-medium">12%</span>
+                  <span className="text-muted-foreground">Atividades Semanais</span>
+                  <span className="font-medium">{weeklyActivities}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Atividades por paciente (semanal)</span>
-                  <span className="font-medium">5.3</span>
+                  <span className="text-muted-foreground">Leitos Disponíveis</span>
+                  <span className="font-medium">{bedsCapacity - Math.round((occupationRate / 100) * bedsCapacity)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Atendimentos médicos semanais</span>
-                  <span className="font-medium">33</span>
+                  <span className="text-muted-foreground">Faturamento Mensal</span>
+                  <span className="font-medium">R$ {monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
             )}
