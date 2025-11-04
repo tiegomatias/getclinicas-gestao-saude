@@ -29,23 +29,23 @@ export interface PlanRevenue {
 }
 
 const PLAN_PRICING: Record<string, number> = {
-  'Básico': 299,
-  'Mensal': 299,
-  'Padrão': 499,
-  'Semestral': 499,
-  'Premium': 999,
-  'Anual': 999,
-  'Enterprise': 1999
+  'Mensal': 490,
+  'Semestral': 440,
+  'Anual': 408,
+  // Legacy plans (para compatibilidade com clínicas antigas)
+  'Básico': 490,
+  'Padrão': 440,
+  'Premium': 408
 };
 
 const PLAN_COLORS: Record<string, string> = {
-  'Básico': '#3b82f6',
   'Mensal': '#3b82f6',
-  'Padrão': '#10b981',
   'Semestral': '#10b981',
-  'Premium': '#8b5cf6',
   'Anual': '#8b5cf6',
-  'Enterprise': '#f59e0b',
+  // Legacy plans (para compatibilidade com clínicas antigas)
+  'Básico': '#3b82f6',
+  'Padrão': '#10b981',
+  'Premium': '#8b5cf6',
   'default': '#6b7280'
 };
 

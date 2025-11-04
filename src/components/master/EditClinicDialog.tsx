@@ -34,7 +34,7 @@ export function EditClinicDialog({
 }: EditClinicDialogProps) {
   const [name, setName] = useState(clinic?.name || "");
   const [adminEmail, setAdminEmail] = useState(clinic?.admin_email || "");
-  const [plan, setPlan] = useState(clinic?.plan || "Básico");
+  const [plan, setPlan] = useState(clinic?.plan || "Mensal");
   const [bedsCapacity, setBedsCapacity] = useState(clinic?.beds_capacity || 30);
   const [saving, setSaving] = useState(false);
 
@@ -100,13 +100,9 @@ export function EditClinicDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Básico">Básico - R$ 299/mês</SelectItem>
-                <SelectItem value="Mensal">Mensal - R$ 299/mês</SelectItem>
-                <SelectItem value="Padrão">Padrão - R$ 499/mês</SelectItem>
-                <SelectItem value="Semestral">Semestral - R$ 499/mês</SelectItem>
-                <SelectItem value="Premium">Premium - R$ 999/mês</SelectItem>
-                <SelectItem value="Anual">Anual - R$ 999/mês</SelectItem>
-                <SelectItem value="Enterprise">Enterprise - R$ 1.999/mês</SelectItem>
+                <SelectItem value="Mensal">Mensal - R$ 490/mês</SelectItem>
+                <SelectItem value="Semestral">Semestral - R$ 440/mês (R$ 2.640 a cada 6 meses)</SelectItem>
+                <SelectItem value="Anual">Anual - R$ 408/mês (R$ 4.900/ano)</SelectItem>
               </SelectContent>
             </Select>
           </div>
