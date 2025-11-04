@@ -111,7 +111,7 @@ export default function MasterSidebar() {
       <SidebarHeader className="flex items-center gap-2 px-4 py-2">
         <div className="flex items-center gap-2">
           <Logo size="sm" whiteShield={true} />
-          <span className="text-xl font-bold text-white">GetClinicas Master</span>
+          <span className="text-xl font-bold text-white">Master</span>
         </div>
         <div className="ml-auto md:hidden">
           <SidebarTrigger />
