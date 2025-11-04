@@ -114,8 +114,13 @@ export const apostilasService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Upload do arquivo
-      const fileName = `${Date.now()}_${file.name}`;
+      // Upload do arquivo - sanitizar o nome do arquivo
+      const sanitizedFileName = file.name
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/[^a-zA-Z0-9.-]/g, '_') // Substitui caracteres especiais por underscore
+        .toLowerCase();
+      const fileName = `${Date.now()}_${sanitizedFileName}`;
       const { error: uploadError } = await supabase.storage
         .from('apostilas')
         .upload(fileName, file);
