@@ -57,7 +57,7 @@ serve(async (req) => {
     const subscriptions = await stripe.subscriptions.list({
       status: "active",
       limit: 100,
-      expand: ["data.customer", "data.items.data.price.product"]
+      expand: ["data.customer", "data.items.data.price"]
     });
 
     logStep("Fetched subscriptions", { count: subscriptions.data.length });
@@ -72,9 +72,10 @@ serve(async (req) => {
 
     logStep("Fetched invoices", { count: invoices.data.length });
 
-    // Calcular MRR (Monthly Recurring Revenue)
+    // Calcular MRR (Monthly Recurring Revenue) e coletar product IDs
     let totalMRR = 0;
     const planBreakdown: Record<string, { count: number; revenue: number }> = {};
+    const productIds = new Set<string>();
 
     subscriptions.data.forEach(sub => {
       if (sub.items.data[0]?.price) {
@@ -88,10 +89,38 @@ serve(async (req) => {
 
         totalMRR += monthlyAmount / 100; // Converter de centavos para reais
 
-        // Agrupar por produto
-        const productName = typeof price.product === 'string' 
-          ? price.product 
-          : (price.product as any)?.name || 'Unknown';
+        // Coletar product ID
+        const productId = typeof price.product === 'string' ? price.product : '';
+        if (productId) {
+          productIds.add(productId);
+        }
+      }
+    });
+
+    // Buscar informações dos produtos
+    const products = new Map<string, string>();
+    for (const productId of productIds) {
+      try {
+        const product = await stripe.products.retrieve(productId);
+        products.set(productId, product.name);
+      } catch (error) {
+        logStep("Failed to fetch product", { productId, error });
+        products.set(productId, 'Unknown');
+      }
+    }
+
+    // Agrupar receita por produto
+    subscriptions.data.forEach(sub => {
+      if (sub.items.data[0]?.price) {
+        const price = sub.items.data[0].price;
+        let monthlyAmount = price.unit_amount || 0;
+        
+        if (price.recurring?.interval === "year") {
+          monthlyAmount = monthlyAmount / 12;
+        }
+
+        const productId = typeof price.product === 'string' ? price.product : '';
+        const productName = products.get(productId) || 'Unknown';
 
         if (!planBreakdown[productName]) {
           planBreakdown[productName] = { count: 0, revenue: 0 };
