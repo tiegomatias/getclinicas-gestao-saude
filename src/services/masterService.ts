@@ -29,6 +29,7 @@ export interface PlanRevenue {
 }
 
 const PLAN_PRICING: Record<string, number> = {
+  'Teste': 0,
   'Mensal': 490,
   'Semestral': 440,
   'Anual': 408,
@@ -39,6 +40,7 @@ const PLAN_PRICING: Record<string, number> = {
 };
 
 const PLAN_COLORS: Record<string, string> = {
+  'Teste': '#ef4444',
   'Mensal': '#3b82f6',
   'Semestral': '#10b981',
   'Anual': '#8b5cf6',

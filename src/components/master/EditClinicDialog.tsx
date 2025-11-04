@@ -100,6 +100,7 @@ export function EditClinicDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="Teste">Teste - Gratuito (apenas para testes)</SelectItem>
                 <SelectItem value="Mensal">Mensal - R$ 490/mês</SelectItem>
                 <SelectItem value="Semestral">Semestral - R$ 440/mês (R$ 2.640 a cada 6 meses)</SelectItem>
                 <SelectItem value="Anual">Anual - R$ 408/mês (R$ 4.900/ano)</SelectItem>
