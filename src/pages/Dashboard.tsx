@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [weeklyActivities, setWeeklyActivities] = useState(0);
   const [monthlyRevenue, setMonthlyRevenue] = useState(0);
   const [bedsCapacity, setBedsCapacity] = useState(0);
+  const [selectedPeriod, setSelectedPeriod] = useState("current");
   
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -97,8 +98,27 @@ export default function Dashboard() {
           setWeeklyActivities(activities.length);
           
           // Get monthly revenue
-          const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-          const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          let firstDayOfMonth: Date;
+          let lastDayOfMonth: Date;
+          
+          switch (selectedPeriod) {
+            case 'previous':
+              firstDayOfMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+              lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+              break;
+            case 'quarter':
+              const currentQuarter = Math.floor(today.getMonth() / 3);
+              firstDayOfMonth = new Date(today.getFullYear(), currentQuarter * 3, 1);
+              lastDayOfMonth = new Date(today.getFullYear(), (currentQuarter + 1) * 3, 0);
+              break;
+            case 'year':
+              firstDayOfMonth = new Date(today.getFullYear(), 0, 1);
+              lastDayOfMonth = new Date(today.getFullYear(), 11, 31);
+              break;
+            default: // current
+              firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+              lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          }
           
           const finances = await financeService.getFinancesByDateRange(
             clinic.id,
@@ -120,7 +140,7 @@ export default function Dashboard() {
     };
     
     loadDashboardData();
-  }, []);
+  }, [selectedPeriod]);
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -163,7 +183,7 @@ export default function Dashboard() {
             "Bem-vindo ao GetClinicas"}
         </h1>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Select defaultValue="current">
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Período" />
             </SelectTrigger>
@@ -270,7 +290,17 @@ export default function Dashboard() {
           title="Faturamento Mensal"
           value={loading ? "..." : `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={DollarSign}
-          description={monthlyRevenue === 0 ? "Sem dados financeiros" : new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+          description={
+            monthlyRevenue === 0 
+              ? "Sem dados financeiros" 
+              : selectedPeriod === 'previous' 
+                ? 'Mês anterior'
+                : selectedPeriod === 'quarter'
+                  ? 'Trimestre atual'
+                  : selectedPeriod === 'year'
+                    ? 'Ano atual'
+                    : new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+          }
         />
       </div>
 

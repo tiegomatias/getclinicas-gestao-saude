@@ -47,6 +47,8 @@ import Alimentacao from "./pages/Alimentacao";
 import Dispensa from "./pages/Alimentacao/Dispensa";
 import Supermercado from "./pages/Alimentacao/Supermercado";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +62,8 @@ function App() {
             <Route path="/home" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registration />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/plans" element={<Plans />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/success" element={<Success />} />

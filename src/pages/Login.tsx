@@ -236,7 +236,7 @@ const Login = () => {
                   <Label htmlFor="password">Senha</Label>
                   <button
                     type="button"
-                    onClick={() => setShowResetPassword(true)}
+                    onClick={() => navigate('/forgot-password')}
                     className="text-sm text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
                   >
                     Esqueceu a senha?

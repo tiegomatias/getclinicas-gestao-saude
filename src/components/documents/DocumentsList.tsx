@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DocumentPreview } from "./DocumentPreview";
 
 export interface DocumentsListProps {
   documents: any[];
@@ -27,6 +28,8 @@ export interface DocumentsListProps {
 }
 
 export default function DocumentsList({ documents, searchQuery = "", onDelete }: DocumentsListProps) {
+  const [previewDoc, setPreviewDoc] = useState<any>(null);
+  
   const filteredDocuments = documents.filter((doc) =>
     doc.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -94,7 +97,7 @@ export default function DocumentsList({ documents, searchQuery = "", onDelete }:
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setPreviewDoc(doc)}>
                         <Eye className="mr-2 h-4 w-4" />
                         Visualizar
                       </DropdownMenuItem>
@@ -118,6 +121,16 @@ export default function DocumentsList({ documents, searchQuery = "", onDelete }:
           )}
         </TableBody>
       </Table>
+      
+      {previewDoc && (
+        <DocumentPreview
+          isOpen={!!previewDoc}
+          onClose={() => setPreviewDoc(null)}
+          fileUrl={previewDoc.file_url}
+          fileName={previewDoc.title}
+          fileType={previewDoc.document_type}
+        />
+      )}
     </div>
   );
 }
