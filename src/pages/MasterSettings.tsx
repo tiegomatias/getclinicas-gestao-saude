@@ -2,7 +2,8 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Database, Bell } from "lucide-react";
 import { AuditLogsTable } from "@/components/master/AuditLogsTable";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SystemSettingsPanel } from "@/components/master/SystemSettingsPanel";
+import { NotificationSettingsPanel } from "@/components/master/NotificationSettingsPanel";
 
 export default function MasterSettings() {
   return (
@@ -35,64 +36,11 @@ export default function MasterSettings() {
         </TabsContent>
 
         <TabsContent value="database">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gerenciamento de Banco de Dados</CardTitle>
-              <CardDescription>
-                Visualize estatísticas e gerencie o banco de dados
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-semibold mb-2">Estatísticas</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Total de Registros</p>
-                      <p className="text-2xl font-bold">Em breve</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Tamanho do Banco</p>
-                      <p className="text-2xl font-bold">Em breve</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 border rounded-lg bg-muted">
-                  <p className="text-sm text-muted-foreground">
-                    Funcionalidades avançadas de gerenciamento de banco de dados
-                    serão implementadas em breve.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <SystemSettingsPanel />
         </TabsContent>
 
         <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações de Notificações</CardTitle>
-              <CardDescription>
-                Configure alertas e notificações do sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg bg-muted">
-                  <p className="text-sm text-muted-foreground">
-                    Sistema de notificações será implementado em breve.
-                    Incluirá alertas para:
-                  </p>
-                  <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
-                    <li>Novas clínicas cadastradas</li>
-                    <li>Alterações importantes no sistema</li>
-                    <li>Problemas de segurança</li>
-                    <li>Relatórios de uso</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <NotificationSettingsPanel />
         </TabsContent>
       </Tabs>
     </div>

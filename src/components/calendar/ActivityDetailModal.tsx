@@ -9,7 +9,7 @@ import {
 import { Activity, activityService } from "@/services/activityService";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, Users, Edit, Trash2 } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Users, Edit, Trash2, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -48,6 +48,65 @@ const activityTypeColors: Record<string, string> = {
   recreation: "bg-pink-100 text-pink-800",
   other: "bg-gray-100 text-gray-800",
 };
+
+interface AttendanceCardProps {
+  participant: {
+    id: string;
+    attendance_status: string;
+    patient?: { name: string };
+  };
+  onStatusChange: (status: string) => Promise<void>;
+}
+
+function AttendanceCard({ participant, onStatusChange }: AttendanceCardProps) {
+  const [updating, setUpdating] = React.useState(false);
+
+  const handleStatusChange = async (newStatus: string) => {
+    setUpdating(true);
+    await onStatusChange(newStatus);
+    setUpdating(false);
+  };
+
+  return (
+    <div className="flex items-center justify-between rounded-md border p-3 bg-card">
+      <span className="text-sm font-medium">
+        {participant.patient?.name || "Paciente"}
+      </span>
+      <div className="flex gap-1">
+        <Button
+          variant={participant.attendance_status === "present" ? "default" : "outline"}
+          size="sm"
+          disabled={updating}
+          onClick={() => handleStatusChange("present")}
+          className="h-8 px-2"
+        >
+          <CheckCircle2 className="h-4 w-4 mr-1" />
+          Presente
+        </Button>
+        <Button
+          variant={participant.attendance_status === "absent" ? "destructive" : "outline"}
+          size="sm"
+          disabled={updating}
+          onClick={() => handleStatusChange("absent")}
+          className="h-8 px-2"
+        >
+          <XCircle className="h-4 w-4 mr-1" />
+          Ausente
+        </Button>
+        <Button
+          variant={participant.attendance_status === "confirmed" ? "secondary" : "outline"}
+          size="sm"
+          disabled={updating}
+          onClick={() => handleStatusChange("confirmed")}
+          className="h-8 px-2"
+        >
+          <HelpCircle className="h-4 w-4 mr-1" />
+          Confirmado
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function ActivityDetailModal({
   open,
@@ -166,29 +225,19 @@ export default function ActivityDetailModal({
                     </p>
                     <div className="space-y-2">
                       {activity.participants.map((participant) => (
-                        <div
+                        <AttendanceCard
                           key={participant.id}
-                          className="flex items-center justify-between rounded-md border p-2"
-                        >
-                          <span className="text-sm">
-                            {participant.patient?.name || "Paciente"}
-                          </span>
-                          <Badge
-                            variant={
-                              participant.attendance_status === "present"
-                                ? "default"
-                                : participant.attendance_status === "absent"
-                                ? "destructive"
-                                : "secondary"
+                          participant={participant}
+                          onStatusChange={async (newStatus) => {
+                            const success = await activityService.updateParticipantStatus(
+                              participant.id,
+                              newStatus
+                            );
+                            if (success) {
+                              window.location.reload();
                             }
-                          >
-                            {participant.attendance_status === "present"
-                              ? "Presente"
-                              : participant.attendance_status === "absent"
-                              ? "Ausente"
-                              : "Confirmado"}
-                          </Badge>
-                        </div>
+                          }}
+                        />
                       ))}
                     </div>
                   </div>
