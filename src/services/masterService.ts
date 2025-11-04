@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface ClinicData {
   id: string;
   name: string;
+  phone?: string;
   admin_email: string;
   plan: string;
   created_at: string;
@@ -69,6 +70,7 @@ export const masterService = {
     return data.map(clinic => ({
       id: clinic.id,
       name: clinic.name,
+      phone: clinic.phone,
       admin_email: clinic.admin_email,
       plan: clinic.plan || 'Básico',
       created_at: clinic.created_at,
@@ -163,6 +165,7 @@ export const masterService = {
     return {
       id: data.id,
       name: data.name,
+      phone: data.phone,
       admin_email: data.admin_email,
       plan: data.plan || 'Básico',
       created_at: data.created_at,
@@ -182,6 +185,7 @@ export const masterService = {
       .from('clinics')
       .update({
         name: updates.name,
+        phone: updates.phone,
         admin_email: updates.admin_email,
         plan: updates.plan,
         beds_capacity: updates.beds_capacity
@@ -198,6 +202,7 @@ export const masterService = {
     return {
       id: data.id,
       name: data.name,
+      phone: data.phone,
       admin_email: data.admin_email,
       plan: data.plan || 'Básico',
       created_at: data.created_at,

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputWithMask } from "@/components/ui/input-with-mask";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -33,6 +34,7 @@ export function EditClinicDialog({
   onSave,
 }: EditClinicDialogProps) {
   const [name, setName] = useState(clinic?.name || "");
+  const [phone, setPhone] = useState(clinic?.phone || "");
   const [adminEmail, setAdminEmail] = useState(clinic?.admin_email || "");
   const [plan, setPlan] = useState(clinic?.plan || "Mensal");
   const [bedsCapacity, setBedsCapacity] = useState(clinic?.beds_capacity || 30);
@@ -41,6 +43,7 @@ export function EditClinicDialog({
   React.useEffect(() => {
     if (clinic) {
       setName(clinic.name);
+      setPhone(clinic.phone || "");
       setAdminEmail(clinic.admin_email);
       setPlan(clinic.plan);
       setBedsCapacity(clinic.beds_capacity);
@@ -54,6 +57,7 @@ export function EditClinicDialog({
     try {
       await onSave(clinic.id, {
         name,
+        phone,
         admin_email: adminEmail,
         plan,
         beds_capacity: bedsCapacity,
@@ -82,6 +86,16 @@ export function EditClinicDialog({
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="phone">Telefone de Contato</Label>
+            <InputWithMask
+              id="phone"
+              mask="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(11) 98765-4321"
             />
           </div>
           <div className="grid gap-2">
