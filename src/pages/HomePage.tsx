@@ -244,10 +244,13 @@ const HomePage = () => {
               <Button 
                 variant="outline"
                 size={isMobile ? "default" : "lg"}
-                onClick={handleViewDemo}
+                onClick={() => {
+                  const message = encodeURIComponent("Olá! Gostaria de conhecer melhor o GetClinicas e agendar uma demonstração para minha clínica.");
+                  window.open(`https://wa.me/5511999999999?text=${message}`, '_blank');
+                }}
                 className="text-base md:text-lg"
               >
-                Começar Gratuitamente
+                Falar com Especialista
               </Button>
             </div>
             
