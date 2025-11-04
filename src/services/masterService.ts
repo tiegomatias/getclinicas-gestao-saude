@@ -88,10 +88,12 @@ export const masterService = {
     let totalRevenue = 0;
 
     clinics.forEach(clinic => {
-      // Usar soma real dos leitos (ocupados + disponíveis + manutenção)
-      const realBeds = clinic.occupied_beds + clinic.available_beds + clinic.maintenance_beds;
-      totalBeds += realBeds > 0 ? realBeds : clinic.beds_capacity;
-      totalOccupiedBeds += clinic.occupied_beds;
+      // Só contar leitos de clínicas que realmente configuraram seus leitos
+      if (clinic.has_beds_data) {
+        const realBeds = clinic.occupied_beds + clinic.available_beds + clinic.maintenance_beds;
+        totalBeds += realBeds;
+        totalOccupiedBeds += clinic.occupied_beds;
+      }
       
       const planPrice = PLAN_PRICING[clinic.plan] || PLAN_PRICING['Básico'];
       totalRevenue += planPrice;
@@ -226,15 +228,18 @@ export const masterService = {
   async getOccupationData() {
     const clinics = await this.getAllClinics();
     
-    // Retorna dados reais agregados de todas as clínicas
+    // Retorna dados reais agregados apenas de clínicas que configuraram leitos
     let totalOccupied = 0;
     let totalAvailable = 0;
     let totalMaintenance = 0;
 
     clinics.forEach(clinic => {
-      totalOccupied += clinic.occupied_beds;
-      totalAvailable += clinic.available_beds;
-      totalMaintenance += clinic.maintenance_beds;
+      // Só contar leitos de clínicas que realmente configuraram
+      if (clinic.has_beds_data) {
+        totalOccupied += clinic.occupied_beds;
+        totalAvailable += clinic.available_beds;
+        totalMaintenance += clinic.maintenance_beds;
+      }
     });
     
     return {

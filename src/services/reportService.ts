@@ -42,18 +42,23 @@ export const reportService = {
     try {
       const { data: clinic, error } = await supabase
         .from("clinics")
-        .select("beds_capacity, occupied_beds, available_beds, maintenance_beds")
+        .select("beds_capacity, occupied_beds, available_beds, maintenance_beds, has_beds_data")
         .eq("id", clinicId)
         .single();
 
       if (error) throw error;
 
-      const occupationRate = clinic.beds_capacity > 0
-        ? (clinic.occupied_beds / clinic.beds_capacity) * 100
+      // Só calcular com dados reais se a clínica configurou os leitos
+      const totalBeds = clinic.has_beds_data 
+        ? (clinic.occupied_beds + clinic.available_beds + clinic.maintenance_beds)
+        : 0;
+
+      const occupationRate = totalBeds > 0
+        ? (clinic.occupied_beds / totalBeds) * 100
         : 0;
 
       return {
-        totalBeds: clinic.beds_capacity || 0,
+        totalBeds,
         occupiedBeds: clinic.occupied_beds || 0,
         availableBeds: clinic.available_beds || 0,
         maintenanceBeds: clinic.maintenance_beds || 0,

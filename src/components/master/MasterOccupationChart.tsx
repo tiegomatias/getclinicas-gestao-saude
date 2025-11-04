@@ -16,14 +16,11 @@ export const MasterOccupationChart = ({ clinics }: MasterOccupationChartProps) =
     let totalMaintenance = 0;
 
     clinics.forEach((clinic) => {
-      // Only count data from clinics that have bed information
+      // Só contar leitos de clínicas que realmente configuraram
       if (clinic.has_beds_data) {
         totalOccupied += clinic.occupied_beds || 0;
         totalAvailable += clinic.available_beds || 0;
         totalMaintenance += clinic.maintenance_beds || 0;
-      } else {
-        // Default to all beds available for new clinics
-        totalAvailable += clinic.beds_capacity || 30;
       }
     });
 

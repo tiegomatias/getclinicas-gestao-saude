@@ -159,8 +159,11 @@ export default function MasterReports() {
                 ) : (
                   <div className="space-y-4">
                     {clinics.map(clinic => {
-                      const realBeds = clinic.occupied_beds + clinic.available_beds + clinic.maintenance_beds;
-                      const totalBedsForClinic = realBeds > 0 ? realBeds : clinic.beds_capacity;
+                      // Só calcular leitos de clínicas que realmente configuraram
+                      const totalBedsForClinic = clinic.has_beds_data 
+                        ? clinic.occupied_beds + clinic.available_beds + clinic.maintenance_beds
+                        : 0;
+                      
                       const occupationRate = totalBedsForClinic > 0 
                         ? Math.round((clinic.occupied_beds / totalBedsForClinic) * 100)
                         : 0;
@@ -180,7 +183,9 @@ export default function MasterReports() {
                           <div className="grid grid-cols-3 gap-4 mt-3 pt-3 border-t">
                             <div>
                               <p className="text-sm text-muted-foreground">Total</p>
-                              <p className="font-medium">{totalBedsForClinic} leitos</p>
+                              <p className="font-medium">
+                                {clinic.has_beds_data ? `${totalBedsForClinic} leitos` : 'Não configurado'}
+                              </p>
                             </div>
                             <div>
                               <p className="text-sm text-muted-foreground">Ocupados</p>
