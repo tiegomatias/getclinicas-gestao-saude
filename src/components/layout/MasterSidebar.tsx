@@ -25,6 +25,7 @@ import {
   Database,
   HelpCircle,
   Webhook,
+  BookOpen,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,6 +74,11 @@ export default function MasterSidebar() {
       title: "Suporte",
       path: "/master/support",
       icon: HelpCircle,
+    },
+    {
+      title: "Apostilas",
+      path: "/master/apostilas",
+      icon: BookOpen,
     },
     {
       title: "Relatórios",
