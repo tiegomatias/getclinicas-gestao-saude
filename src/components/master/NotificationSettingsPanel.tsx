@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Bell, Mail, MessageSquare, Shield, AlertTriangle, TrendingUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export function NotificationSettingsPanel() {
   const [emailNotifications, setEmailNotifications] = React.useState(true);
@@ -15,6 +18,29 @@ export function NotificationSettingsPanel() {
   const [financialAlerts, setFinancialAlerts] = React.useState(true);
   const [systemAlerts, setSystemAlerts] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [recentNotifications, setRecentNotifications] = React.useState<any[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = React.useState(true);
+
+  React.useEffect(() => {
+    loadRecentNotifications();
+  }, []);
+
+  const loadRecentNotifications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setRecentNotifications(data || []);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
 
   const handleSaveSettings = async () => {
     setSaving(true);
@@ -176,44 +202,47 @@ export function NotificationSettingsPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Resumo de Notificações</CardTitle>
+          <CardTitle>Atividades Recentes</CardTitle>
           <CardDescription>
-            Últimas notificações enviadas
+            Últimas ações realizadas no sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 border rounded-lg">
-              <Shield className="h-5 w-5 text-blue-500 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">Alerta de Segurança</p>
-                <p className="text-xs text-muted-foreground">
-                  Nova tentativa de acesso de IP desconhecido
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">Há 2 horas</p>
-              </div>
+          {loadingNotifications ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-            <div className="flex items-start gap-3 p-3 border rounded-lg">
-              <MessageSquare className="h-5 w-5 text-green-500 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">Nova Clínica Cadastrada</p>
-                <p className="text-xs text-muted-foreground">
-                  Clínica Esperança completou o cadastro
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">Há 5 horas</p>
-              </div>
+          ) : recentNotifications.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>Nenhuma atividade recente</p>
             </div>
-            <div className="flex items-start gap-3 p-3 border rounded-lg">
-              <TrendingUp className="h-5 w-5 text-purple-500 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">Meta de Receita Atingida</p>
-                <p className="text-xs text-muted-foreground">
-                  MRR mensal atingiu R$ 50.000
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">Ontem</p>
-              </div>
+          ) : (
+            <div className="space-y-3">
+              {recentNotifications.map((notification) => (
+                <div key={notification.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                  {notification.action === 'CREATE' && <MessageSquare className="h-5 w-5 text-green-500 mt-0.5" />}
+                  {notification.action === 'UPDATE' && <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />}
+                  {notification.action === 'DELETE' && <Shield className="h-5 w-5 text-red-500 mt-0.5" />}
+                  {notification.action === 'VIEW' && <Bell className="h-5 w-5 text-blue-500 mt-0.5" />}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      {notification.action} - {notification.entity_type}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {notification.user_email || 'Sistema'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formatDistanceToNow(new Date(notification.created_at), { 
+                        addSuffix: true,
+                        locale: ptBR 
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

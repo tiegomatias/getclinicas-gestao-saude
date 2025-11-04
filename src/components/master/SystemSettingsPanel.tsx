@@ -7,12 +7,54 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Database, RefreshCw, Trash2, Shield, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export function SystemSettingsPanel() {
   const [maintenanceMode, setMaintenanceMode] = React.useState(false);
   const [autoBackup, setAutoBackup] = React.useState(true);
   const [dataRetention, setDataRetention] = React.useState("90");
   const [saving, setSaving] = React.useState(false);
+  const [stats, setStats] = React.useState({
+    totalRecords: 0,
+    lastBackup: null as Date | null,
+    loading: true
+  });
+
+  React.useEffect(() => {
+    loadSystemStats();
+  }, []);
+
+  const loadSystemStats = async () => {
+    try {
+      // Buscar total de registros de várias tabelas
+      const [
+        { count: patientsCount },
+        { count: professionalsCount },
+        { count: clinicsCount },
+        { count: bedsCount },
+        { data: lastBackup }
+      ] = await Promise.all([
+        supabase.from('patients').select('*', { count: 'exact', head: true }),
+        supabase.from('professionals').select('*', { count: 'exact', head: true }),
+        supabase.from('clinics').select('*', { count: 'exact', head: true }),
+        supabase.from('beds').select('*', { count: 'exact', head: true }),
+        supabase.from('backup_logs').select('*').order('created_at', { ascending: false }).limit(1)
+      ]);
+
+      const totalRecords = (patientsCount || 0) + (professionalsCount || 0) + (clinicsCount || 0) + (bedsCount || 0);
+      
+      setStats({
+        totalRecords,
+        lastBackup: lastBackup && lastBackup[0] ? new Date(lastBackup[0].created_at) : null,
+        loading: false
+      });
+    } catch (error) {
+      console.error('Error loading system stats:', error);
+      setStats(prev => ({ ...prev, loading: false }));
+    }
+  };
 
   const handleSaveSettings = async () => {
     setSaving(true);
@@ -151,36 +193,39 @@ export function SystemSettingsPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Database className="h-4 w-4" />
-                <p className="text-xs font-medium">Tamanho do Banco</p>
-              </div>
-              <p className="text-2xl font-bold">2.4 GB</p>
+          {stats.loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Shield className="h-4 w-4" />
-                <p className="text-xs font-medium">Total de Registros</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <Shield className="h-4 w-4" />
+                  <p className="text-xs font-medium">Total de Registros</p>
+                </div>
+                <p className="text-2xl font-bold">{stats.totalRecords.toLocaleString('pt-BR')}</p>
               </div>
-              <p className="text-2xl font-bold">45.8K</p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Clock className="h-4 w-4" />
-                <p className="text-xs font-medium">Último Backup</p>
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <Clock className="h-4 w-4" />
+                  <p className="text-xs font-medium">Último Backup</p>
+                </div>
+                <p className="text-sm font-bold">
+                  {stats.lastBackup 
+                    ? format(stats.lastBackup, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                    : 'Sem backups'}
+                </p>
               </div>
-              <p className="text-sm font-bold">Hoje, 03:00</p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <RefreshCw className="h-4 w-4" />
-                <p className="text-xs font-medium">Uptime</p>
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <Database className="h-4 w-4" />
+                  <p className="text-xs font-medium">Status</p>
+                </div>
+                <p className="text-2xl font-bold text-green-600">Online</p>
               </div>
-              <p className="text-2xl font-bold">99.9%</p>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
