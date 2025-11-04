@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { InputWithMask } from "@/components/ui/input-with-mask";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,7 @@ const Registration = () => {
   
   // Form values
   const [clinicName, setClinicName] = useState("");
+  const [clinicPhone, setClinicPhone] = useState("");
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +33,7 @@ const Registration = () => {
     e.preventDefault();
     
     // Basic validation
-    if (!clinicName || !adminName || !adminEmail || !password || !confirmPassword) {
+    if (!clinicName || !clinicPhone || !adminName || !adminEmail || !password || !confirmPassword) {
       toast.error("Preencha todos os campos");
       return;
     }
@@ -107,6 +109,7 @@ const Registration = () => {
         .insert([
           {
             name: clinicName,
+            phone: clinicPhone,
             admin_id: signUpData.user.id,
             admin_email: adminEmail
           }
@@ -265,6 +268,18 @@ const Registration = () => {
                 placeholder="Ex: Centro de Recuperação São Lucas"
                   value={clinicName}
                   onChange={(e) => setClinicName(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="clinicPhone">Telefone de Contato</Label>
+                <InputWithMask
+                  id="clinicPhone"
+                  mask="phone"
+                  placeholder="(11) 98765-4321"
+                  value={clinicPhone}
+                  onChange={(e) => setClinicPhone(e.target.value)}
                   required
                 />
               </div>
