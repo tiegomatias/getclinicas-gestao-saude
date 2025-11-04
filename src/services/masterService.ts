@@ -215,17 +215,20 @@ export const masterService = {
   },
 
   /**
-   * Deleta uma clínica
+   * Deleta uma clínica e todos os seus dados relacionados
    */
   async deleteClinic(clinicId: string): Promise<void> {
-    const { error } = await supabase
-      .from('clinics')
-      .delete()
-      .eq('id', clinicId);
+    const { data, error } = await supabase.functions.invoke('delete-clinic-complete', {
+      body: { clinicId }
+    });
 
     if (error) {
       console.error('Error deleting clinic:', error);
       throw error;
+    }
+
+    if (!data?.success) {
+      throw new Error(data?.error || 'Failed to delete clinic');
     }
   },
 
