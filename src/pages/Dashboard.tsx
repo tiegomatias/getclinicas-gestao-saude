@@ -35,16 +35,30 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { isSubscribed } = useSubscription();
-  const { isMasterAdmin } = useAuth();
+  const { isMasterAdmin, loading: authLoading } = useAuth();
   
   // Verificar assinatura e redirecionar para planos se não estiver ativo
   // Master admin não precisa de plano
   useEffect(() => {
-    if (!loading && !isMasterAdmin && !isSubscribed()) {
+    // Aguardar o loading do auth antes de verificar
+    if (authLoading) {
+      console.log("Auth still loading, waiting...");
+      return;
+    }
+    
+    // Master admin nunca deve ser redirecionado
+    if (isMasterAdmin) {
+      console.log("User is master admin, no subscription check needed");
+      return;
+    }
+    
+    // Apenas redireciona se não for master admin E não tiver assinatura
+    if (!loading && !isSubscribed()) {
+      console.log("User is not subscribed, redirecting to plans");
       toast.info("Escolha um plano para acessar o sistema");
       navigate("/plans");
     }
-  }, [loading, isMasterAdmin, isSubscribed, navigate]);
+  }, [loading, authLoading, isMasterAdmin, isSubscribed, navigate]);
   
   // Real data states
   const [totalPatients, setTotalPatients] = useState(0);
