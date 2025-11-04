@@ -2,13 +2,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getPlanByProductId, type SubscriptionPlan } from '@/lib/subscriptionPlans';
 
 export const useSubscription = () => {
-  const { subscriptionStatus, checkSubscription } = useAuth();
+  const { subscriptionStatus, checkSubscription, isMasterAdmin } = useAuth();
 
   const isSubscribed = (): boolean => {
+    // Master admin sempre tem acesso
+    if (isMasterAdmin) return true;
     return subscriptionStatus.subscribed;
   };
 
   const hasActivePlan = (): boolean => {
+    // Master admin sempre tem acesso
+    if (isMasterAdmin) return true;
     return subscriptionStatus.subscribed && !!subscriptionStatus.product_id;
   };
 

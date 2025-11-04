@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +18,13 @@ export const SubscriptionGuard = ({
   requirePlan 
 }: SubscriptionGuardProps) => {
   const subscription = useSubscription();
+  const { isMasterAdmin } = useAuth();
   const navigate = useNavigate();
+
+  // Master admin sempre tem acesso
+  if (isMasterAdmin) {
+    return <>{children}</>;
+  }
 
   // Se não precisa de plano específico, só verifica se tem assinatura ativa
   if (!requirePlan && subscription.isSubscribed()) {

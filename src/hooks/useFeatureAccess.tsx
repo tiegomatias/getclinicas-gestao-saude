@@ -1,4 +1,5 @@
 import { useSubscription } from './useSubscription';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -12,9 +13,13 @@ interface FeatureConfig {
 
 export const useFeatureAccess = () => {
   const subscription = useSubscription();
+  const { isMasterAdmin } = useAuth();
   const navigate = useNavigate();
 
   const hasAccess = (requiredTier: FeatureTier): boolean => {
+    // Master admin sempre tem acesso
+    if (isMasterAdmin) return true;
+    
     if (requiredTier === 'free') return true;
     
     if (!subscription.isSubscribed()) return false;
