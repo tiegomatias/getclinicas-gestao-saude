@@ -36,12 +36,12 @@ const Index = () => {
               toast.success(`Bem-vindo de volta à ${clinicName}!`);
               navigate("/dashboard");
             } else {
-              console.log("No valid clinic ID found, redirecting to /login");
-              navigate("/login");
+              console.log("No valid clinic ID found, redirecting to /home");
+              navigate("/home");
             }
           } catch (error) {
             console.error("Error parsing clinicData:", error);
-            navigate("/login");
+            navigate("/home");
           }
         } else {
           console.log("No clinic data found, user authenticated but no clinic - staying on home");

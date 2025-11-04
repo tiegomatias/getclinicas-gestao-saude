@@ -199,10 +199,22 @@ const Registration = () => {
       console.log("Login automático realizado com sucesso");
       toast.success("Clínica registrada com sucesso!");
       
-      // Após registro bem-sucedido, redirecionar para página de planos
-      setTimeout(() => {
-        console.log("Redirecionando para seleção de planos...");
-        navigate("/plans");
+      // Master admin vai direto para master dashboard, outros vão para plans
+      setTimeout(async () => {
+        // Verificar se o usuário é master admin
+        const { data: rolesData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', signUpData.user.id)
+          .single();
+        
+        if (rolesData && rolesData.role === 'master_admin') {
+          console.log("Usuário é master admin, redirecionando para /master");
+          navigate("/master");
+        } else {
+          console.log("Redirecionando para seleção de planos...");
+          navigate("/plans");
+        }
       }, 500);
       
     } catch (error: any) {
