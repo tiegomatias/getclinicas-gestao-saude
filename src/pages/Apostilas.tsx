@@ -7,8 +7,6 @@ import { apostilasService, type Apostila } from "@/services/apostilasService";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 // Configurar worker do PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -249,8 +247,8 @@ export default function Apostilas() {
                   <Page
                     pageNumber={pageNumber}
                     width={Math.min(window.innerWidth * 0.8, 800)}
-                    renderTextLayer={true}
-                    renderAnnotationLayer={true}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
                   />
                 </Document>
 
