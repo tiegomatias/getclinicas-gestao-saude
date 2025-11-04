@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarIcon, Plus, Filter, Clock, Users } from "lucide-react";
+import { CalendarIcon, Plus, Filter, Clock, Users, CheckCircle } from "lucide-react";
 import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
 import AppointmentsList from "@/components/calendar/AppointmentsList";
 import ActivityForm from "@/components/calendar/ActivityForm";
@@ -253,13 +253,28 @@ export default function Calendar() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="bg-muted/50 p-4 rounded-lg text-center">
-                      <p className="text-muted-foreground mb-4">
-                        O registro de presença nas atividades estará disponível em breve.
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <p>Sistema de presença ativo</p>
+                      </div>
+                      <p className="text-sm">
+                        Para registrar a presença dos participantes, clique em uma atividade no calendário e use os botões de controle de presença individual.
                       </p>
-                      <Button onClick={() => toast.success("Recurso será disponibilizado em breve!")}>
-                        Ativar Registro de Presença
-                      </Button>
+                      <div className="grid gap-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                          <span>Presente - Participante confirmou presença</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-destructive"></div>
+                          <span>Ausente - Participante não compareceu</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-muted-foreground"></div>
+                          <span>Confirmado - Aguardando confirmação</span>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
