@@ -176,6 +176,45 @@ export type Database = {
           },
         ]
       }
+      apostilas: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+          upload_by: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+          upload_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
+          upload_by?: string | null
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_type: string

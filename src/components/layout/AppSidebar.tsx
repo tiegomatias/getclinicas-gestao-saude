@@ -29,6 +29,7 @@ import {
   Apple,
   ShoppingCart,
   Package,
+  BookOpen,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,6 +78,11 @@ export default function AppSidebar() {
       title: "Alimentação",
       path: "/alimentacao",
       icon: Apple,
+    },
+    {
+      title: "Apostilas",
+      path: "/apostilas",
+      icon: BookOpen,
     },
     {
       title: "Documentos",
