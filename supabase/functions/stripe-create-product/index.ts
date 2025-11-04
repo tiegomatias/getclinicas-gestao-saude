@@ -38,7 +38,7 @@ serve(async (req) => {
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     
     const user = userData.user;
-    if (!user?.email || user.email !== 'master@getclinicas.com') {
+    if (!user?.email || user.email !== 'tiego@getclinicas.com') {
       throw new Error("Unauthorized: Only master admin can create products");
     }
 
