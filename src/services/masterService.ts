@@ -97,7 +97,7 @@ export const masterService = {
         totalOccupiedBeds += clinic.occupied_beds;
       }
       
-      const planPrice = PLAN_PRICING[clinic.plan] || PLAN_PRICING['Básico'];
+      const planPrice = PLAN_PRICING[clinic.plan] || 0;
       totalRevenue += planPrice;
     });
 
@@ -127,7 +127,7 @@ export const masterService = {
 
     const revenueData = Object.keys(planCounts).map(plan => {
       const count = planCounts[plan];
-      const planPrice = PLAN_PRICING[plan] || PLAN_PRICING['Básico'];
+      const planPrice = PLAN_PRICING[plan] || 0;
       const monthlyRevenue = count * planPrice;
       const color = PLAN_COLORS[plan] || PLAN_COLORS['default'];
 
