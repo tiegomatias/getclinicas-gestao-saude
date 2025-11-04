@@ -13,8 +13,7 @@ import { auditService } from "@/services/auditService";
 
 export default function MasterReports() {
   const [clinics, setClinics] = useState<ClinicData[]>([]);
-  const [timeRange, setTimeRange] = useState("month");
-  const [reportData, setReportData] = useState<any[]>([]);
+  const [occupationData, setOccupationData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -24,8 +23,12 @@ export default function MasterReports() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const data = await masterService.getAllClinics();
-      setClinics(data);
+      const [clinicsData, occupationStats] = await Promise.all([
+        masterService.getAllClinics(),
+        masterService.getOccupationData()
+      ]);
+      setClinics(clinicsData);
+      setOccupationData(occupationStats);
     } catch (error) {
       console.error("Error loading clinics:", error);
       toast.error("Erro ao carregar dados");
@@ -34,38 +37,25 @@ export default function MasterReports() {
     }
   };
   
-  useEffect(() => {
-    loadReportData();
-  }, [timeRange]);
-
-  const loadReportData = async () => {
-    try {
-      const data = await masterService.getOccupationData(timeRange as any);
-      setReportData(data);
-    } catch (error) {
-      console.error("Error loading report data:", error);
-    }
-  };
-  
   const handleExportReport = () => {
-    const headers = ['Período', 'Leitos Ocupados', 'Leitos Disponíveis'];
+    if (!occupationData) {
+      toast.error("Nenhum dado disponível para exportar");
+      return;
+    }
+
+    const headers = ['Tipo', 'Quantidade'];
     
     let csvContent = headers.join(',') + '\n';
-    reportData.forEach(item => {
-      const row = [
-        item.name,
-        item.ocupados,
-        item.disponíveis
-      ].join(',');
-      csvContent += row + '\n';
-    });
+    csvContent += `Ocupados,${occupationData.ocupados}\n`;
+    csvContent += `Disponíveis,${occupationData.disponíveis}\n`;
+    csvContent += `Manutenção,${occupationData.manutenção}\n`;
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     
     link.setAttribute('href', url);
-    link.setAttribute('download', `relatorio_ocupacao_${timeRange}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `relatorio_ocupacao_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -74,8 +64,7 @@ export default function MasterReports() {
     // Registrar log de auditoria
     auditService.logAction('EXPORT', 'report', undefined, {
       reportType: 'occupation',
-      timeRange,
-      fileName: `relatorio_ocupacao_${timeRange}_${new Date().toISOString().split('T')[0]}.csv`
+      fileName: `relatorio_ocupacao_${new Date().toISOString().split('T')[0]}.csv`
     });
     
     toast.success("Relatório exportado com sucesso!");
@@ -123,38 +112,37 @@ export default function MasterReports() {
 
           <div className="grid gap-6">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xl">Ocupação de Leitos</CardTitle>
-                <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Período" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="week">Última Semana</SelectItem>
-                      <SelectItem value="month">Último Mês</SelectItem>
-                      <SelectItem value="year">Último Ano</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+              <CardHeader>
+                <CardTitle className="text-xl">Ocupação Atual de Leitos</CardTitle>
               </CardHeader>
               <CardContent>
-                {reportData.length === 0 ? (
+                {!occupationData ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    Nenhum dado disponível para o período selecionado.
+                    Carregando dados de ocupação...
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={reportData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="ocupados" fill="#2A6F97" name="Leitos Ocupados" />
-                      <Bar dataKey="disponíveis" fill="#40A850" name="Leitos Disponíveis" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="p-4 border rounded-lg bg-blue-50">
+                        <p className="text-sm text-muted-foreground mb-1">Ocupados</p>
+                        <p className="text-3xl font-bold text-blue-700">{occupationData.ocupados}</p>
+                      </div>
+                      <div className="p-4 border rounded-lg bg-green-50">
+                        <p className="text-sm text-muted-foreground mb-1">Disponíveis</p>
+                        <p className="text-3xl font-bold text-green-700">{occupationData.disponíveis}</p>
+                      </div>
+                      <div className="p-4 border rounded-lg bg-amber-50">
+                        <p className="text-sm text-muted-foreground mb-1">Manutenção</p>
+                        <p className="text-3xl font-bold text-amber-700">{occupationData.manutenção}</p>
+                      </div>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-1">Total de Leitos</p>
+                      <p className="text-3xl font-bold">
+                        {occupationData.ocupados + occupationData.disponíveis + occupationData.manutenção}
+                      </p>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -171,8 +159,10 @@ export default function MasterReports() {
                 ) : (
                   <div className="space-y-4">
                     {clinics.map(clinic => {
-                      const occupationRate = clinic.beds_capacity > 0 
-                        ? Math.round((clinic.occupied_beds / clinic.beds_capacity) * 100)
+                      const realBeds = clinic.occupied_beds + clinic.available_beds + clinic.maintenance_beds;
+                      const totalBedsForClinic = realBeds > 0 ? realBeds : clinic.beds_capacity;
+                      const occupationRate = totalBedsForClinic > 0 
+                        ? Math.round((clinic.occupied_beds / totalBedsForClinic) * 100)
                         : 0;
                       
                       return (
@@ -189,8 +179,8 @@ export default function MasterReports() {
                           </div>
                           <div className="grid grid-cols-3 gap-4 mt-3 pt-3 border-t">
                             <div>
-                              <p className="text-sm text-muted-foreground">Capacidade</p>
-                              <p className="font-medium">{clinic.beds_capacity} leitos</p>
+                              <p className="text-sm text-muted-foreground">Total</p>
+                              <p className="font-medium">{totalBedsForClinic} leitos</p>
                             </div>
                             <div>
                               <p className="text-sm text-muted-foreground">Ocupados</p>

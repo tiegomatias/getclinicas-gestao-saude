@@ -88,7 +88,9 @@ export const masterService = {
     let totalRevenue = 0;
 
     clinics.forEach(clinic => {
-      totalBeds += clinic.beds_capacity;
+      // Usar soma real dos leitos (ocupados + disponíveis + manutenção)
+      const realBeds = clinic.occupied_beds + clinic.available_beds + clinic.maintenance_beds;
+      totalBeds += realBeds > 0 ? realBeds : clinic.beds_capacity;
       totalOccupiedBeds += clinic.occupied_beds;
       
       const planPrice = PLAN_PRICING[clinic.plan] || PLAN_PRICING['Básico'];
@@ -219,44 +221,26 @@ export const masterService = {
   },
 
   /**
-   * Busca dados de ocupação para relatórios
+   * Busca dados de ocupação atual de todas as clínicas
    */
-  async getOccupationData(timeRange: 'week' | 'month' | 'year' = 'month') {
-    // Por enquanto, retorna dados simulados até implementarmos histórico
-    // TODO: Implementar tabela de histórico de ocupação
-    const data: any[] = [];
+  async getOccupationData() {
+    const clinics = await this.getAllClinics();
     
-    if (timeRange === 'week') {
-      const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      const today = new Date().getDay();
-      
-      for (let i = 6; i >= 0; i--) {
-        const dayIndex = (today - i + 7) % 7;
-        data.push({
-          name: days[dayIndex],
-          ocupados: Math.floor(Math.random() * 60) + 10,
-          disponíveis: Math.floor(Math.random() * 40) + 10
-        });
-      }
-    } else if (timeRange === 'month') {
-      for (let i = 1; i <= 4; i++) {
-        data.push({
-          name: `Semana ${i}`,
-          ocupados: Math.floor(Math.random() * 80) + 20,
-          disponíveis: Math.floor(Math.random() * 50) + 10
-        });
-      }
-    } else {
-      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      months.forEach(month => {
-        data.push({
-          name: month,
-          ocupados: Math.floor(Math.random() * 100) + 30,
-          disponíveis: Math.floor(Math.random() * 60) + 20
-        });
-      });
-    }
+    // Retorna dados reais agregados de todas as clínicas
+    let totalOccupied = 0;
+    let totalAvailable = 0;
+    let totalMaintenance = 0;
+
+    clinics.forEach(clinic => {
+      totalOccupied += clinic.occupied_beds;
+      totalAvailable += clinic.available_beds;
+      totalMaintenance += clinic.maintenance_beds;
+    });
     
-    return data;
+    return {
+      ocupados: totalOccupied,
+      disponíveis: totalAvailable,
+      manutenção: totalMaintenance
+    };
   }
 };

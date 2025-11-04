@@ -156,18 +156,6 @@ export default function MasterMaintenance() {
           value: `${((logsData?.length || 0) + (patientsData?.length || 0)).toLocaleString('pt-BR')}`,
           status: 'good',
           description: 'Total de registros no banco'
-        },
-        {
-          metric: 'Query Performance',
-          value: '45ms',
-          status: 'good',
-          description: 'Tempo médio de resposta'
-        },
-        {
-          metric: 'Uptime',
-          value: '99.9%',
-          status: 'good',
-          description: 'Disponibilidade do sistema'
         }
       ];
 
@@ -195,15 +183,23 @@ export default function MasterMaintenance() {
 
       if (error) throw error;
       
-      // Simulate backup creation
+      // Simulate backup creation with realistic size calculation
       await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Calculate approximate backup size based on records
+      const { data: recordsData } = await supabase
+        .from('clinics')
+        .select('*', { count: 'exact', head: true });
+      
+      // Estimate ~500KB per clinic as base size
+      const estimatedSize = (recordsData?.length || 1) * 500000;
       
       // Update backup status
       await supabase
         .from('backup_logs')
         .update({ 
           status: 'success',
-          size_bytes: Math.floor(Math.random() * 100000000) + 200000000, // 200-300MB
+          size_bytes: estimatedSize,
           completed_at: new Date().toISOString()
         })
         .eq('name', backupName);

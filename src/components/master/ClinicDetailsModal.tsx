@@ -198,7 +198,7 @@ export function ClinicDetailsModal({
                     <div>
                       <p className="text-sm text-muted-foreground">Leitos</p>
                       <p className="font-medium">
-                        {clinic.occupied_beds} / {clinic.beds_capacity}
+                        {clinic.occupied_beds} / {clinic.occupied_beds + clinic.available_beds + clinic.maintenance_beds || clinic.beds_capacity}
                       </p>
                     </div>
                   </div>
