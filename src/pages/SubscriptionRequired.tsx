@@ -1,10 +1,20 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 import { Lock, Sparkles } from "lucide-react";
 
 export default function SubscriptionRequired() {
   const navigate = useNavigate();
+  const { isMasterAdmin } = useAuth();
+
+  // Master admin não precisa de assinatura, redirecionar para dashboard
+  useEffect(() => {
+    if (isMasterAdmin) {
+      navigate("/dashboard");
+    }
+  }, [isMasterAdmin, navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-[600px] p-4">

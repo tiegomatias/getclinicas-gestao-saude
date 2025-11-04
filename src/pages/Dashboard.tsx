@@ -16,6 +16,7 @@ import { bedService } from "@/services/bedService";
 import { activityService } from "@/services/activityService";
 import { financeService } from "@/services/financeService";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ClinicData {
   clinicName: string;
@@ -34,14 +35,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { isSubscribed } = useSubscription();
+  const { isMasterAdmin } = useAuth();
   
   // Verificar assinatura e redirecionar para planos se não estiver ativo
+  // Master admin não precisa de plano
   useEffect(() => {
-    if (!loading && !isSubscribed()) {
+    if (!loading && !isMasterAdmin && !isSubscribed()) {
       toast.info("Escolha um plano para acessar o sistema");
       navigate("/plans");
     }
-  }, [loading, isSubscribed, navigate]);
+  }, [loading, isMasterAdmin, isSubscribed, navigate]);
   
   // Real data states
   const [totalPatients, setTotalPatients] = useState(0);

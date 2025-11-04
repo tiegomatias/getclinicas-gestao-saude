@@ -1,4 +1,5 @@
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +7,13 @@ import { AlertCircle, CreditCard } from 'lucide-react';
 
 export const SubscriptionBanner = () => {
   const subscription = useSubscription();
+  const { isMasterAdmin } = useAuth();
   const navigate = useNavigate();
+
+  // Master admin não precisa ver o banner
+  if (isMasterAdmin) {
+    return null;
+  }
 
   // Não mostra nada se a assinatura está ativa e não expira em breve
   if (!subscription.isExpiringSoon() && !subscription.isExpired() && subscription.isSubscribed()) {
