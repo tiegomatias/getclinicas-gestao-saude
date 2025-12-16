@@ -30,6 +30,7 @@ import {
   ShoppingCart,
   Package,
   BookOpen,
+  ClipboardList,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -83,6 +84,11 @@ export default function AppSidebar() {
       title: "Apostilas",
       path: "/apostilas",
       icon: BookOpen,
+    },
+    {
+      title: "Anamnese",
+      path: "/anamnese",
+      icon: ClipboardList,
     },
     {
       title: "Documentos",

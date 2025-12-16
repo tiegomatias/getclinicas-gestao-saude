@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { 
   Card, 
@@ -30,8 +28,10 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, addMonths } from "date-fns";
+import { contractService } from "@/services/contractService";
+import { patientService } from "@/services/patientService";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   responsavelNome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -50,6 +50,9 @@ const formSchema = z.object({
   formaPagamento: z.string(),
   clinicaNome: z.string().min(3, "Nome da clínica obrigatório"),
   dataAssinatura: z.string(),
+  dataVencimento: z.string().optional(),
+  descontoTipo: z.string().optional(),
+  descontoValor: z.string().optional(),
 });
 
 type ContractFormProps = {
@@ -59,6 +62,8 @@ type ContractFormProps = {
 };
 
 export default function ContractForm({ clinicId, contract, onSuccess }: ContractFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -78,12 +83,75 @@ export default function ContractForm({ clinicId, contract, onSuccess }: Contract
       formaPagamento: "À vista",
       clinicaNome: "Clínica de Recuperação",
       dataAssinatura: format(new Date(), "yyyy-MM-dd"),
+      dataVencimento: format(addMonths(new Date(), 1), "yyyy-MM-dd"),
+      descontoTipo: "nenhum",
+      descontoValor: "0",
     },
   });
 
-  const handleFormSubmit = (data: z.infer<typeof formSchema>) => {
-    toast.success("Contrato salvo com sucesso!");
-    onSuccess();
+  const handleFormSubmit = async (data: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+    
+    try {
+      // 1. Criar paciente automaticamente
+      const patientData = {
+        name: data.pacienteNome,
+        birth_date: data.pacienteDataNascimento,
+        admission_date: data.dataEntrada,
+        admission_type: "internacao",
+        status: "active",
+        clinic_id: clinicId,
+        responsible_name: data.responsavelNome,
+        responsible_phone: "",
+        address: data.responsavelEndereco,
+      };
+
+      const patient = await patientService.createPatient(patientData);
+      
+      if (!patient) {
+        throw new Error("Erro ao criar paciente");
+      }
+
+      // 2. Calcular data de término baseado no tempo de internação
+      const startDate = new Date(data.dataEntrada);
+      const endDate = addMonths(startDate, parseInt(data.tempoInternacao));
+
+      // 3. Calcular valor final com desconto
+      let valorFinal = parseFloat(data.valorTratamento.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+      const descontoValor = parseFloat(data.descontoValor || "0");
+      
+      if (data.descontoTipo === "percentual" && descontoValor > 0) {
+        valorFinal = valorFinal - (valorFinal * descontoValor / 100);
+      } else if (data.descontoTipo === "fixo" && descontoValor > 0) {
+        valorFinal = valorFinal - descontoValor;
+      }
+
+      // 4. Criar contrato
+      const contractData = {
+        patient_id: patient.id,
+        responsible_name: data.responsavelNome,
+        responsible_document: data.responsavelCpf,
+        value: valorFinal,
+        start_date: data.dataEntrada,
+        end_date: format(endDate, "yyyy-MM-dd"),
+        payment_method: data.formaPagamento,
+        due_date: data.dataVencimento,
+        discount_type: data.descontoTipo !== "nenhum" ? data.descontoTipo : null,
+        discount_value: descontoValor,
+      };
+
+      const createdContract = await contractService.createContract(clinicId, contractData);
+
+      if (createdContract) {
+        toast.success("Contrato e paciente criados com sucesso!");
+        onSuccess();
+      }
+    } catch (error: any) {
+      console.error("Erro ao salvar contrato:", error);
+      toast.error("Erro ao salvar contrato: " + (error.message || "Erro desconhecido"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -338,6 +406,7 @@ export default function ContractForm({ clinicId, contract, onSuccess }: Contract
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="PIX">PIX</SelectItem>
                         <SelectItem value="À vista">À vista</SelectItem>
                         <SelectItem value="Parcelado em 2x">Parcelado em 2x</SelectItem>
                         <SelectItem value="Parcelado em 3x">Parcelado em 3x</SelectItem>
@@ -350,8 +419,22 @@ export default function ContractForm({ clinicId, contract, onSuccess }: Contract
                 )}
               />
             </div>
-            
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="dataVencimento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data de vencimento</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="clinicaNome"
@@ -365,25 +448,79 @@ export default function ContractForm({ clinicId, contract, onSuccess }: Contract
                   </FormItem>
                 )}
               />
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="descontoTipo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de desconto</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo de desconto" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="nenhum">Nenhum</SelectItem>
+                        <SelectItem value="percentual">Percentual (%)</SelectItem>
+                        <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={form.control}
-                name="dataAssinatura"
+                name="descontoValor"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data de assinatura</FormLabel>
+                    <FormLabel>Valor do desconto</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="number" 
+                        placeholder="0" 
+                        {...field} 
+                        disabled={form.watch("descontoTipo") === "nenhum"}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+            
+            <FormField
+              control={form.control}
+              name="dataAssinatura"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de assinatura</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">
-              Gerar Contrato
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Gerar Contrato"
+              )}
             </Button>
           </CardFooter>
         </Card>

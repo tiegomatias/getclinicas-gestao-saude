@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,6 +21,7 @@ import { Upload, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { documentService } from "@/services/documentService";
 
 interface DocumentUploadProps {
   clinicId: string;
@@ -46,7 +45,6 @@ export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadP
       patientId: "",
       docTitle: "",
       description: "",
-      file: null,
     },
   });
 
@@ -76,30 +74,83 @@ export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadP
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      // Validar tamanho (máx 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Arquivo muito grande. Máximo permitido: 10MB");
+        return;
+      }
+      setSelectedFile(file);
     }
   };
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     if (!selectedFile) {
       toast.error("Por favor, selecione um arquivo para upload");
       return;
     }
 
+    if (!data.documentType) {
+      toast.error("Por favor, selecione o tipo de documento");
+      return;
+    }
+
+    if (!data.docTitle) {
+      toast.error("Por favor, informe o título do documento");
+      return;
+    }
+
     setIsUploading(true);
     
-    // Simulando um upload
-    setTimeout(() => {
-      setIsUploading(false);
-      toast.success("Documento enviado com sucesso!");
-      form.reset();
-      setSelectedFile(null);
+    try {
+      // 1. Fazer upload do arquivo para o Supabase Storage
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${clinicId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       
-      // Notify parent component
-      if (onComplete) {
-        onComplete();
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(fileName, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw new Error(`Erro no upload: ${uploadError.message}`);
       }
-    }, 2000);
+
+      // 2. Obter URL pública do arquivo
+      const { data: urlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(fileName);
+
+      // 3. Salvar metadados no banco de dados
+      const documentData = {
+        document_type: data.documentType,
+        title: data.docTitle,
+        patient_id: data.patientId || undefined,
+        file_url: urlData.publicUrl,
+      };
+
+      const createdDocument = await documentService.createDocument(clinicId, documentData);
+
+      if (createdDocument) {
+        form.reset();
+        setSelectedFile(null);
+        
+        // Reset file input
+        const fileInput = document.getElementById('dropzone-file') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        
+        if (onComplete) {
+          onComplete();
+        }
+      }
+    } catch (error: any) {
+      console.error('Erro ao enviar documento:', error);
+      toast.error(error.message || 'Erro ao enviar documento');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -128,6 +179,7 @@ export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadP
                       <SelectItem value="report">Laudo</SelectItem>
                       <SelectItem value="exam">Resultado de Exame</SelectItem>
                       <SelectItem value="record">Prontuário</SelectItem>
+                      <SelectItem value="anamnese">Anamnese</SelectItem>
                       <SelectItem value="other">Outro</SelectItem>
                     </SelectContent>
                   </Select>
@@ -141,7 +193,7 @@ export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadP
               name="patientId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Paciente</FormLabel>
+                  <FormLabel>Paciente (opcional)</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -191,7 +243,7 @@ export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadP
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Descrição</FormLabel>
+                <FormLabel>Descrição (opcional)</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Adicione uma breve descrição do documento"
@@ -225,6 +277,7 @@ export default function DocumentUpload({ clinicId, onComplete }: DocumentUploadP
                   type="file"
                   className="hidden"
                   onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 />
               </label>
             </div>
