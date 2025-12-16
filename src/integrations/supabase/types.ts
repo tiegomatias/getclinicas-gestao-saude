@@ -538,10 +538,14 @@ export type Database = {
         Row: {
           clinic_id: string | null
           created_at: string | null
+          discount_type: string | null
+          discount_value: number | null
+          due_date: string | null
           end_date: string | null
           file_url: string | null
           id: string
           patient_id: string | null
+          payment_method: string | null
           responsible_document: string
           responsible_name: string
           start_date: string | null
@@ -551,10 +555,14 @@ export type Database = {
         Insert: {
           clinic_id?: string | null
           created_at?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          due_date?: string | null
           end_date?: string | null
           file_url?: string | null
           id?: string
           patient_id?: string | null
+          payment_method?: string | null
           responsible_document: string
           responsible_name: string
           start_date?: string | null
@@ -564,10 +572,14 @@ export type Database = {
         Update: {
           clinic_id?: string | null
           created_at?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          due_date?: string | null
           end_date?: string | null
           file_url?: string | null
           id?: string
           patient_id?: string | null
+          payment_method?: string | null
           responsible_document?: string
           responsible_name?: string
           start_date?: string | null

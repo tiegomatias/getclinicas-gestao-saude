@@ -13,6 +13,10 @@ export interface Contract {
   status: string;
   file_url?: string;
   created_at: string;
+  payment_method?: string;
+  due_date?: string;
+  discount_type?: string;
+  discount_value?: number;
 }
 
 export interface CreateContractData {
@@ -22,6 +26,10 @@ export interface CreateContractData {
   value: number;
   start_date: string;
   end_date?: string;
+  payment_method?: string;
+  due_date?: string;
+  discount_type?: string | null;
+  discount_value?: number;
 }
 
 export const contractService = {
